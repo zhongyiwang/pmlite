@@ -1,0 +1,105 @@
+{% extends '_base.html' %}
+{% block title %}用户管理{% endblock %}
+{% block body %}
+
+<style>
+.demo-login-container{width: 400px; margin: 50px auto 0;}
+</style>
+
+<form class="layui-form">
+    <div class="demo-login-container">
+        <div class="layui-form-item">
+            <label class="layui-form-label">新密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请输入新密码"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">确认密码</label>
+            <div class="layui-input-block">
+                <input type="password" name="password1" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请再次输入新密码"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="submit">修改密码</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    layui.use(function () {
+        let form = layui.form;
+        let layer = layui.layer
+        let $ = layui.jquery;
+
+        // 给默认的ajax请求添加权限
+        $.ajaxSetup({
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("access_token")
+            }
+        })
+
+        // 提交事件
+        form.on('submit', function (data) {
+            let field = data.field
+            let userId = 0
+            if (field.password === field.password1) {
+                // 获取当前登录用户id
+                $.ajax({
+                    type: "GET",
+                    url: "/api/v1/user/profile",
+                    async: false,
+                    success: function (res){
+                        if (res.code === 0){
+                            console.log(res)
+                            userId = res.data.id
+                        }
+                    }
+                })
+                console.log("userId = " + userId)
+                if (userId) {
+                    $.ajax({
+                        url: `/api/v1/user/${userId}`,
+                        type: "PUT",
+                        data: JSON.stringify({"password": field.password}),
+                        contentType: "application/json",
+                        success: function (res){
+                            if (res.code ===0) {
+                                localStorage.removeItem("access_token");
+                                localStorage.removeItem("refresh_token");
+                                layer.msg(res.msg, {
+                                    icon:1,
+                                    time: 1000
+                                }, function (){
+                                    top.location.href = "/user/login";  // 整体框架刷新
+
+                                })
+                            }else{
+                                layer.msg(res.msg, {
+                                    icon: 2,
+                                    time: 1000
+                                })
+                            }
+
+                        },
+                    })
+                }
+
+
+            } else {
+                layer.msg("2次密码不一致！", {
+                    icon: 2,
+                    time: 1000
+                })
+            }
+
+
+            return false; // 阻止默认 form 跳转
+        })
+    })
+</script>
+{% endblock %}

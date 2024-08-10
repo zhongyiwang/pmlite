@@ -1,0 +1,180 @@
+{% extends '_base.html' %}
+{% block title %}首页{% endblock %}
+{% block body %}
+
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo layui-hide-xs layui-bg-black">Project Manager Lite</div>
+
+        <!-- 头部区域（可配合layui 已有的水平导航） -->
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item layui-hide layui-show-sm-inline-block">
+                <a href="javascript:;" >
+                    <span id="user">tester</span>
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="{{ url_for('user.profile') }}" data-menuId="100">个人设置</a></dd>
+                    <dd><a href="javascript:;" id="logout">退出登录</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
+                <a href="javascript:;">
+                    <i class="layui-icon layui-icon-more-vertical"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div class="layui-side layui-bg-black">
+    <div class="layui-side-scroll">
+      <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+      <ul class="layui-nav layui-nav-tree" lay-filter="test">
+        <li class="layui-nav-item layui-nav-itemed">
+          <a class="" href="javascript:;">项目管理</a>
+          <dl class="layui-nav-child">
+            <dd><a href="{{ url_for('project.index') }}" data-menuId="101">所有项目</a></dd>
+            <dd><a href="javascript:;">未完成项目</a></dd>
+          </dl>
+        </li>
+        <li class="layui-nav-item layui-nav-itemed">
+          <a class="" href="javascript:;">任务管理</a>
+          <dl class="layui-nav-child">
+            <dd><a href="{{ url_for('task.index') }}" data-menuId="201">所有任务</a></dd>
+            <dd><a href="{{ url_for('task.index', status="uncompleted") }}" data-menuId="202">未完成任务</a></dd>
+            <dd><a href="javascript:;">我的任务</a></dd>
+          </dl>
+        </li>
+        <li class="layui-nav-item">
+          <a href="javascript:;">系统设置</a>
+          <dl class="layui-nav-child">
+            <dd><a href="{{ url_for('department.index') }}" data-menuId="301">部门管理</a></dd>
+            <dd><a href="{{ url_for('user.index') }}" data-menuId="302">用户管理</a></dd>
+          </dl>
+        </li>
+      </ul>
+    </div>
+    </div>
+    <div class="layui-body">
+    <!-- 内容主体区域 -->
+      <div class="layui-tab" lay-filter="page-tab" lay-allowclose="true">
+          <ul class="layui-tab-title"></ul>
+          <div class="layui-tab-content"></div>
+      </div>
+    {#      <iframe id="iframeMain" src="" style="padding-top: 10px; width: 100%; height: 100%;"></iframe>#}
+    </div>
+    <div class="layui-footer">
+    <!-- 底部固定区域 -->
+    底部固定区域
+    </div>
+</div>
+
+<script>
+layui.use(['element', 'layer', 'util'], function(){
+    var element = layui.element;
+    var layer = layui.layer;
+    var util = layui.util;
+    var $ = layui.$;
+
+    const tabAdd = function(label, html, layId){
+        element.tabAdd('page-tab', {
+            title: label,
+            content: html,
+            id: layId,
+            change: true
+        })
+
+
+    }
+
+    //左侧菜单跳转事件
+    $("dd>a").click(function (event){
+        const othis = $(this)
+        event.preventDefault();
+        // $("#iframeMain").attr("src",$(this).attr("href"))
+        // console.log($(this).attr("data-menuId"))
+        // let html = ""
+        console.log($("[layid = " + othis.attr("data-menuId") + "]").lenth)
+        //html = '<iframe class="aaiframe" src="' + $(this).attr("href") +  '" style="padding-top: 10px; width: 100%; height: 100%; border:none"></iframe>'
+        element.tabDelete('page-tab',othis.attr("data-menuId"))
+        html = '<iframe class="aaiframe" src="' + $(this).attr("href") +  '" style="position: absolute; width: 100%; height: 100%;border:none"></iframe>'
+        tabAdd(othis.text(), html, othis.attr("data-menuId"))
+    })
+
+    // hash 地址定位
+    let hashName = 'tabid'; // hash 名称
+    let layid = location.hash.replace(new RegExp('^#'+ hashName + '='), ''); // 获取 lay-id 值
+
+    // 初始切换
+    element.tabChange('test-hash', layid);
+    // 切换事件
+    element.on('tab(test-hash)', function(obj){
+    location.hash = hashName +'='+ this.getAttribute('lay-id');
+    });
+
+    // 给默认的ajax请求添加权限
+    $.ajaxSetup({
+        headers: {
+            Authorization: "Bearer " + localStorage.getItem("access_token")
+        }
+    })
+
+    // 请求后端，验证是否已登录
+    $.ajax({
+        type: "GET",
+        url: "/api/v1/user/profile",
+        success: function (res){
+            if (res.code !== 0){  // 没有登录，跳转到登录页面
+                location.href = "/user/login"
+            } else{  // 已登录，显示用户姓名
+                $("#user").text(res.data.name)
+            }
+        },
+        error: function (error){
+            location.href = "/user/login"
+        }
+    })
+
+    // 退出登录
+    $("#logout").click(function (){
+        $.ajax({
+            type: "POST",
+            url: "/api/v1/logout",
+            success: function (res){
+                console.log(res)
+                if (res.code === 0) {
+                    localStorage.removeItem("access_token");
+                    localStorage.removeItem("refresh_token");
+                    layer.msg(res.msg, {
+                        icon:1,
+                        time: 1000
+                    }, function (){
+                        location.href = "/user/login";
+                    })
+                }
+            }
+        })
+    })
+
+  //头部事件
+  util.event('lay-header-event', {
+    menuLeft: function(othis){ // 左侧菜单事件
+      layer.msg('展开左侧菜单的操作', {icon: 0});
+    },
+    menuRight: function(){  // 右侧菜单事件
+      layer.open({
+        type: 1,
+        title: '更多',
+        content: '<div style="padding: 15px;">处理右侧面板的操作</div>',
+        area: ['260px', '100%'],
+        offset: 'rt', // 右上角
+        anim: 'slideLeft', // 从右侧抽屉滑出
+        shadeClose: true,
+        scrollbar: false
+      });
+    }
+  });
+});
+</script>
+{#</body>#}
+{#</html>#}
+
+{% endblock %}

@@ -1,0 +1,223 @@
+{% extends '_base.html' %}
+{% block title %}部门管理{% endblock %}
+{% block body %}
+<!-- 部门表格 -->
+<div class="layui-fluid">
+    <table class="layui-hide" id="department-table" lay-filter="department-table"></table>
+</div>
+
+<!--添加/编辑部门弹窗表单-->
+<form class="layui-form" action="" id="department-form" lay-filter="department-form" style="margin-top: 20px; display: none">
+    <div style="padding-right: 20px;">
+        <div class="layui-form-item" style="display: none">
+            <label class="layui-form-label">ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="id" value="0" lay-verify="required" autocomplete="off" class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请输入部门名称"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">负责人</label>
+            <div class="layui-input-block">
+                <input type="text" name="leader" lay-verify="required" lay-affix="clear" placeholder="请输入部门负责人" class="layui-input"></input>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">上级部门</label>
+            <div class="layui-input-block">
+                <select name="parent_id" id="parent_id" lay-filter="parent_select">
+                    <option value="">请选择上级部门</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit lay-filter="department-form-submit">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+<!-- 工具栏模板 -->
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加部门</button>
+    </div>
+</script>
+
+<!-- 右侧工具栏 -->
+<script type="text/html" id="tools">
+    <a class="layui-btn layui-btn-xs" lay-event="tool-edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="tool-del">删除</a>
+</script>
+
+<script>
+    // 更改 一级部门 列的渲染
+    function render_is_parent(d) {
+        if (d.parent_id > 0) {
+            return '否'
+        } else {
+            return '是'
+        }
+    }
+
+    layui.use(function () {
+        var treeTable = layui.treeTable
+        var $ = layui.$;
+        var form = layui.form;
+        var layer = layui.layer;
+
+        // 渲染表格
+        treeTable.render({
+            elem: '#department-table',
+            id: 'department-table',
+            url: '/api/v1/department/treetable',
+            toolbar: '#toolbar',
+            cols: [
+                [   // 标题栏
+                    {field: 'id', title: 'ID', width: 100, sort: true},
+                    {field: 'name', title: '部门名称', width: 200},
+                    {field: 'leader', title: '负责人', width: 200},
+                    {field: 'parent_id', title: '一级部门', width: 200, templet: render_is_parent},
+                    {title: '操作', width: 120, templet: '#tools'}
+                ]],
+            page: true,
+            tree:{
+                view:{
+                    expandAllDefault: true
+                }
+            }
+        });
+
+
+        // 获取一级部门列表
+        const get_parent =function (obj){
+            $.ajax({
+                url: "/api/v1/department",
+                type: "get",
+                async: false,
+                success: function (res){
+                    // console.log(res)
+                    let content = '<option value=0>请选择上级部门</option>'
+                    $.each(res.data, function (i, val){
+                        if (val.parent_id == 0){
+                            if (obj && val.id === obj.data.parent_id){
+                                content += '<option value="' + val.id + '" selected>' + val.name + '</option>'
+                            } else {
+                                content += '<option value="' + val.id + '">' + val.name + '</option>'
+                            }
+                        }
+                    })
+                    //console.log(content)
+                    $('#parent_id').html(content)
+                    form.render('select')
+                }
+            })
+        }
+
+        // 顶部工具栏事件
+        treeTable.on('toolbar(department-table)', function (obj){
+            var options = obj.config;  //获取当前表格属性配置项
+
+            // 根据不同的事件名进行相应的操作
+            switch (obj.event){  // 对应模板元素中的 lay-event 属性值
+                case 'toolbar-add':
+                    $("#department-form")[0].reset();  // 将ID表单清空
+                    layer.open({
+                        type: 1,
+                        title: "添加部门",
+                        shade: false,
+                        content: $("#department-form"),
+                        area: ["600px", "300px"]
+                    })
+                    get_parent()  // 获取一级部门，并渲染select
+                    break;
+            }
+        })
+
+        // 单元格工具事件（操作列的按钮组）
+        treeTable.on('tool(department-table)', function (obj) {
+            //console.log(obj)
+            if (obj.event === 'tool-edit') {  // 编辑
+                form.val('department-form', obj.data);
+                get_parent(obj)  // 获取一级部门，并渲染select
+                layer.open({
+                    type: 1,
+                    title: "修改部门",
+                    content: $("#department-form"),
+                    area: ["600px", "300px"]
+                })
+            } else if ( obj.event === 'tool-del') {  // 删除
+                layer.confirm('确认删除么？', function (index) {
+                    $.ajax({
+                        url: `/api/v1/department/${obj.data.id}`,
+                        type: "DELETE",
+                        contentType: "application/json",
+                        success: function (res){
+                            if (!res.code){
+                                layer.msg(res.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function(){
+                                    treeTable.reloadData('department-table')
+                                })
+                            }
+                        }
+                    })
+                    layer.close(index);
+                });
+            }
+        });
+
+
+
+        // 弹窗表单提交事件
+        form.on('submit(department-form-submit)', function (data) {
+            let field = data.field; // 获取表单字段值
+            if (field.id == 0){
+                field.id = null;
+                method = "POST";
+                url = "/api/v1/department";
+            }else{
+                method = "PUT";
+                url = `/api/v1/department/${field.id}`;
+            }
+            $.ajax({
+                method: method,
+                url: url,
+                data: JSON.stringify(field),
+                contentType: "application/json",
+                //datatype: "json",
+                success: function (res){
+                    layer.msg(res.msg, {
+                        icon: 1,
+                        time: 1000
+                    }, function(){
+                        layer.closeAll('page');
+                        treeTable.reloadData('department-table')
+                    })
+                },
+                error: function (res){
+                    layer.msg(res.msg,{
+                        icon: 2,
+                        time: 1000
+                    })
+                }
+            })
+            return false; // 阻止默认 form 跳转
+        });
+
+    });
+
+</script>
+
+{% endblock %}
