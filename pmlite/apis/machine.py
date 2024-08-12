@@ -42,11 +42,10 @@ def machine_add():
 
 
 # 修改用户数据
-@machine_api.put('/<int:uid>')
-def machine_edit(uid):
+@machine_api.put('/<int:mid>')
+def machine_edit(mid):
     data = request.get_json()
-    # user = StudentORM.query.get(uid)
-    machine = db.get_or_404(MachineTypeModel, uid)
+    machine = db.get_or_404(MachineTypeModel, mid)
     machine.update(data)
     try:
         machine.save()
@@ -62,12 +61,11 @@ def machine_edit(uid):
 
 
 # 删除用户
-@machine_api.delete('/<int:uid>')
-def user_delete(uid):
-    user: UserModel = db.get_or_404(UserModel, uid)
+@machine_api.delete('/<int:mid>')
+def user_delete(mid):
+    user: MachineTypeModel = db.get_or_404(MachineTypeModel, mid)
     try:
         db.session.delete(user)
-        # user.is_del = True
         db.session.commit()
     except Exception as e:
         return {
@@ -77,15 +75,4 @@ def user_delete(uid):
     return {
         'code': 0,
         'msg': '删除数据成功'
-    }
-
-
-# 获取用户信息
-@machine_api.get("/profile")
-@jwt_required()
-def user_profile():
-    return {
-        "code": 0,
-        "msg": "获取个人数据成功！",
-        "data": current_user.json()
     }
