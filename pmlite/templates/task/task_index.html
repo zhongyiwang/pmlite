@@ -77,18 +77,69 @@
     </div>
 </form>
 
-<!-- 顶部工具栏 -->
+<!-- 工时表格 -->
+<div class="layui-fluid" id="man-hour-page" style="display: none">
+    <table class="layui-hide" id="man-hour-table" lay-filter="man-hour-table"></table>
+</div>
+
+<!--添加/修改工时弹窗表单-->
+<form class="layui-form" action="" id="man-hour-form" lay-filter="man-hour-form" style="margin-top: 20px; display: none">
+    <div style="padding-right: 20px;">
+        <div class="layui-form-item" style="display: none">
+            <label class="layui-form-label">ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="id" value="0" lay-verify="required" autocomplete="off" class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">日期</label>
+            <div class="layui-input-block">
+                <input type="text" name="work_date" lay-verify="required" lay-affix="clear" placeholder="请选择日期" class="layui-input date-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">工时</label>
+            <div class="layui-input-block">
+                <input type="text" name="man_hour" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请输入工时"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit lay-filter="man-hour-form-submit">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<!-- 任务表顶部工具栏 -->
 <script type="text/html" id="toolbar">
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加任务</button>
     </div>
 </script>
 
-<!-- 右侧工具栏 -->
+<!-- 工时表顶部工具栏 -->
+<script type="text/html" id="man-hour-toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加工时</button>
+    </div>
+</script>
+
+<!-- 任务表右侧工具栏 -->
 <script type="text/html" id="tools">
     <a class="layui-btn layui-btn-xs" lay-event="task-edit">编辑</a>
+    <a class="layui-btn layui-btn-xs" lay-event="show-man-hour-page">工时</a>
 {#    <a class="layui-btn layui-btn-xs" lay-event="subtask-add">子任务</a>#}
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="task-del">删除</a>
+</script>
+
+<!-- 工时表右侧工具栏 -->
+<script type="text/html" id="man-hour-tools">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 
 <script>
@@ -105,10 +156,13 @@
 
     layui.use(function () {
         var treeTable = layui.treeTable;
+        var table = layui.table;
         var $ = layui.$;
         var form = layui.form;
         var layer = layui.layer;
         let laydate = layui.laydate;
+
+        let task_id = 0
 
         // 给默认的ajax请求添加权限
         $.ajaxSetup({
@@ -256,7 +310,7 @@
                         title: "添加任务",
                         shade: false,
                         content: $("#task-form"),
-                        area: ["50%", "80%"]
+                        area: ["50%", "60%"]
                     })
                     get_types()  // 获取部门，并渲染select
                     get_projects()  // 获取未完成项目，并渲染select
@@ -279,9 +333,94 @@
                 layer.open({
                     type: 1,
                     title: '修改任务',
-                    area: ['50%', '80%'],
+                    area: ['50%', '60%'],
                     content: $('#task-form'),  // 捕获的元素
                 });
+            } else if ( obj.event === 'show-man-hour-page') {  // 工时
+                task_id = obj.data.id
+                layer.open({
+                    type: 1,
+                    title: '工时',
+                    area: ['50%', '40%'],
+                    totalRow: true,
+                    content: $('#man-hour-page'),  // 捕获的元素
+                });
+
+                // 渲染表格
+                table.render({
+                    elem: '#man-hour-table',
+                    id: 'man-hour-table',
+                    url: `/api/v1/task/${obj.data.id}/man-hour`,
+                    toolbar: '#man-hour-toolbar',
+                    page: true,
+                    cols: [
+                        [   // 标题栏
+                            {field: 'id', title: 'ID', sort: true, align: 'center'},
+                            {field: 'work_date', title: '日期'},
+                            {field: 'man_hour', title: '工时'},
+                            {title: '操作', fixed: "right", width: 180, toolbar: '#man-hour-tools'}
+                        ]
+                    ],
+                });
+                // 顶部工具栏事件
+                table.on('toolbar(man-hour-table)', function (obj) {
+                    var options = obj.config;  //获取当前表格属性配置项
+
+                    // 根据不同的事件名进行相应的操作
+                    switch (obj.event) {  // 对应模板元素中的 lay-event 属性值
+                        case 'toolbar-add':
+                            $("#man-hour-form")[0].reset();  // 将ID表单清空
+                            layer.open({
+                                type: 1,
+                                title: "添加任务",
+                                shade: false,
+                                content: $("#man-hour-form"),
+                                area: ["40%", "30%"]
+                            })
+
+                            break;
+                            //form.render($("#user-form"))
+                    }
+                })
+
+                table.on('tool(man-hour-table)', function (obj){
+
+                    if (obj.event === 'edit'){
+
+                        form.val('man-hour-form', obj.data);
+                        layer.open({
+                            type: 1,
+                            title: "修改工时",
+                            content: $("#man-hour-form"),
+                            area: ["40%", "30%"]
+                        })
+                    } else if (obj.event ==='del'){
+                        layer.confirm('确认删除么？', function (index) {
+                        $.ajax({
+                            url: `/api/v1/task/${task_id}/man-hour/${obj.data.id}`,
+                            type: "DELETE",
+                            contentType: "application/json",
+                            success: function (res){
+                                if (!res.code){
+                                    layer.msg(res.msg, {
+                                        icon: 1,
+                                        time: 1000
+                                    }, function(){
+                                        table.reloadData('man-hour-table')
+                                    })
+                                } else {
+                                    layer.msg(res.msg, {
+                                        icon: 2,
+                                        time: 1500,
+                                    });
+                                }
+                            }
+                        })
+                        layer.close(index);
+                    });
+                    }
+                })
+
             } else if ( obj.event === 'task-del') {  // 删除
                 layer.confirm('确认删除么？', function (index) {
                     $.ajax({
@@ -296,6 +435,11 @@
                                 }, function(){
                                     treeTable.reloadData('task-table')
                                 })
+                            } else {
+                                layer.msg(res.msg, {
+                                    icon: 2,
+                                    time: 1500,
+                                });
                             }
                         }
                     })
@@ -306,36 +450,36 @@
 
 
         // 删除提交的方法
-        const del_user_api = async (id) => {
-            const options = {
-                method: 'DELETE',
-                headers: {'Content-Type': 'application/json'},
-            }
-            const response = await fetch(`/api/user/${id}`, options)
-            return await response.json()
-        }
-        window.del_user = (obj) => {
-            console.log(obj)
-            del_user_api(obj.data.id).then(function (ret) {
-                // 提交成功之后的回调
-                if (!ret.code) {
-                    layer.msg(ret.msg, {
-                        icon: 1,
-                        time: 1000,
-                    }, function () {
-                        table.reload('user');
-                    });
-                } else {
-                    layer.msg(ret.msg, {
-                        icon: 2,
-                        time: 1000,
-                    });
-                }
-            })
-        }
+        <!--?const del_user_api = async (id) => {-->
+        <!--?    const options = {-->
+        <!--?        method: 'DELETE',-->
+        <!--?        headers: {'Content-Type': 'application/json'},-->
+        <!--?    }-->
+        <!--?    const response = await fetch(`/api/user/${id}`, options)-->
+        <!--?    return await response.json()-->
+        <!--?}-->
+        <!--?window.del_user = (obj) => {-->
+        <!--?    console.log(obj)-->
+        <!--?    del_user_api(obj.data.id).then(function (ret) {-->
+        <!--?        // 提交成功之后的回调-->
+        <!--?        if (!ret.code) {-->
+        <!--?            layer.msg(ret.msg, {-->
+        <!--?                icon: 1,-->
+        <!--?                time: 1000,-->
+        <!--?            }, function () {-->
+        <!--?                table.reload('user');-->
+        <!--?            });-->
+        <!--?        } else {-->
+        <!--?            layer.msg(ret.msg, {-->
+        <!--?                icon: 2,-->
+        <!--?                time: 1000,-->
+        <!--?            });-->
+        <!--?        }-->
+        <!--?    })-->
+        <!--?}-->
 
 
-        // 弹窗表单提交事件
+        // 任务弹窗表单提交事件
         form.on('submit(task-form-submit)', function (data) {
             let field = data.field; // 获取表单字段值
             // layui中开关的被选中是“on”，需要转换成ture或false
@@ -363,6 +507,49 @@
                     }, function(){
                         layer.closeAll('page');
                         treeTable.reloadData('task-table')
+                    })
+                },
+                error: function (res){
+                    layer.msg(res.msg,{
+                        icon: 2,
+                        time: 1000
+                    })
+                }
+            })
+            return false; // 阻止默认 form 跳转
+        });
+
+        // 工时弹窗表单提交事件
+        form.on('submit(man-hour-form-submit)', function (data) {
+            let field = data.field; // 获取表单字段值
+            field.task_id = task_id
+            console.log(field)
+            // layui中开关的被选中是“on”，需要转换成ture或false
+            // ？. 为可选链运算符，即使不存在该属性的值，也不会报错
+            //field.disabled = field?.disabled ? true: false
+            if (field.id == 0){
+                field.id = null;
+                method = "POST";
+                url = `/api/v1/task/${task_id}/man-hour`;
+            }else{
+                method = "PUT";
+                url = `/api/v1/task/${task_id}/man-hour/${field.id}`;
+            }
+
+            $.ajax({
+                method: method,
+                url: url,
+                data: JSON.stringify(field),
+                contentType: "application/json",
+                //datatype: "json",
+                success: function (res){
+                    layer.msg(res.msg, {
+                        icon: 1,
+                        time: 1000
+                    }, function(){
+                        //layer.closeAll('page');
+                        layer.closeLast('page')
+                        table.reloadData('man-hour-table')
                     })
                 },
                 error: function (res){

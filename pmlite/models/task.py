@@ -33,7 +33,7 @@ class ManHourModel(BaseModel):
             "id": self.id,
             "task_id": self.task_id,
             "user_id": self.user_id,
-            "work_date": self.work_date,
+            "work_date": self.work_date.strftime("%Y-%m-%d") if self.work_date else "",
             "man_hour": self.man_hour
         }
 

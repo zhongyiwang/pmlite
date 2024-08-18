@@ -239,7 +239,7 @@
                 type: "get",
                 async: false,
                 success: function (res) {
-                    let content1, content2 = '<option value="">请选择负责人</option>'
+                    let content1 = content2 = '<option value="">请选择负责人</option>'
                     //console.log(res.data)
                     $.each(res.data, function (i, val) {
                         if (obj && val.name === obj.data.designer) {

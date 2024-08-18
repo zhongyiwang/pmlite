@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template
 from pmlite.models import DepartmentModel
+from flask_jwt_extended import jwt_required
 
 user_bp = Blueprint('user', __name__, url_prefix="/user")
 

@@ -94,6 +94,7 @@
         var form = layui.form;
         var layer = layui.layer;
 
+
         // 渲染表格
         table.render({
             elem: '#user-table',
@@ -288,6 +289,8 @@
                     })
                 },
                 error: function (res){
+                    console.log("error")
+                    console.log(res)
                     layer.msg(res.msg,{
                         icon: 2,
                         time: 1000
