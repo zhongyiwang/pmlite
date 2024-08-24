@@ -14,6 +14,7 @@ class UserModel(BaseModel):
     number = Column(String(10), nullable=False, unique=True, comment="员工编号")
     name = Column(String(20), nullable=False, comment="姓名")
     mobile = Column(String(11), nullable=False, unique=True, comment="手机号码")
+    mobile_short = Column(String(11), unique=True, comment="集团短号")
     email = Column(String(50), nullable=False, unique=True, comment="邮箱")
     disabled = Column(Boolean, default=False, comment="禁用")
     password_hash = Column(String(102), nullable=False, comment="密码hash")
@@ -32,6 +33,7 @@ class UserModel(BaseModel):
             "number": self.number,
             "name": self.name,
             "mobile": self.mobile,
+            "mobile_short": self.mobile_short,
             "email": self.email,
             "disabled": self.disabled,
             "create_time": self.create_time.strftime("%Y-%m-%d %H:%M:%S"),

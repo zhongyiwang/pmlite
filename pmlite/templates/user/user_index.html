@@ -45,6 +45,13 @@
             </div>
         </div>
         <div class="layui-form-item">
+            <label class="layui-form-label">集团短号</label>
+            <div class="layui-input-block">
+                <input type="text" name="mobile_short" lay-affix="clear" autocomplete="off" placeholder="请输入集团短号"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
             <label class="layui-form-label">邮箱</label>
             <div class="layui-input-block">
                 <input type="text" name="email" lay-verify="required|email" lay-affix="clear" class="layui-input" placeholder="请输入邮箱地址">
@@ -109,6 +116,7 @@
                     {field: 'name', title: '姓名', minWidth: 80, align: 'center'},
                     {field: 'department', title: '部门', minWidth: 120, align: 'center'},
                     {field: 'mobile', title: '电话', minWidth: 120, align: 'center'},
+                    {field: 'mobile_short', title: '集团短号', minWidth: 120, align: 'center'},
                     {field: 'email', title: '邮箱', minWidth: 250, align: 'center'},
                     {field: 'create_time', title: '添加时间', minWidth: 200, align: 'center'},
                     {field: 'disabled', title: '禁用', minWidth: 100, align: 'center', templet: render_disable},

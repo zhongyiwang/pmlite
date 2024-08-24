@@ -31,7 +31,7 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     """生产环境配置"""
-    SQLALCHEMY_DATABASE_URI = "mysql://root:root@127.0.0.1:3306/pmlite"
+    SQLALCHEMY_DATABASE_URI = "mysql://lnmazak:lnmazak@127.0.0.1:3306/pmlite"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 

@@ -11,47 +11,67 @@ task_api = Blueprint("task", __name__, url_prefix="/task")
 
 # 获取任务列表
 @task_api.route('/')
+@jwt_required()
 def task_view():
-    status = request.args.get('status')
+    query = request.args.get('query')
+    print("api")
+    print(query)
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('limit', type=int, default=10)
-    if status == "uncompleted":
+    if query == "uncompleted":
         q = db.select(TaskModel).where(TaskModel.status != "已完成")
+    elif query == "mine":
+        q = db.select(TaskModel).where(TaskModel.owner == current_user)
     else:
         q = db.select(TaskModel)
 
     pages: Pagination = db.paginate(q, page=page, per_page=per_page)
 
+    # 将返回的任务数据中加入实际工时
+    ret = []
+    for item in pages.items:
+        item_json = item.json()
+        item_json['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
+            .filter(ManHourModel.task_id == item.id).scalar()
+        ret.append(item_json)
+
     return {
         'code': 0,
         'msg': '信息查询成功',
         'count': pages.total,
-        'data': [item.json() for item in pages.items]
+        'data': ret
     }
 
 
 # 获取任务列表，以树状表格显示
 @task_api.get("/treetable")
 def task_list_as_treetable():
+
     q = db.select(TaskModel)
     q = q.where(TaskModel.parent_id == 0)
     task_list = db.session.execute(q).scalars()
-    #print(task_list)
+
     ret = []
     for child in task_list:
-        print(child.json())
         child_data = child.json()
+        # 查询并绑定实际工时
+        child_data['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
+            .filter(ManHourModel.task_id == child.id).scalar()
         child_data["children"] = []
         if child.children:
             child_data["isParent"] = True
         for son in child.children:
             son_data = son.json()
+            # 查询并绑定实际工时
+            son_data['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
+                .filter(ManHourModel.task_id == son.id).scalar()
             child_data['children'].append(son_data)
         ret.append(child_data)
-    print(ret)
+    # print(ret)
     return {
         "code": 0,
         "message": "数据请求成功！",
+        "count": 10,
         "data": ret
     }
 
@@ -157,7 +177,7 @@ def man_hour_add(tid):
     man_hour = ManHourModel()
     man_hour.update(data)
     man_hour.user_id = current_user.id
-    print(man_hour)
+
     try:
         man_hour.save()
     except Exception as e:

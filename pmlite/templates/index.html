@@ -39,8 +39,8 @@
           <a class="" href="javascript:;">任务管理</a>
           <dl class="layui-nav-child">
             <dd><a href="{{ url_for('task.index') }}" data-menuId="201">所有任务</a></dd>
-            <dd><a href="{{ url_for('task.index', status='uncompleted') }}" data-menuId="202">未完成任务</a></dd>
-            <dd><a href="javascript:;">我的任务</a></dd>
+            <dd><a href="{{ url_for('task.index', query='uncompleted') }}" data-menuId="202">未完成任务</a></dd>
+            <dd><a href="{{ url_for('task.index', query='mine') }}" data-menuId="203">我的任务</a></dd>
           </dl>
         </li>
         <li class="layui-nav-item">

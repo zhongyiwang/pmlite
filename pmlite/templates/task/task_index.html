@@ -22,19 +22,16 @@
                        class="layui-input">
             </div>
         </div>
-        <div class="layui-form-item">
+        <div class="layui-form-item" style="display: none">
             <label class="layui-form-label">父任务ID</label>
             <div class="layui-input-block">
                 <input type="text" name="parent_id" id="parent_id" value="0" lay-affix="clear" autocomplete="off" placeholder="请输入父任务ID"
-                       class="layui-input">
+                       class="layui-input" disabled>
             </div>
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">计划完成日期</label>
             <div class="layui-input-block layui-input-wrap">
-                <div class="layui-input-prefix">
-                    <i class="layui-icon layui-icon-date"></i>
-                </div>
                 <input type="text" name="planned_end_date" lay-affix="clear" placeholder="请选择计划完成日期" class="layui-input date-input"></input>
             </div>
         </div>
@@ -42,6 +39,13 @@
             <label class="layui-form-label">实际完成日期</label>
             <div class="layui-input-block">
                 <input type="text" name="actual_end_date" lay-affix="clear" placeholder="请选择实际完成日期" class="layui-input date-input"></input>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">计划工时</label>
+            <div class="layui-input-block">
+                <input type="text" name="planned_man_hours" lay-affix="clear" autocomplete="off" placeholder="请输入计划工时"
+                       class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
@@ -65,6 +69,17 @@
             <div class="layui-input-block">
                 <select name="owner_id" id="owner_id" lay-filter="towner_id_select">
                     <option value="">请选择任务负责人</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">任务状态</label>
+            <div class="layui-input-block">
+                <select name="status">
+                    <option value="">请选择任务状态</option>
+                    <option value="未开始" selected>未开始</option>
+                    <option value="进行中">进行中</option>
+                    <option value="已完成">已完成</option>
                 </select>
             </div>
         </div>
@@ -175,42 +190,43 @@
             elem: '.date-input'
         })
 
-        //let url = '/api/v1/task/treetable';
+        let url = '/api/v1/task';
 
-        //if ('{{ status }}'){
-        //    url += '?status=' + '{{ status }}'
-        //}
+        if ('{{ query }}'){
+           url += '?query=' + '{{ query }}'
+        }
 
         // 渲染表格
-        treeTable.render({
+        table.render({
             elem: '#task-table',
             id: 'task-table',
-            url: '/api/v1/task/treetable',
+            url: url,
             toolbar: '#toolbar',
             page: true,
             cols: [
                 [   // 标题栏
-                    {field: 'id', title: 'ID', sort: true, align: 'center'},
-                    {field: 'title', title: '任务标题'},
-                    {field: 'task_type', title: '任务类型'},
-                    {field: 'project', title: '所属项目', align: 'center'},
-                    {field: 'creator', title: '创建者', align: 'center'},
-                    {field: 'owner', title: '负责人', align: 'center'},
-                    {field: 'planned_end_date', title: '计划完成日期', align: 'center'},
-                    {field: 'actual_end_date', title: '实际完成日期', Width: 120, align: 'center'},
-                    {field: 'man_hours', title: '工时', align: 'center'},
-                    {field: 'status', title: '完成状态', align: 'center'},
+                    {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left'},
+                    {field: 'title', title: '任务标题', minWidth: 300, fixed: 'left'},
+                    {field: 'task_type', title: '任务类型', width:100},
+                    {field: 'project', title: '所属项目', align: 'center', width: 150},
+                    {field: 'creator', title: '创建者', align: 'center', width: 80},
+                    {field: 'owner', title: '负责人', align: 'center', width: 80},
+                    {field: 'planned_end_date', title: '计划完成日期', align: 'center', width: 120},
+                    {field: 'actual_end_date', title: '实际完成日期', Width: 120, align: 'center', width: 120},
+                    {field: 'planned_man_hours', title: '计划工时', align: 'center', width: 100},
+                    {field: 'actual_man_hours', title: '实际工时', align: 'center', width: 100},
+                    {field: 'status', title: '完成状态', align: 'center', width: 120, sort: true},
                     {title: '操作', fixed: "right", width: 180, toolbar: '#tools'}
                 ]
             ],
-            tree: {
-                view: {
-                    expandAllDefault: true  // 默认展开所有子节点
-                },
-                customName: {
-                    name: 'title'  // 定义以哪一列为父子节点，默认field为name
-                }
-            }
+            // tree: {
+            //     view: {
+            //         expandAllDefault: true  // 默认展开所有子节点
+            //     },
+            //     customName: {
+            //         name: 'title'  // 定义以哪一列为父子节点，默认field为name
+            //     }
+            // }
         });
 
         // 获取部门列表，并渲染
@@ -298,7 +314,7 @@
         }
 
         // 顶部工具栏事件
-        treeTable.on('toolbar(task-table)', function (obj){
+        table.on('toolbar(task-table)', function (obj){
             var options = obj.config;  //获取当前表格属性配置项
 
             // 根据不同的事件名进行相应的操作
@@ -321,7 +337,7 @@
         })
 
         // 单元格工具事件（操作列的按钮组）
-        treeTable.on('tool(task-table)', function (obj) {
+        table.on('tool(task-table)', function (obj) {
             if (obj.event === 'task-edit') {  // 编辑
                 form.val('task-form', obj.data);
 
@@ -344,6 +360,9 @@
                     area: ['50%', '40%'],
                     totalRow: true,
                     content: $('#man-hour-page'),  // 捕获的元素
+                    cancel: function (){  // 工时弹窗关闭时，刷新任务表中的实际工时
+                        table.reloadData('task-table')
+                    }
                 });
 
                 // 渲染表格
@@ -433,7 +452,7 @@
                                     icon: 1,
                                     time: 1000
                                 }, function(){
-                                    treeTable.reloadData('task-table')
+                                    table.reloadData('task-table')
                                 })
                             } else {
                                 layer.msg(res.msg, {
@@ -506,7 +525,7 @@
                         time: 1000
                     }, function(){
                         layer.closeAll('page');
-                        treeTable.reloadData('task-table')
+                        table.reloadData('task-table')
                     })
                 },
                 error: function (res){

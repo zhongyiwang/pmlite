@@ -44,9 +44,9 @@ class TaskModel(BaseModel):
     title = Column(String(50), nullable=False, comment='任务标题')
     planned_end_date = Column(DateTime, comment='计划完成日期')
     actual_end_date = Column(DateTime, comment='实际完成日期')
-    # status = Column(Enum(StatusEnum), default=StatusEnum.completed, comment='完成状态')
     status = Column(Enum("未开始", "进行中", "已完成"), default="未开始", comment='完成状态')
-    man_hours = Column(Integer, comment='工时数合计')
+    planned_man_hours = Column(Integer, comment='计划工时')
+    actual_man_hours = Column(Integer, comment='实际工时')
 
     project_id = Column(Integer, ForeignKey("project.id"), comment='项目id')
     project = db.relationship("ProjectModel", backref="tasks")
@@ -74,7 +74,8 @@ class TaskModel(BaseModel):
             "planned_end_date": self.planned_end_date.strftime("%Y-%m-%d") if self.planned_end_date else "",
             "actual_end_date": self.actual_end_date.strftime("%Y-%m-%d") if self.actual_end_date else "",
             "status": self.status,
-            "man_hours": self.man_hours,
+            "planned_man_hours": self.planned_man_hours,
+            "actual_man_hours": self.actual_man_hours,
             "project": self.project.name if self.project else "",
             "task_type": self.task_type.name if self.task_type else "",
             "creator": self.creator.name if self.creator else "",

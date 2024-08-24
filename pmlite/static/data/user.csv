@@ -1,2 +1,36 @@
-id,number,name,mobile,email,disabled,password,department_id
-1,10028,王忠义,13478678050,wangzhongyi@lnmazak.com.cn,,123456,5
+id,number,name,department_id,mobile,mobile_short,email,password
+1,10028,王忠义,5,13478678050,6628,wangzhongyi@lnmazak.com.cn,123456
+2,10329,赵永鹏,5,15004252532,6329,zhaoyongpeng@lnmazak.com.cn,123456
+3,10531,仇佳尧,5,13322472653,,qiujiayao@lnmazak.com.cn,123456
+4,10793,孙嘉辰,5,13591550992,,sunjiachen@lnmazak.com.cn,123456
+5,11104,刘昕健,5,15840864781,,liuxinjian@lnmazak.com.cn,123456
+6,11185,朱尧,5,13998819780,,zhuyao@lnmazak.com.cn,123456
+7,11206,赵雷,5,15702400750,,zhaolei@lnmazak.com.cn,123456
+8,11210,牛建楠,5,13940370253,,niujiannan@lnmazak.com.cn,123456
+9,10029,王升阳,4,13654097879,6629,wangshengyang@lnmazak.com.cn,123456
+10,10020,陈广兆,4,15998471807,6620,chenguangzhao@lnmazak.com.cn,123456
+11,10083,马    龙,4,18741152122,6683,malong@lnmazak.com.cn,123456
+12,10016,郭玉轩,4,15242673450,6616,guoyuxuan@lnmazak.com.cn,123456
+13,10314,殷家伟,4,15142498248,6314,yinjiawei@lnmazak.com.cn,123456
+14,10433,张振平,4,15140697825,6433,zhangzhenping@lnmazak.com.cn,123456
+15,10331,于石林,4,15164064536,6331,yushilin@lnmazak.com.cn,123456
+16,10313,王兴胜,4,18842892203,6313,wangxingsheng@lnmazak.com.cn,123456
+17,10534,段欣宇,4,15998563107,6534,duanxinyu@lnmazak.com.cn,123456
+18,10535,宋福堂,4,15142426441,,songfutang@lnmazak.com.cn,123456
+19,10530,刘    雄,4,15004252752,6530,liuxiong@lnmazak.com.cn,123456
+20,10533,薛贵翔,4,13889438955,6533,xueguixiang@lnmazak.com.cn,123456
+21,10710,李俊,4,18842679263,66710,lijun@lnmazak.com.cn,123456
+22,10758,李天禹,4,15942618443,66758,litianyu@lnmazak.com.cn,123456
+23,10764,王    垚,4,15140352765,66764,wangyao@lnmazak.com.cn,123456
+24,10769,周立志,4,18242095565,66769,zhoulizhi@lnmazak.com.cn,123456
+25,10763,李延栋,4,15909844280,66763,liyandong@lnmazak.com.cn,123456
+26,10784,徐境,4,13732872646,6784,xujing@lnmazak.com.cn,123456
+27,10813,陈振兴,4,19524726615,6813,chenzhenxing@lnmazak.com.cn,123456
+28,10828,张云,4,18342024919,6828,zhangyun@lnmazak.com.cn,123456
+29,11039,张乔,4,15040521615,,zhangqiao@lnmazak.com.cn,123456
+30,11053,李继飞,4,18342073558,,lijifei@lnmazak.com.cn,123456
+31,11110,韩晏铭,4,15524688057,,hanyanming@lnmazak.com.cn,123456
+32,11130,卢瑞,4,18582587406,,lurui@lnmazak.com.cn,123456
+33,11149,逄真,4,15840618177,,pangzhen@lnmazak.com.cn,123456
+34,11150,池以恒,4,13130470237,,chiyiheng@lnmazak.com.cn,123456
+35,11202,吴明瀚,4,17306916132,,wuminghan@lnmazak.com.cn,123456
