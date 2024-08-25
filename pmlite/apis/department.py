@@ -30,9 +30,12 @@ def department_view():
 # 获取部门列表，以树状表格显示
 @department_api.get("/treetable")
 def department_list_as_treetable():
-    q = db.select(DepartmentModel)
-    q = q.where(DepartmentModel.parent_id == 0)
-    department_list = db.session.execute(q).scalars()
+    # q = db.select(DepartmentModel)
+    # q = q.where(DepartmentModel.parent_id == 2)
+    # department_list = db.session.execute(q).scalars()
+
+    department_list = db.session.execute(db.select(DepartmentModel).filter(DepartmentModel.parent_id == None)).scalars().all()
+
     ret = []
     for child in department_list:
         child_data = child.json()
@@ -43,7 +46,6 @@ def department_list_as_treetable():
             son_data = son.json()
             child_data['children'].append(son_data)
         ret.append(child_data)
-    print(ret)
     return {
         "code": 0,
         "message": "数据请求成功！",

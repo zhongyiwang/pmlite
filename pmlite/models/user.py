@@ -17,7 +17,7 @@ class UserModel(BaseModel):
     mobile_short = Column(String(11), unique=True, comment="集团短号")
     email = Column(String(50), nullable=False, unique=True, comment="邮箱")
     disabled = Column(Boolean, default=False, comment="禁用")
-    password_hash = Column(String(102), nullable=False, comment="密码hash")
+    password_hash = Column(String(256), nullable=False, comment="密码hash")
 
     create_time = Column(DateTime, default=datetime.now, comment="创建日期")
 

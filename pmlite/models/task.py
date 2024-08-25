@@ -60,7 +60,7 @@ class TaskModel(BaseModel):
     owner_id = Column(Integer, ForeignKey("user.id"))
     owner = db.relationship("UserModel", backref="own_tasks", foreign_keys=[owner_id])
 
-    parent_id = Column(Integer, ForeignKey('task.id'), default=0, comment='上级任务id')
+    parent_id = Column(Integer, ForeignKey('task.id'), default=None, comment='上级任务id')
     parent = db.relationship('TaskModel', back_populates='children', remote_side=[id])
     children = db.relationship('TaskModel', back_populates='parent', cascade='all')
 

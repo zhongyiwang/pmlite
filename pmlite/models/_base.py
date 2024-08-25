@@ -20,7 +20,9 @@ class BaseModel(db.Model):
                 try:
                     value = datetime.strptime(value, "%Y-%m-%d")
                 except ValueError as e:
-                    print(e)
+                    value = None
+            else:
+                if value == "":
                     value = None
             setattr(self, key, value)
 

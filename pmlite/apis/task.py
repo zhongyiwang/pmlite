@@ -99,6 +99,7 @@ def task_add():
     try:
         task.save()
     except Exception as e:
+        print(e)
         return {
             'code': -1,
             'msg': '新增数据失败'
