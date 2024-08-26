@@ -33,6 +33,9 @@ class ProjectModel(BaseModel):
     designer_id = Column(Integer, ForeignKey("user.id"), comment="自动化设计")
     designer = db.relationship("UserModel", backref="d_projects", foreign_keys=[designer_id])
 
+    creator_id = Column(Integer, ForeignKey("user.id"), comment="创建者")
+    creator = db.relationship("UserModel", backref="c_projects", foreign_keys=[creator_id])
+
     manager_id = Column(Integer, ForeignKey("user.id"), comment="项目经理")
     manager = db.relationship("UserModel", backref="m_projects", foreign_keys=[manager_id])
 
@@ -57,7 +60,8 @@ class ProjectModel(BaseModel):
             "arrival_date": self.arrival_date.strftime("%Y-%m-%d") if self.arrival_date else "",
             "machine_type": self.machine_type.name if self.machine_type else "",
             "designer": self.designer.name if self.designer else "",
-            "manager": self.manager.name if self.manager else ""
+            "manager": self.manager.name if self.manager else "",
+            "creator": self.creator.name if self.manager else ""
         }
 
 

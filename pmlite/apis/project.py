@@ -1,8 +1,10 @@
 from flask import Blueprint, request
 from flask_sqlalchemy.pagination import Pagination
+from flask_jwt_extended import current_user, jwt_required
 
 from ..models import ProjectModel
 from ..extensions import db
+
 
 project_api = Blueprint("project", __name__, url_prefix="/project")
 
@@ -34,10 +36,12 @@ def project_view():
 
 # 添加
 @project_api.post('/')
+@jwt_required()
 def project_add():
     data = request.get_json()
     project = ProjectModel()
     project.update(data)
+    project.creator = current_user
     try:
         project.save()
     except Exception as e:
@@ -73,18 +77,25 @@ def project_edit(pid):
 
 # 删除
 @project_api.delete('/<int:pid>')
+@jwt_required()
 def project_delete(pid):
     project: ProjectModel = db.get_or_404(ProjectModel, pid)
-    try:
-        db.session.delete(project)
-        # user.is_del = True
-        db.session.commit()
-    except Exception as e:
+    if project.creator == current_user:
+        try:
+            db.session.delete(project)
+            # user.is_del = True
+            db.session.commit()
+        except Exception as e:
+            return {
+                'code': -1,
+                'msg': '删除数据失败'
+            }
         return {
-            'code': -1,
-            'msg': '删除数据失败'
+            'code': 0,
+            'msg': '删除数据成功'
         }
-    return {
-        'code': 0,
-        'msg': '删除数据成功'
-    }
+    else:
+        return{
+            'code': -1,
+            'msg': '只能删除自己创建的项目'
+        }

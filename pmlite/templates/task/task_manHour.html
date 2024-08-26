@@ -1,176 +1,33 @@
 {% extends '_base.html' %}
-{% block title %}任务管理{% endblock %}
+{% block title %}工时管理{% endblock %}
 {% block body %}
-<!-- 用户表格 -->
-<div class="layui-fluid">
-    <table class="layui-hide" id="task-table" lay-filter="task-table"></table>
-</div>
-
-<!--添加/编辑弹窗表单-->
-<form class="layui-form" action="" id="task-form" lay-filter="task-form" style="margin-top: 20px; display: none">
-    <div style="padding-right: 20px;">
-        <div class="layui-form-item" style="display: none">
-            <label class="layui-form-label">ID</label>
-            <div class="layui-input-block">
-                <input type="text" name="id" value="0" lay-verify="required" autocomplete="off" class="layui-input" disabled>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">任务标题</label>
-            <div class="layui-input-block">
-                <input type="text" name="title" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请输入任务标题"
-                       class="layui-input">
-            </div>
-        </div>
-        <div class="layui-form-item" style="display: none">
-            <label class="layui-form-label">父任务ID</label>
-            <div class="layui-input-block">
-                <input type="text" name="parent_id" id="parent_id" lay-affix="clear" autocomplete="off" placeholder="请输入父任务ID"
-                       class="layui-input" disabled>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">计划完成日期</label>
-            <div class="layui-input-block layui-input-wrap">
-                <input type="text" name="planned_end_date" lay-affix="clear" placeholder="请选择计划完成日期" class="layui-input date-input"></input>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">实际完成日期</label>
-            <div class="layui-input-block">
-                <input type="text" name="actual_end_date" lay-affix="clear" placeholder="请选择实际完成日期" class="layui-input date-input"></input>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">计划工时</label>
-            <div class="layui-input-block">
-                <input type="text" name="planned_man_hours" lay-affix="clear" autocomplete="off" placeholder="请输入计划工时"
-                       class="layui-input">
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">所属项目</label>
-            <div class="layui-input-block">
-                <select name="project_id" id="project_id" lay-filter="project_id_select">
-                    <option value="">请选择项目型</option>
-                </select>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">任务类型</label>
-            <div class="layui-input-block">
-                <select name="task_type_id" id="task_type_id" lay-filter="task_type_select">
-                    <option value="">请选择任务类型</option>
-                </select>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">分配给</label>
-            <div class="layui-input-block">
-                <select name="owner_id" id="owner_id" lay-filter="towner_id_select" lay-search="">
-                    <option value="">请选择任务负责人</option>
-                </select>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">任务状态</label>
-            <div class="layui-input-block">
-                <select name="status">
-                    <option value="">请选择任务状态</option>
-                    <option value="未开始" selected>未开始</option>
-                    <option value="进行中">进行中</option>
-                    <option value="已完成">已完成</option>
-                </select>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <div class="layui-input-block">
-                <button type="submit" class="layui-btn" lay-submit lay-filter="task-form-submit">立即提交</button>
-                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-            </div>
-        </div>
-    </div>
-</form>
-
 <!-- 工时表格 -->
-<div class="layui-fluid" id="man-hour-page" style="display: none">
-    <table class="layui-hide" id="man-hour-table" lay-filter="man-hour-table"></table>
+<div class="layui-fluid">
+    <table class="layui-hide" id="manHour-table" lay-filter="manHour-table"></table>
 </div>
-
-<!--添加/修改工时弹窗表单-->
-<form class="layui-form" action="" id="man-hour-form" lay-filter="man-hour-form" style="margin-top: 20px; display: none">
-    <div style="padding-right: 20px;">
-        <div class="layui-form-item" style="display: none">
-            <label class="layui-form-label">ID</label>
-            <div class="layui-input-block">
-                <input type="text" name="id" value="0" lay-verify="required" autocomplete="off" class="layui-input" disabled>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">日期</label>
-            <div class="layui-input-block">
-                <input type="text" name="work_date" lay-verify="required" lay-affix="clear" placeholder="请选择日期" class="layui-input date-input">
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">工时</label>
-            <div class="layui-input-block">
-                <input type="text" name="man_hour" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请输入工时"
-                       class="layui-input">
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <div class="layui-input-block">
-                <button type="submit" class="layui-btn" lay-submit lay-filter="man-hour-form-submit">立即提交</button>
-                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-            </div>
-        </div>
-    </div>
-</form>
 
 
 <!-- 任务表顶部工具栏 -->
 <script type="text/html" id="toolbar">
     <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加任务</button>
+<!--?        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加任务</button>-->
     </div>
 </script>
 
-<!-- 工时表顶部工具栏 -->
-<script type="text/html" id="man-hour-toolbar">
-    <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加工时</button>
-    </div>
-</script>
 
 <!-- 任务表右侧工具栏 -->
 <script type="text/html" id="tools">
-    <a class="layui-btn layui-btn-xs" lay-event="task-edit">编辑</a>
-    <a class="layui-btn layui-btn-xs" lay-event="show-man-hour-page">工时</a>
-{#    <a class="layui-btn layui-btn-xs" lay-event="subtask-add">子任务</a>#}
-    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="task-del">删除</a>
+<!--?    <a class="layui-btn layui-btn-xs" lay-event="task-edit">编辑</a>-->
+<!--?    <a class="layui-btn layui-btn-xs" lay-event="show-man-hour-page">工时</a>-->
+<!--?    <a class="layui-btn layui-btn-xs" lay-event="subtask-add">子任务</a>-->
+<!--?    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="task-del">删除</a>-->
 </script>
 
-<!-- 工时表右侧工具栏 -->
-<script type="text/html" id="man-hour-tools">
-    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
-</script>
+
 
 <script>
-    // 更改 禁用 列的渲染
-    function render_disable(d) {
-        if (d.disabled) {
-            return '是'
-        } else {
-            return '否'
-        }
-    }
-
-
 
     layui.use(function () {
-        var treeTable = layui.treeTable;
         var table = layui.table;
         var $ = layui.$;
         var form = layui.form;
@@ -190,7 +47,7 @@
             elem: '.date-input'
         })
 
-        let url = '/api/v1/task';
+        let url = '/api/v1/task/man-hour';
 
         if ('{{ query }}'){
            url += '?query=' + '{{ query }}'
@@ -198,35 +55,21 @@
 
         // 渲染表格
         table.render({
-            elem: '#task-table',
-            id: 'task-table',
+            elem: '#manHour-table',
+            id: 'manHour-table',
             url: url,
             toolbar: '#toolbar',
             page: true,
             cols: [
                 [   // 标题栏
                     {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left'},
-                    {field: 'title', title: '任务标题', minWidth: 300, fixed: 'left'},
-                    {field: 'task_type', title: '任务类型', width:100},
-                    {field: 'project', title: '所属项目', align: 'center', width: 150},
-                    {field: 'creator', title: '创建者', align: 'center', width: 80},
-                    {field: 'owner', title: '负责人', align: 'center', width: 80},
-                    {field: 'planned_end_date', title: '计划完成日期', align: 'center', width: 120},
-                    {field: 'actual_end_date', title: '实际完成日期', Width: 120, align: 'center', width: 120},
-                    {field: 'planned_man_hours', title: '计划工时', align: 'center', width: 100},
-                    {field: 'actual_man_hours', title: '实际工时', align: 'center', width: 100},
-                    {field: 'status', title: '完成状态', align: 'center', width: 120, sort: true},
-                    {title: '操作', fixed: "right", width: 180, toolbar: '#tools'}
+                    {field: 'task', title: '任务标题'},
+                    {field: 'user', title: '登录人', sort: true},
+                    {field: 'work_date', title: '登录日期', sort: true},
+                    {field: 'man_hour', title: '登录工时'},
+
                 ]
             ],
-            // tree: {
-            //     view: {
-            //         expandAllDefault: true  // 默认展开所有子节点
-            //     },
-            //     customName: {
-            //         name: 'title'  // 定义以哪一列为父子节点，默认field为name
-            //     }
-            // }
         });
 
         // 获取部门列表，并渲染

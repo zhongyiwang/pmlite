@@ -14,8 +14,6 @@ task_api = Blueprint("task", __name__, url_prefix="/task")
 @jwt_required()
 def task_view():
     query = request.args.get('query')
-    print("api")
-    print(query)
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('limit', type=int, default=10)
     if query == "uncompleted":
@@ -42,6 +40,23 @@ def task_view():
         'data': ret
     }
 
+
+# 获取工时列表
+@task_api.route('/man-hour')
+@jwt_required()
+def manHour_view():
+    page = request.args.get('page', type=int, default=1)
+    per_page = request.args.get('limit', type=int, default=10)
+    q = db.select(ManHourModel)
+
+    pages: Pagination = db.paginate(q, page=page, per_page=per_page)
+
+    return {
+        'code': 0,
+        'msg': '信息查询成功',
+        'count': pages.total,
+        'data': [item.json() for item in pages.items]
+    }
 
 # 获取任务列表，以树状表格显示
 @task_api.get("/treetable")
@@ -160,8 +175,11 @@ def task_delete(tid):
 # 获取某任务工时列表
 @task_api.get('/<int:tid>/man-hour')
 def man_hour_list(tid):
-    q = db.select(ManHourModel).where(ManHourModel.task_id == tid)
-    MHlist = db.session.execute(q).scalars().all()
+    # q = db.select(ManHourModel).where(ManHourModel.task_id == tid)
+    # MHlist = db.session.execute(q).scalars().all()
+    task: TaskModel = db.get_or_404(TaskModel, tid)
+    MHlist = task.man_hours
+
     return {
         'code': 0,
         'msg': '信息查询成功',
@@ -216,17 +234,23 @@ def man_hour_edit(tid, mid):
 @jwt_required()
 def man_hour_delete(tid, mid):
     man_hour: ManHourModel = db.get_or_404(ManHourModel, mid)
-    try:
-        pass
-        db.session.delete(man_hour)
-        # user.is_del = True
-        db.session.commit()
-    except Exception as e:
+    if man_hour.user == current_user:
+        try:
+            pass
+            db.session.delete(man_hour)
+            # user.is_del = True
+            db.session.commit()
+        except Exception as e:
+            return {
+                'code': -1,
+                'msg': '删除数据失败'
+            }
         return {
-            'code': -1,
-            'msg': '删除数据失败'
+            'code': 0,
+            'msg': '删除数据成功'
         }
-    return {
-        'code': 0,
-        'msg': '删除数据成功'
-    }
+    else:
+        return{
+            'code': -1,
+            'msg': '只能删除自己创建的工时。'
+        }

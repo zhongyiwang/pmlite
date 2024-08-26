@@ -23,16 +23,22 @@ class TaskTypeModel(BaseModel):
 class ManHourModel(BaseModel):
     __tablename__ = 'man-hour'
     id = Column(Integer, primary_key=True, autoincrement=True, comment="自增id")
-    task_id = Column(Integer, ForeignKey("task.id"), comment='任务id')
-    user_id = Column(Integer, ForeignKey("user.id"), comment='用户id')
     work_date = Column(DateTime, nullable=False, comment='日期')
     man_hour = Column(Integer, comment='工时数')
+
+    task_id = Column(Integer, ForeignKey("task.id"), comment='任务id')
+    task = db.relationship("TaskModel", backref=db.backref("man_hours", cascade="all"))
+
+    user_id = Column(Integer, ForeignKey("user.id"), comment='用户id')
+    user = db.relationship("UserModel", backref="man_hours")
 
     def json(self):
         return {
             "id": self.id,
             "task_id": self.task_id,
+            "task": self.task.title,
             "user_id": self.user_id,
+            "user": self.user.name,
             "work_date": self.work_date.strftime("%Y-%m-%d") if self.work_date else "",
             "man_hour": self.man_hour
         }
