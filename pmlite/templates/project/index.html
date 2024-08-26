@@ -112,7 +112,7 @@
         <div class="layui-form-item">
             <label class="layui-form-label">自动化设计</label>
             <div class="layui-input-block">
-                <select name="designer_id" id="designer_id" lay-filter="designer_id_select" class="user-select">
+                <select name="designer_id" id="designer_id" lay-filter="designer_id_select" class="user-select" lay-search="">
                     <option value="">请选择自动化设计</option>
                 </select>
             </div>
@@ -120,7 +120,7 @@
         <div class="layui-form-item">
             <label class="layui-form-label">项目经理</label>
             <div class="layui-input-block">
-                <select name="manager_id" id="manager_id" lay-filter="manager_id_select" class="user-select">
+                <select name="manager_id" id="manager_id" lay-filter="manager_id_select" class="user-select" lay-search="">
                     <option value="">请选择项目经理</option>
                 </select>
             </div>
@@ -239,7 +239,7 @@
                 type: "get",
                 async: false,
                 success: function (res) {
-                    let content1 = content2 = '<option value="">请选择负责人</option>'
+                    let content1 = content2 = '<option value="">请选择负责人（可搜索）</option>'
                     //console.log(res.data)
                     $.each(res.data, function (i, val) {
                         if (obj && val.name === obj.data.designer) {

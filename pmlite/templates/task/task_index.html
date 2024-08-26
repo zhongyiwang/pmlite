@@ -67,7 +67,7 @@
         <div class="layui-form-item">
             <label class="layui-form-label">分配给</label>
             <div class="layui-input-block">
-                <select name="owner_id" id="owner_id" lay-filter="towner_id_select">
+                <select name="owner_id" id="owner_id" lay-filter="towner_id_select" lay-search="">
                     <option value="">请选择任务负责人</option>
                 </select>
             </div>
@@ -293,7 +293,7 @@
                 async: false,
                 success: function (res) {
                     console.log(res.data)
-                    let content = '<option value="">请选择任务负责人</option>'
+                    let content = '<option value="">请选择任务负责人（可搜索）</option>'
                     $.each(res.data, function (i, val) {
                         // content += '<option value="' + val.id + '">' + val.name + '</option>'
                         //if (val.parent_id != 0) {

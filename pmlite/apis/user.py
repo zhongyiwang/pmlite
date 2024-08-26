@@ -12,6 +12,18 @@ user_api = Blueprint("user", __name__, url_prefix="/user")
 # 获取用户列表
 @user_api.route('/')
 def user_view():
+    users = db.session.execute(db.select(UserModel)).scalars().all()
+    return {
+        'code': 0,
+        'msg': '信息查询成功',
+        'count': len(users),
+        'data': [user.json() for user in users]
+    }
+
+
+# 获取用户列表，分页显示
+@user_api.route('/pagination')
+def user_view_pagination():
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('limit', type=int, default=10)
     q = db.select(UserModel)
