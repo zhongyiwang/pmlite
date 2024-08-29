@@ -1,6 +1,6 @@
 from datetime import datetime
 from pmlite.extensions import db
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean, Text, Enum
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean, Text, Enum, Float
 
 from ._base import BaseModel, StatusEnum
 
@@ -20,11 +20,19 @@ class TaskTypeModel(BaseModel):
         }
 
 
+user_task = db.Table('user_task',
+    Column('user_id', Integer, ForeignKey('user.id'), primary_key=True),
+    Column('task_id', Integer, ForeignKey('task.id'), primary_key=True)
+)
+
+
 class ManHourModel(BaseModel):
     __tablename__ = 'man-hour'
     id = Column(Integer, primary_key=True, autoincrement=True, comment="自增id")
     work_date = Column(DateTime, nullable=False, comment='日期')
-    man_hour = Column(Integer, comment='工时数')
+    man_hour = Column(Float, comment='工时数')
+    content = Column(String(50), comment='工时内容')
+
 
     task_id = Column(Integer, ForeignKey("task.id"), comment='任务id')
     task = db.relationship("TaskModel", backref=db.backref("man_hours", cascade="all"))
@@ -40,7 +48,8 @@ class ManHourModel(BaseModel):
             "user_id": self.user_id,
             "user": self.user.name,
             "work_date": self.work_date.strftime("%Y-%m-%d") if self.work_date else "",
-            "man_hour": self.man_hour
+            "man_hour": self.man_hour,
+            "content": self.content
         }
 
 
@@ -65,6 +74,8 @@ class TaskModel(BaseModel):
 
     owner_id = Column(Integer, ForeignKey("user.id"))
     owner = db.relationship("UserModel", backref="own_tasks", foreign_keys=[owner_id])
+
+    # owners = db.relationship('UserModel', secondary=user_task, back_populates='own_tasks')
 
     parent_id = Column(Integer, ForeignKey('task.id'), default=None, comment='上级任务id')
     parent = db.relationship('TaskModel', back_populates='children', remote_side=[id])

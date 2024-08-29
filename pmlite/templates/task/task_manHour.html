@@ -3,6 +3,38 @@
 {% block body %}
 <!-- 工时表格 -->
 <div class="layui-fluid">
+    <form class="layui-form layui-row layui-col-space16">
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <div class="layui-input-prefix">
+            <i class="layui-icon layui-icon-username"></i>
+          </div>
+          <select name="user_id" id="user_id" lay-filter="user-select" lay-search="">
+              <option value="">请选择登录人</option>
+          </select>
+        </div>
+      </div>
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-date"></i>
+            </div>
+            <input type="text" name="date-start" readonly placeholder="开始日期" lay-affix="clear" class="layui-input date-input">
+        </div>
+      </div>
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <div class="layui-input-prefix">
+            <i class="layui-icon layui-icon-date"></i>
+          </div>
+          <input type="text" name="date-end" readonly placeholder="结束日期" class="layui-input date-input">
+        </div>
+      </div>
+      <div class="layui-btn-container layui-col-md3">
+        <button class="layui-btn" lay-submit lay-filter="table-search">查询</button>
+        <button type="reset" class="layui-btn layui-btn-primary">清空</button>
+      </div>
+    </form>
     <table class="layui-hide" id="manHour-table" lay-filter="manHour-table"></table>
 </div>
 
@@ -72,61 +104,7 @@
             ],
         });
 
-        // 获取部门列表，并渲染
-        const get_types = function (obj) {
-            $.ajax({
-                url: "/api/v1/task/types",
-                type: "get",
-                async: false,
-                success: function (res) {
-                    console.log(res.data)
-                    let content = '<option value="">请选择任务类型</option>'
-                    $.each(res.data, function (i, val) {
-                        // content += '<option value="' + val.id + '">' + val.name + '</option>'
-                        //if (val.parent_id != 0) {
-                            if (obj && val.name === obj.data.task_type) {
-                                content += '<option value="' + val.id + '" selected>' + val.name + '</option>'
-                            } else {
-                                content += '<option value="' + val.id + '">' + val.name + '</option>'
-                            }
-                        //}
-                    })
-                    // console.log(content)
-                    let s = $('#task_type_id')
-                    s.html(content)
-                    //console.log(s.html())
-                    form.render('select')
-                }
-            })
-        }
 
-        // 获取项目列表，并渲染
-        const get_projects = function (obj) {
-            $.ajax({
-                url: "/api/v1/project?status=uncompleted",
-                type: "get",
-                async: false,
-                success: function (res) {
-                    console.log(res.data)
-                    let content = '<option value="">请选择项目名称</option>'
-                    $.each(res.data, function (i, val) {
-                        // content += '<option value="' + val.id + '">' + val.name + '</option>'
-                        //if (val.parent_id != 0) {
-                            if (obj && val.name === obj.data.project) {
-                                content += '<option value="' + val.id + '" selected>' + val.name + '</option>'
-                            } else {
-                                content += '<option value="' + val.id + '">' + val.name + '</option>'
-                            }
-                        //}
-                    })
-                    // console.log(content)
-                    let s = $('#project_id')
-                    s.html(content)
-                    //console.log(s.html())
-                    form.render('select')
-                }
-            })
-        }
 
         // 获取用户列表，并渲染
         const get_users = function (obj) {
@@ -136,7 +114,7 @@
                 async: false,
                 success: function (res) {
                     console.log(res.data)
-                    let content = '<option value="">请选择任务负责人（可搜索）</option>'
+                    let content = '<option value="">请选择登陆人（可搜索）</option>'
                     $.each(res.data, function (i, val) {
                         // content += '<option value="' + val.id + '">' + val.name + '</option>'
                         //if (val.parent_id != 0) {
@@ -148,7 +126,7 @@
                         //}
                     })
                     // console.log(content)
-                    let s = $('#owner_id')
+                    let s = $('#user_id')
                     s.html(content)
                     //console.log(s.html())
                     form.render('select')
@@ -156,274 +134,24 @@
             })
         }
 
-        // 顶部工具栏事件
-        table.on('toolbar(task-table)', function (obj){
-            var options = obj.config;  //获取当前表格属性配置项
 
-            // 根据不同的事件名进行相应的操作
-            switch (obj.event){  // 对应模板元素中的 lay-event 属性值
-                case 'toolbar-add':
-                    $("#task-form")[0].reset();  // 将ID表单清空
-                    layer.open({
-                        type: 1,
-                        title: "添加任务",
-                        shade: false,
-                        content: $("#task-form"),
-                        area: ["50%", "60%"]
-                    })
-                    get_types()  // 获取部门，并渲染select
-                    get_projects()  // 获取未完成项目，并渲染select
-                    get_users()  // 获取用户，并渲染select
-                    break;
-                    //form.render($("#user-form"))
-            }
-        })
+        get_users()
 
-        // 单元格工具事件（操作列的按钮组）
-        table.on('tool(task-table)', function (obj) {
-            if (obj.event === 'task-edit') {  // 编辑
-                form.val('task-form', obj.data);
-
-                // 获取部门列表，并渲染非一级部门
-                get_types(obj)  // 获取部门，并渲染select
-                get_projects(obj)  // 获取未完成项目，并渲染select
-                get_users(obj)  // 获取用户，并渲染select
-
-                layer.open({
-                    type: 1,
-                    title: '修改任务',
-                    area: ['50%', '60%'],
-                    content: $('#task-form'),  // 捕获的元素
-                });
-            } else if ( obj.event === 'show-man-hour-page') {  // 工时
-                task_id = obj.data.id
-                layer.open({
-                    type: 1,
-                    title: '工时',
-                    area: ['50%', '40%'],
-                    totalRow: true,
-                    content: $('#man-hour-page'),  // 捕获的元素
-                    cancel: function (){  // 工时弹窗关闭时，刷新任务表中的实际工时
-                        table.reloadData('task-table')
-                    }
-                });
-
-                // 渲染表格
-                table.render({
-                    elem: '#man-hour-table',
-                    id: 'man-hour-table',
-                    url: `/api/v1/task/${obj.data.id}/man-hour`,
-                    toolbar: '#man-hour-toolbar',
-                    page: true,
-                    cols: [
-                        [   // 标题栏
-                            {field: 'id', title: 'ID', sort: true, align: 'center'},
-                            {field: 'work_date', title: '日期'},
-                            {field: 'man_hour', title: '工时'},
-                            {field: 'user', title: '登录人'},
-                            {title: '操作', fixed: "right", width: 180, toolbar: '#man-hour-tools'}
-                        ]
-                    ],
-                });
-                // 顶部工具栏事件
-                table.on('toolbar(man-hour-table)', function (obj) {
-                    var options = obj.config;  //获取当前表格属性配置项
-
-                    // 根据不同的事件名进行相应的操作
-                    switch (obj.event) {  // 对应模板元素中的 lay-event 属性值
-                        case 'toolbar-add':
-                            $("#man-hour-form")[0].reset();  // 将ID表单清空
-                            layer.open({
-                                type: 1,
-                                title: "添加任务",
-                                shade: false,
-                                content: $("#man-hour-form"),
-                                area: ["40%", "30%"]
-                            })
-
-                            break;
-                            //form.render($("#user-form"))
-                    }
-                })
-
-                table.on('tool(man-hour-table)', function (obj){
-
-                    if (obj.event === 'edit'){
-
-                        form.val('man-hour-form', obj.data);
-                        layer.open({
-                            type: 1,
-                            title: "修改工时",
-                            content: $("#man-hour-form"),
-                            area: ["40%", "30%"]
-                        })
-                    } else if (obj.event ==='del'){
-                        layer.confirm('确认删除么？', function (index) {
-                        $.ajax({
-                            url: `/api/v1/task/${task_id}/man-hour/${obj.data.id}`,
-                            type: "DELETE",
-                            contentType: "application/json",
-                            success: function (res){
-                                if (!res.code){
-                                    layer.msg(res.msg, {
-                                        icon: 1,
-                                        time: 1000
-                                    }, function(){
-                                        table.reloadData('man-hour-table')
-                                    })
-                                } else {
-                                    layer.msg(res.msg, {
-                                        icon: 2,
-                                        time: 1500,
-                                    });
-                                }
-                            }
-                        })
-                        layer.close(index);
-                    });
-                    }
-                })
-
-            } else if ( obj.event === 'task-del') {  // 删除
-                layer.confirm('确认删除么？', function (index) {
-                    $.ajax({
-                        url: `/api/v1/task/${obj.data.id}`,
-                        type: "DELETE",
-                        contentType: "application/json",
-                        success: function (res){
-                            if (!res.code){
-                                layer.msg(res.msg, {
-                                    icon: 1,
-                                    time: 1000
-                                }, function(){
-                                    table.reloadData('task-table')
-                                })
-                            } else {
-                                layer.msg(res.msg, {
-                                    icon: 2,
-                                    time: 1500,
-                                });
-                            }
-                        }
-                    })
-                    layer.close(index);
-                });
-            }
-        });
-
-
-        // 删除提交的方法
-        <!--?const del_user_api = async (id) => {-->
-        <!--?    const options = {-->
-        <!--?        method: 'DELETE',-->
-        <!--?        headers: {'Content-Type': 'application/json'},-->
-        <!--?    }-->
-        <!--?    const response = await fetch(`/api/user/${id}`, options)-->
-        <!--?    return await response.json()-->
-        <!--?}-->
-        <!--?window.del_user = (obj) => {-->
-        <!--?    console.log(obj)-->
-        <!--?    del_user_api(obj.data.id).then(function (ret) {-->
-        <!--?        // 提交成功之后的回调-->
-        <!--?        if (!ret.code) {-->
-        <!--?            layer.msg(ret.msg, {-->
-        <!--?                icon: 1,-->
-        <!--?                time: 1000,-->
-        <!--?            }, function () {-->
-        <!--?                table.reload('user');-->
-        <!--?            });-->
-        <!--?        } else {-->
-        <!--?            layer.msg(ret.msg, {-->
-        <!--?                icon: 2,-->
-        <!--?                time: 1000,-->
-        <!--?            });-->
-        <!--?        }-->
-        <!--?    })-->
-        <!--?}-->
 
 
         // 任务弹窗表单提交事件
-        form.on('submit(task-form-submit)', function (data) {
+        form.on('submit(table-search)', function (data) {
             let field = data.field; // 获取表单字段值
-            // layui中开关的被选中是“on”，需要转换成ture或false
-            // ？. 为可选链运算符，即使不存在该属性的值，也不会报错
-            //field.disabled = field?.disabled ? true: false
-            if (field.id == 0){
-                field.id = null;
-                method = "POST";
-                url = "/api/v1/task";
-            }else{
-                method = "PUT";
-                url = `/api/v1/task/${field.id}`;
-            }
-
-            $.ajax({
-                method: method,
-                url: url,
-                data: JSON.stringify(field),
-                contentType: "application/json",
-                //datatype: "json",
-                success: function (res){
-                    layer.msg(res.msg, {
-                        icon: 1,
-                        time: 1000
-                    }, function(){
-                        layer.closeAll('page');
-                        table.reloadData('task-table')
-                    })
-                },
-                error: function (res){
-                    layer.msg(res.msg,{
-                        icon: 2,
-                        time: 1000
-                    })
-                }
+            //console.log(field)
+            url = '/api/v1/task/man-hour'
+            url += '?start=' + field['date-start'] + '&end=' + field['date-end'] + '&user_id=' + field['user_id']
+            console.log(url)
+            table.reload('manHour-table', {
+                url: url
             })
             return false; // 阻止默认 form 跳转
         });
 
-        // 工时弹窗表单提交事件
-        form.on('submit(man-hour-form-submit)', function (data) {
-            let field = data.field; // 获取表单字段值
-            field.task_id = task_id
-            console.log(field)
-            // layui中开关的被选中是“on”，需要转换成ture或false
-            // ？. 为可选链运算符，即使不存在该属性的值，也不会报错
-            //field.disabled = field?.disabled ? true: false
-            if (field.id == 0){
-                field.id = null;
-                method = "POST";
-                url = `/api/v1/task/${task_id}/man-hour`;
-            }else{
-                method = "PUT";
-                url = `/api/v1/task/${task_id}/man-hour/${field.id}`;
-            }
-
-            $.ajax({
-                method: method,
-                url: url,
-                data: JSON.stringify(field),
-                contentType: "application/json",
-                //datatype: "json",
-                success: function (res){
-                    layer.msg(res.msg, {
-                        icon: 1,
-                        time: 1000
-                    }, function(){
-                        //layer.closeAll('page');
-                        layer.closeLast('page')
-                        table.reloadData('man-hour-table')
-                    })
-                },
-                error: function (res){
-                    layer.msg(res.msg,{
-                        icon: 2,
-                        time: 1000
-                    })
-                }
-            })
-            return false; // 阻止默认 form 跳转
-        });
     });
 
 </script>

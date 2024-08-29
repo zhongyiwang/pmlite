@@ -6,6 +6,7 @@ from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean
 # from .project import project_user_table
 
 from ._base import BaseModel
+from .task import user_task
 
 
 class UserModel(BaseModel):
@@ -23,6 +24,8 @@ class UserModel(BaseModel):
 
     department_id = Column(Integer, ForeignKey("department.id"), comment="部门id")
     department = db.relationship("DepartmentModel", backref="users")
+
+    # own_tasks = db.relationship('TaskModel', secondary=user_task, back_populates='owners')
 
     def __repr__(self):
         return '<User %r>' % self.name

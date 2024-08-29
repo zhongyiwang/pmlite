@@ -1,12 +1,17 @@
 {% extends '_base.html' %}
 {% block title %}任务管理{% endblock %}
 {% block body %}
-<!-- 用户表格 -->
+<!-- 任务表格 -->
 <div class="layui-fluid">
     <table class="layui-hide" id="task-table" lay-filter="task-table"></table>
 </div>
 
-<!--添加/编辑弹窗表单-->
+<!-- 子任务表格 -->
+<div class="layui-fluid" id="subTask-page" style="display: none">
+    <table class="layui-hide" id="subTask-table" lay-filter="subTask-table"></table>
+</div>
+
+<!--添加/编辑 任务 弹窗表单-->
 <form class="layui-form" action="" id="task-form" lay-filter="task-form" style="margin-top: 20px; display: none">
     <div style="padding-right: 20px;">
         <div class="layui-form-item" style="display: none">
@@ -18,11 +23,11 @@
         <div class="layui-form-item">
             <label class="layui-form-label">任务标题</label>
             <div class="layui-input-block">
-                <input type="text" name="title" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请输入任务标题"
+                <input type="text" name="title" id="title" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请输入任务标题"
                        class="layui-input">
             </div>
         </div>
-        <div class="layui-form-item" style="display: none">
+        <div class="layui-form-item" style="">
             <label class="layui-form-label">父任务ID</label>
             <div class="layui-input-block">
                 <input type="text" name="parent_id" id="parent_id" lay-affix="clear" autocomplete="off" placeholder="请输入父任务ID"
@@ -92,6 +97,7 @@
     </div>
 </form>
 
+
 <!-- 工时表格 -->
 <div class="layui-fluid" id="man-hour-page" style="display: none">
     <table class="layui-hide" id="man-hour-table" lay-filter="man-hour-table"></table>
@@ -104,6 +110,12 @@
             <label class="layui-form-label">ID</label>
             <div class="layui-input-block">
                 <input type="text" name="id" value="0" lay-verify="required" autocomplete="off" class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">内容</label>
+            <div class="layui-input-block">
+                <input type="text" name="content" lay-verify="required" lay-affix="clear" placeholder="请简述工作内容" class="layui-input">
             </div>
         </div>
         <div class="layui-form-item">
@@ -133,6 +145,13 @@
 <script type="text/html" id="toolbar">
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加任务</button>
+    </div>
+</script>
+
+<!-- 子任务表顶部工具栏 -->
+<script type="text/html" id="subTask-toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加子任务</button>
     </div>
 </script>
 
@@ -190,19 +209,19 @@
             elem: '.date-input'
         })
 
-        let url = '/api/v1/task';
+        let url = '/api/v1/task/treetable';
 
         if ('{{ query }}'){
            url += '?query=' + '{{ query }}'
         }
 
         // 渲染表格
-        table.render({
+        treeTable.render({
             elem: '#task-table',
             id: 'task-table',
             url: url,
             toolbar: '#toolbar',
-            page: true,
+            page: false,
             cols: [
                 [   // 标题栏
                     {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left'},
@@ -219,14 +238,15 @@
                     {title: '操作', fixed: "right", width: 180, toolbar: '#tools'}
                 ]
             ],
-            // tree: {
-            //     view: {
-            //         expandAllDefault: true  // 默认展开所有子节点
-            //     },
-            //     customName: {
-            //         name: 'title'  // 定义以哪一列为父子节点，默认field为name
-            //     }
-            // }
+            tree: {
+                view: {
+                    'expandAllDefault': true,
+                    'dblClickExpand': false
+                },
+                customName: {
+                    'name': 'title',
+                }
+            }
         });
 
         // 获取部门列表，并渲染
@@ -314,7 +334,7 @@
         }
 
         // 顶部工具栏事件
-        table.on('toolbar(task-table)', function (obj){
+        treeTable.on('toolbar(task-table)', function (obj){
             var options = obj.config;  //获取当前表格属性配置项
 
             // 根据不同的事件名进行相应的操作
@@ -337,7 +357,7 @@
         })
 
         // 单元格工具事件（操作列的按钮组）
-        table.on('tool(task-table)', function (obj) {
+        treeTable.on('tool(task-table)', function (obj) {
             if (obj.event === 'task-edit') {  // 编辑
                 form.val('task-form', obj.data);
 
@@ -375,6 +395,7 @@
                     cols: [
                         [   // 标题栏
                             {field: 'id', title: 'ID', sort: true, align: 'center'},
+                            {field: 'content', title: '内容'},
                             {field: 'work_date', title: '日期'},
                             {field: 'man_hour', title: '工时'},
                             {field: 'user', title: '登录人'},
@@ -468,39 +489,38 @@
             }
         });
 
+        // 行双击事件( 单击事件为: row )
+        treeTable.on('rowDouble(task-table)', function (obj) {
+            console.log(obj.data)
+            if(!obj.data.parent_id){
+                get_types()  // 获取部门，并渲染select
+                get_projects()  // 获取未完成项目，并渲染select
+                get_users()  // 获取用户，并渲染select
 
-        // 删除提交的方法
-        <!--?const del_user_api = async (id) => {-->
-        <!--?    const options = {-->
-        <!--?        method: 'DELETE',-->
-        <!--?        headers: {'Content-Type': 'application/json'},-->
-        <!--?    }-->
-        <!--?    const response = await fetch(`/api/user/${id}`, options)-->
-        <!--?    return await response.json()-->
-        <!--?}-->
-        <!--?window.del_user = (obj) => {-->
-        <!--?    console.log(obj)-->
-        <!--?    del_user_api(obj.data.id).then(function (ret) {-->
-        <!--?        // 提交成功之后的回调-->
-        <!--?        if (!ret.code) {-->
-        <!--?            layer.msg(ret.msg, {-->
-        <!--?                icon: 1,-->
-        <!--?                time: 1000,-->
-        <!--?            }, function () {-->
-        <!--?                table.reload('user');-->
-        <!--?            });-->
-        <!--?        } else {-->
-        <!--?            layer.msg(ret.msg, {-->
-        <!--?                icon: 2,-->
-        <!--?                time: 1000,-->
-        <!--?            });-->
-        <!--?        }-->
-        <!--?    })-->
-        <!--?}-->
+                $("#task-form")[0].reset();  // 将ID表单清空
+                $("#parent_id").val(obj.data.id)
+                $("#title").val(obj.data.title + "_")
+                layer.open({
+                    type: 1,
+                    title: "添加子任务",
+                    shade: false,
+                    content: $("#task-form"),
+                    area: ["50%", "60%"]
+                })
+
+            }else{
+                    layer.msg("子任务无法添加子任务！",{
+                        icon: 2,
+                        time: 1000
+                    })
+            }
+
+        });
 
 
         // 任务弹窗表单提交事件
         form.on('submit(task-form-submit)', function (data) {
+            console.log(data)
             let field = data.field; // 获取表单字段值
             // layui中开关的被选中是“on”，需要转换成ture或false
             // ？. 为可选链运算符，即使不存在该属性的值，也不会报错

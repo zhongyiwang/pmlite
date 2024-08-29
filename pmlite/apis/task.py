@@ -41,13 +41,38 @@ def task_view():
     }
 
 
+# 获取某任务工时列表
+@task_api.get('/<int:tid>/subTasks')
+def sub_task_list(tid):
+    task: TaskModel = db.get_or_404(TaskModel, tid)
+    subTasks = task.children
+
+    return {
+        'code': 0,
+        'msg': '信息查询成功',
+        'count': len(subTasks),
+        'data': [item.json() for item in subTasks]
+    }
+
+
+
 # 获取工时列表
 @task_api.route('/man-hour')
 @jwt_required()
 def manHour_view():
+    date_start = request.args.get('start')
+    date_end = request.args.get('end')
+    user_id = request.args.get('user_id')
+
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('limit', type=int, default=10)
     q = db.select(ManHourModel)
+    if user_id:
+        q = q.where(ManHourModel.user_id == user_id)
+    if date_start:
+        q = q.where(ManHourModel.work_date >= date_start)
+    if date_end:
+        q = q.where(ManHourModel.work_date <= date_end)
 
     pages: Pagination = db.paginate(q, page=page, per_page=per_page)
 
@@ -60,10 +85,18 @@ def manHour_view():
 
 # 获取任务列表，以树状表格显示
 @task_api.get("/treetable")
+@jwt_required()
 def task_list_as_treetable():
-
+    query = request.args.get('query')
     q = db.select(TaskModel)
-    q = q.where(TaskModel.parent_id == 0)
+    # q = q.where(TaskModel.parent_id == None)
+
+
+    if query == "uncompleted":
+        q = q.where(TaskModel.status != "已完成")
+    if query == "mine":
+        q = q.where(TaskModel.owner == current_user)
+
     task_list = db.session.execute(q).scalars()
 
     ret = []
@@ -82,11 +115,11 @@ def task_list_as_treetable():
                 .filter(ManHourModel.task_id == son.id).scalar()
             child_data['children'].append(son_data)
         ret.append(child_data)
-    # print(ret)
+    print(ret)
     return {
         "code": 0,
         "message": "数据请求成功！",
-        "count": 10,
+        "count": '',
         "data": ret
     }
 
