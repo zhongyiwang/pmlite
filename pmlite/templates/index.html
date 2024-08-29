@@ -40,7 +40,8 @@
           <dl class="layui-nav-child">
             <dd><a href="{{ url_for('task.index') }}" data-menuId="201">所有任务</a></dd>
             <dd><a href="{{ url_for('task.index', query='uncompleted') }}" data-menuId="202">未完成任务</a></dd>
-            <dd><a href="{{ url_for('task.index', query='mine') }}" data-menuId="203">我的任务</a></dd>
+            <dd><a href="{{ url_for('task.index', query='create') }}" data-menuId="203">我创建的</a></dd>
+            <dd><a href="{{ url_for('task.index', query='own') }}" data-menuId="204">我负责的</a></dd>
             <dd><a href="{{ url_for('task.manHour') }}" data-menuId="204">全部工时</a></dd>
           </dl>
         </li>
@@ -55,7 +56,7 @@
       </ul>
     </div>
     </div>
-    <div class="layui-body">
+    <div class="layui-body" style="bottom: 70px">
     <!-- 内容主体区域 -->
       <div class="layui-tab" lay-filter="page-tab" lay-allowclose="true">
           <ul class="layui-tab-title"></ul>

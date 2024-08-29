@@ -145,6 +145,10 @@
 <script type="text/html" id="toolbar">
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加任务</button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" id = "treeMode">
+            <span>显示模式</span>
+            <i class="layui-icon layui-icon-down layui-font-12"></i>
+        </button>
     </div>
 </script>
 
@@ -195,6 +199,7 @@
         var form = layui.form;
         var layer = layui.layer;
         let laydate = layui.laydate;
+        let dropdown = layui.dropdown;
 
         let task_id = 0
 
@@ -222,14 +227,15 @@
             url: url,
             toolbar: '#toolbar',
             page: false,
+            height: 'full-50',
             cols: [
                 [   // 标题栏
                     {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left'},
                     {field: 'title', title: '任务标题', minWidth: 300, fixed: 'left'},
                     {field: 'task_type', title: '任务类型', width:100},
-                    {field: 'project', title: '所属项目', align: 'center', width: 150},
+                    {field: 'project', title: '所属项目', align: 'center', width: 150, sort: true},
                     {field: 'creator', title: '创建者', align: 'center', width: 80},
-                    {field: 'owner', title: '负责人', align: 'center', width: 80},
+                    {field: 'owner', title: '负责人', align: 'center', width: 100, sort: true},
                     {field: 'planned_end_date', title: '计划完成日期', align: 'center', width: 120},
                     {field: 'actual_end_date', title: '实际完成日期', Width: 120, align: 'center', width: 120},
                     {field: 'planned_man_hours', title: '计划工时', align: 'center', width: 100},
@@ -246,8 +252,34 @@
                 customName: {
                     'name': 'title',
                 }
+            },
+            done: function (){
+                let id = this.id;
+                // 显示模式
+                dropdown.render({
+                    elem: '#treeMode',
+                    data: [{
+                        id: 'table-show',
+                        title: '折叠模式'
+                    },{
+                        id: 'treeTable-show',
+                        title: '展示模式'
+                    }],
+                    // 菜单被点击的事件
+                    click: function (obj){
+                        switch(obj.id){
+                            case 'table-show':
+                                treeTable.expandAll('task-table', false); // 关闭全部节点
+                            break;
+                            case 'treeTable-show':
+                                treeTable.expandAll('task-table', true); // 关闭全部节点
+                            break;
+                        }
+                    }
+                })
             }
         });
+
 
         // 获取部门列表，并渲染
         const get_types = function (obj) {
@@ -299,11 +331,13 @@
                     // console.log(content)
                     let s = $('#project_id')
                     s.html(content)
+                    $('#pId_filter').html(content)
                     //console.log(s.html())
                     form.render('select')
                 }
             })
         }
+
 
         // 获取用户列表，并渲染
         const get_users = function (obj) {
@@ -601,6 +635,7 @@
             })
             return false; // 阻止默认 form 跳转
         });
+
     });
 
 </script>

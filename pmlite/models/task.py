@@ -82,7 +82,7 @@ class TaskModel(BaseModel):
     children = db.relationship('TaskModel', back_populates='parent', cascade='all')
 
     def __repr__(self):
-        return "<Task %r>" % self.name
+        return "<Task %r>" % self.title
 
     def json(self):
         return {

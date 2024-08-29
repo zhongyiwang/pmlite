@@ -94,10 +94,13 @@ def task_list_as_treetable():
 
     if query == "uncompleted":
         q = q.where(TaskModel.status != "已完成")
-    if query == "mine":
+    if query == "own":
         q = q.where(TaskModel.owner == current_user)
+    if query == "create":
+        q = q.where(TaskModel.creator == current_user)
 
-    task_list = db.session.execute(q).scalars()
+    task_list = db.session.execute(q).scalars().all()
+    print(task_list)
 
     ret = []
     for child in task_list:
@@ -108,14 +111,19 @@ def task_list_as_treetable():
         child_data["children"] = []
         if child.children:
             child_data["isParent"] = True
-        for son in child.children:
-            son_data = son.json()
-            # 查询并绑定实际工时
-            son_data['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
-                .filter(ManHourModel.task_id == son.id).scalar()
-            child_data['children'].append(son_data)
+            for son in child.children:
+                try:
+                    task_list.remove(son)
+                except:
+                    pass
+                finally:
+                    son_data = son.json()
+                    # 查询并绑定实际工时
+                    son_data['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
+                        .filter(ManHourModel.task_id == son.id).scalar()
+                    child_data['children'].append(son_data)
         ret.append(child_data)
-    print(ret)
+    # print(ret)
     return {
         "code": 0,
         "message": "数据请求成功！",
