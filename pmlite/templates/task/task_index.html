@@ -191,7 +191,6 @@
     }
 
 
-
     layui.use(function () {
         var treeTable = layui.treeTable;
         var table = layui.table;
@@ -202,6 +201,8 @@
         let dropdown = layui.dropdown;
 
         let task_id = 0
+
+
 
         // 给默认的ajax请求添加权限
         $.ajaxSetup({
@@ -218,6 +219,11 @@
 
         if ('{{ query }}'){
            url += '?query=' + '{{ query }}'
+        }
+
+
+        if ('{{ pid }}' !== "None"){
+            url = '/api/v1/project/{{ pid }}/tasks'
         }
 
         // 渲染表格
@@ -380,7 +386,7 @@
                         title: "添加任务",
                         shade: false,
                         content: $("#task-form"),
-                        area: ["50%", "60%"]
+                        area: ["800px", "500px"]
                     })
                     get_types()  // 获取部门，并渲染select
                     get_projects()  // 获取未完成项目，并渲染select
@@ -403,7 +409,7 @@
                 layer.open({
                     type: 1,
                     title: '修改任务',
-                    area: ['50%', '60%'],
+                    area: ['800px', '500px'],
                     content: $('#task-form'),  // 捕获的元素
                 });
             } else if ( obj.event === 'show-man-hour-page') {  // 工时
@@ -411,7 +417,7 @@
                 layer.open({
                     type: 1,
                     title: '工时',
-                    area: ['50%', '40%'],
+                    area: ['600px', '400px'],
                     totalRow: true,
                     content: $('#man-hour-page'),  // 捕获的元素
                     cancel: function (){  // 工时弹窗关闭时，刷新任务表中的实际工时
@@ -539,7 +545,7 @@
                     title: "添加子任务",
                     shade: false,
                     content: $("#task-form"),
-                    area: ["50%", "60%"]
+                    area: ["800px", "500px"]
                 })
 
             }else{

@@ -6,6 +6,7 @@ from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean
 # from .project import project_user_table
 
 from ._base import BaseModel
+from .role import RoleModel, Permission
 from .task import user_task
 
 
@@ -24,6 +25,8 @@ class UserModel(BaseModel):
 
     department_id = Column(Integer, ForeignKey("department.id"), comment="部门id")
     department = db.relationship("DepartmentModel", backref="users")
+
+    role_id = Column(Integer, ForeignKey("role.id"), default=1, comment='角色id')
 
     # own_tasks = db.relationship('TaskModel', secondary=user_task, back_populates='owners')
 
@@ -62,3 +65,9 @@ class UserModel(BaseModel):
 
     def check_password(self, raw_password):
         return check_password_hash(self.password, raw_password)
+
+    def can(self, perm):
+        return self.role is not None and self.role.has_permission(perm)
+
+    def is_admin(self):
+        return self.can(Permission.ADMIN)

@@ -5,11 +5,13 @@ from ..models import UserModel
 jwt = JWTManager()
 
 
+# 从用户对象中提取唯一标识符，被用来生产JWT中的identity字段
 @jwt.user_identity_loader
 def user_identity_lookup(user):
     return user.id
 
 
+# 验证JWT并获取用户信息
 @jwt.user_lookup_loader
 def user_lookup_callback(_jwt_header, jwt_data):
     identity = jwt_data["sub"]
@@ -18,9 +20,11 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 @jwt.expired_token_loader
 def expired_token_callback():
+    print("token 已过期。。。")
     return {"msg": "token 已过期，请重新登录", "code": -1}, 403
 
 
 @jwt.unauthorized_loader
 def missing_token_callback(error):
-    return {"msg": "操作未授权，请重新登录", "code": -1}, 403
+    print("非登录用户请求。")
+    return {"msg": "未登录用户，请登录后重试！", "code": -1}

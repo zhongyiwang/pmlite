@@ -13,7 +13,6 @@ auth_api = Blueprint("auth", __name__)
 @auth_api.post("/login")
 def login_in():
     data = request.get_json()
-
     user: UserModel = db.session.execute(
         db.select(UserModel).where(UserModel.number == data["number"])
     ).scalar()
@@ -23,7 +22,9 @@ def login_in():
     if not user.check_password(data["password"]):
         return {"msg": "用户密码错误", "code": -1}
 
+    # 生成访问令牌
     access_token = create_access_token(user)
+    # 生成刷新令牌
     refresh_token = create_refresh_token(user)
 
     response = make_response(
@@ -32,6 +33,7 @@ def login_in():
             "msg": "登录成功",
             "access_token": access_token,
             "refresh_token": refresh_token,
+            "user_id": user.id
         }
     )
     return response

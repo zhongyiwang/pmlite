@@ -13,7 +13,10 @@ class BaseConfig:
 
     ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 
-    JWT_TOKEN_LOCATION = ["headers"]
+    # JWT配置项目
+    # 指定查找JWT的位置，默认是headers，也可以是cookies等，放在列表中。
+    # JWT_TOKEN_LOCATION = ["headers"]
+    # JWT访问令牌的有效期
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7)
 
 

@@ -3,8 +3,9 @@ from flask import Blueprint, request
 from flask_sqlalchemy.pagination import Pagination
 from flask_jwt_extended import current_user, jwt_required
 
-from ..models import TaskModel, TaskTypeModel, ManHourModel
+from ..models import TaskModel, TaskTypeModel, ManHourModel, Permission
 from ..extensions import db
+from pmlite.decorators import permission_required, admin_required
 
 task_api = Blueprint("task", __name__, url_prefix="/task")
 
@@ -83,9 +84,11 @@ def manHour_view():
         'data': [item.json() for item in pages.items]
     }
 
+
 # 获取任务列表，以树状表格显示
 @task_api.get("/treetable")
 @jwt_required()
+@permission_required(Permission.TASK)
 def task_list_as_treetable():
     query = request.args.get('query')
     q = db.select(TaskModel)
@@ -100,7 +103,6 @@ def task_list_as_treetable():
         q = q.where(TaskModel.creator == current_user)
 
     task_list = db.session.execute(q).scalars().all()
-    print(task_list)
 
     ret = []
     for child in task_list:
@@ -108,6 +110,9 @@ def task_list_as_treetable():
         # 查询并绑定实际工时
         child_data['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
             .filter(ManHourModel.task_id == child.id).scalar()
+        if isinstance(child_data['actual_man_hours'], float):
+            child_data['actual_man_hours'] = round(child_data['actual_man_hours'], 1)
+
         child_data["children"] = []
         if child.children:
             child_data["isParent"] = True
@@ -121,9 +126,11 @@ def task_list_as_treetable():
                     # 查询并绑定实际工时
                     son_data['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
                         .filter(ManHourModel.task_id == son.id).scalar()
+                    if isinstance(son_data['actual_man_hours'], float):
+                        son_data['actual_man_hours'] = round(son_data['actual_man_hours'], 1)
+
                     child_data['children'].append(son_data)
         ret.append(child_data)
-    # print(ret)
     return {
         "code": 0,
         "message": "数据请求成功！",

@@ -28,14 +28,14 @@
     <div class="layui-side-scroll">
       <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
       <ul class="layui-nav layui-nav-tree" lay-filter="test">
-        <li class="layui-nav-item layui-nav-itemed">
+        <li class="layui-nav-item layui-nav-itemed project-show" style="display: none">
           <a class="" href="javascript:;">项目管理</a>
           <dl class="layui-nav-child">
             <dd><a href="{{ url_for('project.index') }}" data-menuId="101">所有项目</a></dd>
             <dd><a href="{{ url_for('project.index', status='uncompleted') }}" data-menuId="102">未完成项目</a></dd>
           </dl>
         </li>
-        <li class="layui-nav-item layui-nav-itemed">
+        <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">
           <a class="" href="javascript:;">任务管理</a>
           <dl class="layui-nav-child">
             <dd><a href="{{ url_for('task.index') }}" data-menuId="201">所有任务</a></dd>
@@ -45,7 +45,7 @@
             <dd><a href="{{ url_for('task.manHour') }}" data-menuId="204">全部工时</a></dd>
           </dl>
         </li>
-        <li class="layui-nav-item">
+        <li class="layui-nav-item admin-show" style="display: none">
           <a href="javascript:;">系统设置</a>
           <dl class="layui-nav-child">
             <dd><a href="{{ url_for('department.index') }}" data-menuId="301">部门管理</a></dd>
@@ -58,11 +58,9 @@
     </div>
     <div class="layui-body" style="bottom: 70px">
     <!-- 内容主体区域 -->
-      <div class="layui-tab" lay-filter="page-tab" lay-allowclose="true">
-          <ul class="layui-tab-title"></ul>
-          <div class="layui-tab-content"></div>
-      </div>
-    {#      <iframe id="iframeMain" src="" style="padding-top: 10px; width: 100%; height: 100%;"></iframe>#}
+    <div class="layui-tab" lay-filter="page-tab" lay-allowclose="true">
+        <ul class="layui-tab-title"></ul>
+        <div class="layui-tab-content"></div>
     </div>
     <div class="layui-footer">
     <!-- 底部固定区域 -->
@@ -90,13 +88,10 @@ layui.use(['element', 'layer', 'util'], function(){
 
     //左侧菜单跳转事件
     $("dd>a").click(function (event){
+
         const othis = $(this)
         event.preventDefault();
-        // $("#iframeMain").attr("src",$(this).attr("href"))
-        // console.log($(this).attr("data-menuId"))
-        // let html = ""
-        console.log($("[layid = " + othis.attr("data-menuId") + "]").lenth)
-        //html = '<iframe class="aaiframe" src="' + $(this).attr("href") +  '" style="padding-top: 10px; width: 100%; height: 100%; border:none"></iframe>'
+
         element.tabDelete('page-tab',othis.attr("data-menuId"))
         html = '<iframe class="aaiframe" src="' + $(this).attr("href") +  '" style="position: absolute; width: 100%; height: 100%;border:none"></iframe>'
         tabAdd(othis.text(), html, othis.attr("data-menuId"))
@@ -107,11 +102,32 @@ layui.use(['element', 'layer', 'util'], function(){
     let layid = location.hash.replace(new RegExp('^#'+ hashName + '='), ''); // 获取 lay-id 值
 
     // 初始切换
-    element.tabChange('test-hash', layid);
+    element.tabChange('page-tab', layid);
     // 切换事件
-    element.on('tab(test-hash)', function(obj){
-    location.hash = hashName +'='+ this.getAttribute('lay-id');
+    element.on('tab(page-tab)', function(obj){
+        console.log('切换tab')
+        location.hash = hashName +'='+ this.getAttribute('lay-id');
     });
+
+
+    // 根据hash变化，更新网页内容
+    function updateContent(){
+        let hash = location.hash.slice(1);
+        console.log(hash)
+        if (hash === '/project'){
+
+            console.log($(this).text())
+            $('#content').html('<h1>hahaha</h1>')
+        }
+    }
+
+    // 监听hash变化，更新内容
+    //window.addEventListener('hashchange', updateContent)
+
+    // 初始化加载
+    //updateContent()
+
+
 
     // 给默认的ajax请求添加权限
     $.ajaxSetup({
@@ -129,6 +145,24 @@ layui.use(['element', 'layer', 'util'], function(){
                 location.href = "/user/login"
             } else{  // 已登录，显示用户姓名
                 $("#user").text(res.data.name)
+
+                const project = '{{Permission.PROJECT}}'
+                const task = '{{Permission.TASK}}'
+                const quoter = '{{Permission.QUOTER}}'
+                const admin = '{{Permission.ADMIN}}'
+                if ((res.permissions & project) == project) {
+                    $('.project-show').show()
+                }
+                if ((res.permissions & task) == task) {
+                    $('.task-show').show()
+                }
+                if ((res.permissions & quoter) == quoter) {
+                    $('.quoter-show').show()
+                }
+                if ((res.permissions & admin) == admin) {
+                    $('.admin-show').show()
+                }
+
             }
         },
         error: function (error){
@@ -146,6 +180,7 @@ layui.use(['element', 'layer', 'util'], function(){
                 if (res.code === 0) {
                     localStorage.removeItem("access_token");
                     localStorage.removeItem("refresh_token");
+                    localStorage.removeItem("user_id");
                     layer.msg(res.msg, {
                         icon:1,
                         time: 1000

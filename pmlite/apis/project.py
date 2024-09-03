@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from flask_sqlalchemy.pagination import Pagination
 from flask_jwt_extended import current_user, jwt_required
 
-from ..models import ProjectModel
+from ..models import ProjectModel, TaskModel, ManHourModel
 from ..extensions import db
 
 
@@ -33,6 +33,48 @@ def project_view():
         'data': [item.json() for item in pages.items]
     }
 
+
+# 获取项目的任务列表
+@project_api.get('/<int:pid>/tasks')
+def project_tasks(pid):
+    q = db.select(TaskModel).where(TaskModel.project_id == pid)
+    task_list = db.session.execute(q).scalars().all()
+
+    print(task_list)
+    ret = []
+    for child in task_list:
+        child_data = child.json()
+        # 查询并绑定实际工时
+        child_data['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
+            .filter(ManHourModel.task_id == child.id).scalar()
+        if isinstance(child_data['actual_man_hours'], float):
+            child_data['actual_man_hours'] = round(child_data['actual_man_hours'], 1)
+
+        child_data["children"] = []
+        if child.children:
+            child_data["isParent"] = True
+            for son in child.children:
+                try:
+                    task_list.remove(son)
+                except:
+                    pass
+                finally:
+                    son_data = son.json()
+                    # 查询并绑定实际工时
+                    son_data['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
+                        .filter(ManHourModel.task_id == son.id).scalar()
+                    if isinstance(son_data['actual_man_hours'], float):
+                        son_data['actual_man_hours'] = round(son_data['actual_man_hours'], 1)
+
+                    child_data['children'].append(son_data)
+        ret.append(child_data)
+    print(ret)
+    return {
+        "code": 0,
+        "message": "数据请求成功！",
+        "count": '',
+        "data": ret
+    }
 
 # 添加
 @project_api.post('/')

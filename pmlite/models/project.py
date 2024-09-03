@@ -61,7 +61,8 @@ class ProjectModel(BaseModel):
             "machine_type": self.machine_type.name if self.machine_type else "",
             "designer": self.designer.name if self.designer else "",
             "manager": self.manager.name if self.manager else "",
-            "creator": self.creator.name if self.manager else ""
+            "creator": self.creator.name if self.manager else "",
+            "creator_id": self.creator_id
         }
 
 

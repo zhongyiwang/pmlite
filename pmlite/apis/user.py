@@ -109,5 +109,6 @@ def user_profile():
     return {
         "code": 0,
         "msg": "获取个人数据成功！",
-        "data": current_user.json()
+        "data": current_user.json(),
+        'permissions': current_user.role.permissions if current_user.role else ""
     }
