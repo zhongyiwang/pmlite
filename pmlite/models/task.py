@@ -5,6 +5,7 @@ from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean, T
 from ._base import BaseModel, StatusEnum
 
 
+
 class TaskTypeModel(BaseModel):
     __tablename__ = 'task_type'
     id = Column(Integer, primary_key=True, autoincrement=True, comment="自增id")
@@ -60,8 +61,8 @@ class TaskModel(BaseModel):
     planned_end_date = Column(DateTime, comment='计划完成日期')
     actual_end_date = Column(DateTime, comment='实际完成日期')
     status = Column(Enum("未开始", "进行中", "已完成"), default="未开始", comment='完成状态')
-    planned_man_hours = Column(Integer, comment='计划工时')
-    actual_man_hours = Column(Integer, comment='实际工时')
+    planned_man_hours = Column(Float, comment='计划工时')
+    actual_man_hours = Column(Float, comment='实际工时')
 
     project_id = Column(Integer, ForeignKey("project.id"), comment='项目id')
     project = db.relationship("ProjectModel", backref="tasks")
@@ -99,3 +100,4 @@ class TaskModel(BaseModel):
             "owner": self.owner.name if self.owner else "",
             "parent_id": self.parent_id
         }
+

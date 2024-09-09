@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, request
 from flask_sqlalchemy.pagination import Pagination
+from sqlalchemy.event import listen
 from flask_jwt_extended import current_user, jwt_required
 
 from ..models import TaskModel, TaskTypeModel, ManHourModel, Permission
@@ -90,10 +91,14 @@ def manHour_view():
 @jwt_required()
 @permission_required(Permission.TASK)
 def task_list_as_treetable():
+    date_start = request.args.get('start')
+    date_end = request.args.get('end')
+    user_id = request.args.get('user_id')
+    project_id = request.args.get('project_id')
+    status = request.args.get('status')
+
     query = request.args.get('query')
     q = db.select(TaskModel)
-    # q = q.where(TaskModel.parent_id == None)
-
 
     if query == "uncompleted":
         q = q.where(TaskModel.status != "已完成")
@@ -102,20 +107,32 @@ def task_list_as_treetable():
     if query == "create":
         q = q.where(TaskModel.creator == current_user)
 
+    if project_id:
+        q = q.where(TaskModel.project_id == project_id)
+    if user_id:
+        q = q.where(TaskModel.owner_id == user_id)
+    if status and status == 'completed':
+        q = q.where(TaskModel.status == "已完成")
+    if status and status == 'uncompleted':
+        q = q.where(TaskModel.status != "已完成")
+    if date_start:
+        q = q.where(TaskModel.planned_end_date >= date_start)
+    if date_end:
+        q = q.where(TaskModel.planned_end_date <= date_end)
+
+    print(q)
+
     task_list = db.session.execute(q).scalars().all()
 
     ret = []
     for child in task_list:
         child_data = child.json()
-        # 查询并绑定实际工时
-        child_data['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
-            .filter(ManHourModel.task_id == child.id).scalar()
-        if isinstance(child_data['actual_man_hours'], float):
-            child_data['actual_man_hours'] = round(child_data['actual_man_hours'], 1)
 
         child_data["children"] = []
         if child.children:
             child_data["isParent"] = True
+            if query == "uncompleted" or status == 'uncompleted':
+                child.children = list(filter(lambda x: x.status != '已完成', child.children))
             for son in child.children:
                 try:
                     task_list.remove(son)
@@ -123,11 +140,6 @@ def task_list_as_treetable():
                     pass
                 finally:
                     son_data = son.json()
-                    # 查询并绑定实际工时
-                    son_data['actual_man_hours'] = db.session.query(db.func.sum(ManHourModel.man_hour)) \
-                        .filter(ManHourModel.task_id == son.id).scalar()
-                    if isinstance(son_data['actual_man_hours'], float):
-                        son_data['actual_man_hours'] = round(son_data['actual_man_hours'], 1)
 
                     child_data['children'].append(son_data)
         ret.append(child_data)
@@ -151,6 +163,18 @@ def task_type_list():
     }
 
 
+# 更新父任务（如有）的计划工时
+def update_task_planned_man_hours(task):
+    if task.planned_man_hours and task.parent_id:
+
+        # 删除任务事务提交后，再执行下行代码后会报错
+        parent_task = task.parent
+        print(parent_task.children)
+        parent_task.planned_man_hours = db.session.query(db.func.sum(TaskModel.planned_man_hours))\
+            .filter(TaskModel.parent_id == parent_task.id).scalar()
+        parent_task.save()
+
+
 # 添加
 @task_api.post('/')
 @jwt_required()
@@ -161,7 +185,9 @@ def task_add():
     task.creator_id = current_user.id
     try:
         task.save()
+        update_task_planned_man_hours(task)
     except Exception as e:
+        print('任务添加失败。')
         print(e)
         return {
             'code': -1,
@@ -173,7 +199,7 @@ def task_add():
     }
 
 
-# 修改
+# 修改任务
 @task_api.put('/<int:tid>')
 def task_edit(tid):
     data = request.get_json()
@@ -181,7 +207,9 @@ def task_edit(tid):
     task.update(data)
     try:
         task.save()
+        update_task_planned_man_hours(task)
     except Exception as e:
+        print('任务修改失败')
         print(e)
         return {
             'code': -1,
@@ -193,7 +221,7 @@ def task_edit(tid):
     }
 
 
-# 删除
+# 删除任务
 @task_api.delete('/<int:tid>')
 @jwt_required()
 def task_delete(tid):
@@ -202,9 +230,11 @@ def task_delete(tid):
         try:
             pass
             db.session.delete(task)
-            # user.is_del = True
+            update_task_planned_man_hours(task)
             db.session.commit()
         except Exception as e:
+            print('任务删除失败')
+            print(e)
             return {
                 'code': -1,
                 'msg': '删除数据失败'
@@ -236,6 +266,21 @@ def man_hour_list(tid):
     }
 
 
+# 工时变动（新增、修改、删除）时，同步更新任务（含父任务）的实际总工时
+def update_task_actual_man_housr(tid):
+    # 更换工时所在任务
+    task: TaskModel = db.get_or_404(TaskModel, tid)
+    task.actual_man_hours = db.session.query(db.func.sum(ManHourModel.man_hour)) \
+        .filter(ManHourModel.task_id == tid).scalar()
+    task.save()
+    # 更换工时所在任务的父任务（如有）
+    if task.parent_id:
+        parent_task: TaskModel = db.get_or_404(TaskModel, task.parent_id)
+        parent_task.actual_man_hours = db.session.query(db.func.sum(TaskModel.actual_man_hours)) \
+            .filter(TaskModel.parent_id == task.parent_id).scalar()
+        parent_task.save()
+
+
 # 添加工时
 @task_api.post('/<int:tid>/man-hour')
 @jwt_required()
@@ -245,9 +290,13 @@ def man_hour_add(tid):
     man_hour.update(data)
     man_hour.user_id = current_user.id
 
+
     try:
         man_hour.save()
+        update_task_actual_man_housr(tid)
     except Exception as e:
+        print('工时添加失败')
+        print(e)
         return {
             'code': -1,
             'msg': '新增数据失败'
@@ -266,7 +315,10 @@ def man_hour_edit(tid, mid):
     man_hour.update(data)
     try:
         man_hour.save()
+        update_task_actual_man_housr(tid)
     except Exception as e:
+        print('工时修改失败')
+        print(e)
         return {
             'code': -1,
             'msg': '修改数据失败'
@@ -277,7 +329,7 @@ def man_hour_edit(tid, mid):
     }
 
 
-# 删除
+# 删除工时
 @task_api.delete('/<int:tid>/man-hour/<int:mid>')
 @jwt_required()
 def man_hour_delete(tid, mid):
@@ -286,9 +338,11 @@ def man_hour_delete(tid, mid):
         try:
             pass
             db.session.delete(man_hour)
-            # user.is_del = True
             db.session.commit()
+            update_task_actual_man_housr(tid)
         except Exception as e:
+            print('工时删除失败')
+            print(e)
             return {
                 'code': -1,
                 'msg': '删除数据失败'
