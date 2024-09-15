@@ -3,7 +3,7 @@
 {% block body %}
 <!-- 任务表格 -->
 <div class="layui-fluid">
-    <!--搜索表单-->
+    <!-- 搜索表单 -->
     <form class="layui-form layui-row layui-col-space16">
       <div class="layui-col-md2">
         <div class="layui-input-wrap">
@@ -15,6 +15,18 @@
           </select>
         </div>
       </div>
+
+      <div class="layui-col-md2">
+        <div class="layui-input-wrap">
+          <select name="department_id">
+              <option value="">部门</option>
+              <option value=3>产品设计室</option>
+              <option value=4>营业技术室</option>
+              <option value=5>自动化设计室</option>
+          </select>
+        </div>
+      </div>
+
       <div class="layui-col-md2">
         <div class="layui-input-wrap">
           <div class="layui-input-prefix">
@@ -25,20 +37,20 @@
           </select>
         </div>
       </div>
-      <div class="layui-col-md2">
+      <div class="layui-col-md1">
         <div class="layui-input-wrap">
           <div class="layui-input-prefix">
             <i class="layui-icon layui-icon-username"></i>
           </div>
           <select name="status">
-              <option value="">请选择任务状态</option>
+              <option value="">任务状态</option>
               <option value="">全部</option>
               <option value="completed">已完成</option>
               <option value="uncompleted">未完成</option>
           </select>
         </div>
       </div>
-      <div class="layui-col-md2">
+      <div class="layui-col-md1">
         <div class="layui-input-wrap">
             <div class="layui-input-prefix">
                 <i class="layui-icon layui-icon-date"></i>
@@ -46,7 +58,7 @@
             <input type="text" name="date-start" readonly placeholder="开始日期" lay-affix="clear" class="layui-input date-input">
         </div>
       </div>
-      <div class="layui-col-md2">
+      <div class="layui-col-md1">
         <div class="layui-input-wrap">
           <div class="layui-input-prefix">
             <i class="layui-icon layui-icon-date"></i>
@@ -295,7 +307,7 @@
             url: url,
             toolbar: '#toolbar',
             page: false,
-            height: 'full-50',
+            height: 'full-140',
             cols: [
                 [   // 标题栏
                     {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left'},
@@ -471,7 +483,7 @@
                 async: false,
                 success: function (res) {
                     console.log(res.data)
-                    let content = '<option value="">请选择任务负责人（可搜索）</option>'
+                    let content = '<option value="">任务负责人（可搜索）</option>'
                     $.each(res.data, function (i, val) {
                         content += '<option value="' + val.id + '">' + val.name + '</option>'
 
@@ -494,7 +506,7 @@
                 async: false,
                 success: function (res) {
                     console.log(res.data)
-                    let content = '<option value="">请选择任务负责人（可搜索）</option>'
+                    let content = '<option value="">负责人（可搜索）</option>'
                     $.each(res.data, function (i, val) {
                         // content += '<option value="' + val.id + '">' + val.name + '</option>'
                         //if (val.parent_id != 0) {
@@ -558,7 +570,7 @@
                 layer.open({
                     type: 1,
                     title: '工时',
-                    area: ['600px', '400px'],
+                    area: ['800px', '500px'],
                     totalRow: true,
                     content: $('#man-hour-page'),  // 捕获的元素
                     cancel: function (){  // 工时弹窗关闭时，刷新任务表中的实际工时
@@ -597,7 +609,7 @@
                                 title: "添加工时",
                                 shade: false,
                                 content: $("#man-hour-form"),
-                                area: ["400px", "300px"]
+                                area: ["800px", "500px"]
                             })
 
                             break;
@@ -614,7 +626,7 @@
                             type: 1,
                             title: "修改工时",
                             content: $("#man-hour-form"),
-                            area: ["400px", "300px"]
+                            area: ["800px", "500px"]
                         })
                     } else if (obj.event ==='del'){
                         layer.confirm('确认删除么？', function (index) {
@@ -798,7 +810,9 @@
             console.log(field)
             url = '/api/v1/task/treetable'
             // url = '/api/v1/task/man-hour'
-            url += '?start=' + field['date-start'] + '&end=' + field['date-end'] + '&user_id=' + field['user_id'] + '&project_id=' + field['project_id'] + '&status=' + field['status']
+            url += '?start=' + field['date-start'] + '&end=' + field['date-end'] + '&user_id=' + field['user_id'] + '&project_id=' + field['project_id']
+                    + '&status=' + field['status']
+                    + '&department_id=' + field['department_id']
             console.log(url)
             // console.log(url)
             treeTable.reload('task-table', {

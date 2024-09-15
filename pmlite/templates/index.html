@@ -25,46 +25,45 @@
         </ul>
     </div>
     <div class="layui-side layui-bg-black">
-    <div class="layui-side-scroll">
-      <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
-      <ul class="layui-nav layui-nav-tree" lay-filter="test">
-        <li class="layui-nav-item layui-nav-itemed project-show" style="display: none">
-          <a class="" href="javascript:;">项目管理</a>
-          <dl class="layui-nav-child">
-            <dd><a href="{{ url_for('project.index') }}" data-menuId="101">所有项目</a></dd>
-            <dd><a href="{{ url_for('project.index', status='uncompleted') }}" data-menuId="102">未完成项目</a></dd>
-          </dl>
-        </li>
-        <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">
-          <a class="" href="javascript:;">任务管理</a>
-          <dl class="layui-nav-child">
-            <dd><a href="{{ url_for('task.index') }}" data-menuId="201">所有任务</a></dd>
-            <dd><a href="{{ url_for('task.index', query='uncompleted') }}" data-menuId="202">未完成任务</a></dd>
-            <dd><a href="{{ url_for('task.index', query='create') }}" data-menuId="203">我创建的</a></dd>
-            <dd><a href="{{ url_for('task.index', query='own') }}" data-menuId="204">我负责的</a></dd>
-            <dd><a href="{{ url_for('task.manHour') }}" data-menuId="204">全部工时</a></dd>
-          </dl>
-        </li>
-        <li class="layui-nav-item admin-show" style="display: none">
-          <a href="javascript:;">系统设置</a>
-          <dl class="layui-nav-child">
-            <dd><a href="{{ url_for('department.index') }}" data-menuId="301">部门管理</a></dd>
-            <dd><a href="{{ url_for('user.index') }}" data-menuId="302">用户管理</a></dd>
-            <dd><a href="{{ url_for('machine.index') }}" data-menuId="303">机型管理</a></dd>
-          </dl>
-        </li>
-      </ul>
+        <div class="layui-side-scroll">
+          <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+          <ul class="layui-nav layui-nav-tree" lay-filter="test">
+            <li class="layui-nav-item layui-nav-itemed project-show" style="display: none">
+              <a class="" href="javascript:;">项目管理</a>
+              <dl class="layui-nav-child">
+                <dd><a href="{{ url_for('project.index') }}" data-menuId="101">所有项目</a></dd>
+                <dd><a href="{{ url_for('project.index', status='uncompleted') }}" data-menuId="102">未完成项目</a></dd>
+              </dl>
+            </li>
+            <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">
+              <a class="" href="javascript:;">任务管理</a>
+              <dl class="layui-nav-child">
+                <dd><a href="{{ url_for('task.index') }}" data-menuId="201">所有任务</a></dd>
+                <dd><a href="{{ url_for('task.index', query='uncompleted') }}" data-menuId="202">未完成任务</a></dd>
+                <dd><a href="{{ url_for('task.index', query='create') }}" data-menuId="203">我创建的</a></dd>
+                <dd><a href="{{ url_for('task.index', query='own') }}" data-menuId="204">我负责的</a></dd>
+                <dd><a href="{{ url_for('task.manHour') }}" data-menuId="204">全部工时</a></dd>
+              </dl>
+            </li>
+            <li class="layui-nav-item admin-show" style="display: none">
+              <a href="javascript:;">系统设置</a>
+              <dl class="layui-nav-child">
+                <dd><a href="{{ url_for('department.index') }}" data-menuId="301">部门管理</a></dd>
+                <dd><a href="{{ url_for('user.index') }}" data-menuId="302">用户管理</a></dd>
+                <dd><a href="{{ url_for('machine.index') }}" data-menuId="303">机型管理</a></dd>
+              </dl>
+            </li>
+          </ul>
+        </div>
     </div>
-    </div>
-    <div class="layui-body" style="bottom: 70px">
+    <div class="layui-body">
+
+
     <!-- 内容主体区域 -->
-    <div class="layui-tab" lay-filter="page-tab" lay-allowclose="true">
-        <ul class="layui-tab-title"></ul>
-        <div class="layui-tab-content"></div>
-    </div>
-    <div class="layui-footer">
-    <!-- 底部固定区域 -->
-    底部固定区域
+        <div class="layui-tab" lay-filter="page-tab" lay-allowclose="true">
+            <ul class="layui-tab-title"></ul>
+            <div class="layui-tab-content"></div>
+        </div>
     </div>
 </div>
 

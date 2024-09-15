@@ -38,6 +38,7 @@
     <table class="layui-hide" id="manHour-table" lay-filter="manHour-table"></table>
 </div>
 
+<!--?<div id="sealContainer"></div>-->
 
 <!-- 任务表顶部工具栏 -->
 <script type="text/html" id="toolbar">
@@ -92,6 +93,7 @@
             url: url,
             toolbar: '#toolbar',
             page: true,
+            height: "full-140",
             cols: [
                 [   // 标题栏
                     {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left'},
@@ -149,6 +151,85 @@
             })
             return false; // 阻止默认 form 跳转
         });
+
+
+
+        // tag:所要创建的标签名称
+        // attrs：所需要添加的属性， {key:val, key:val}
+        function makeSVG(tag, attrs){
+            const ns = "http://www.w3.org/2000/svg";
+
+            let el = document.createElementNS(ns, tag);
+            for (let k in attrs){
+                el.setAttribute(k, attrs[k])
+            }
+            return el
+        }
+
+        // const svg = makeSVG('svg', {"width":"120", "height":"120"})
+        // const circle = makeSVG("circle", {"cx":"60", "cy":"60", "r":"50", "stroke":"red", "fill":"none"})
+        // const line1 = makeSVG("line", {"x1":"13", "y1":"44", "x2":"107", "y2":"44", "stroke":"red"})
+        // const line2 = makeSVG("line", {"x1":"13", "y1":"76", "x2":"107", "y2":"76", "stroke":"red"})
+        // const text1 = makeSVG("text", {"x":"60", "y":"36", "font-family":"Arial", "font-size":"14", "fill":"red", "text-anchor":"middle"})
+        // const text2 = makeSVG("text", {"x":"60", "y":"65", "font-family":"Arial", "font-size":"14", "fill":"red", "text-anchor":"middle"})
+        // const text3 = makeSVG("text", {"x":"60", "y":"95", "font-family":"Arial", "font-size":"14", "fill":"red", "text-anchor":"middle"})
+        // text1.textContent = "自动化设计"
+        // text2.textContent = "2024/09/11"
+        // text3.textContent = "王忠义"
+
+        function generateStamp(department, dateStr, name) {
+
+
+            const svg = makeSVG('svg', {"width": "120", "height": "120"})
+            const circle = makeSVG("circle", {"cx": "45", "cy": "45", "r": "40", "stroke": "red", "fill": "none"})
+            const line1 = makeSVG("line", {"x1": "8", "y1": "34", "x2": "82", "y2": "34", "stroke": "red"})
+            const line2 = makeSVG("line", {"x1": "8", "y1": "56", "x2": "82", "y2": "56", "stroke": "red"})
+            const text1 = makeSVG("text", {
+                "x": "45",
+                "y": "28",
+                "font-family": "Arial",
+                "font-size": "12",
+                "fill": "red",
+                "text-anchor": "middle"
+            })
+            const text2 = makeSVG("text", {
+                "x": "45",
+                "y": "49",
+                "font-family": "Arial",
+                "font-size": "12",
+                "fill": "red",
+                "text-anchor": "middle"
+            })
+            const text3 = makeSVG("text", {
+                "x": "45",
+                "y": "71",
+                "font-family": "Arial",
+                "font-size": "12",
+                "fill": "red",
+                "text-anchor": "middle"
+            })
+            text1.textContent = department
+            text2.textContent = dateStr
+            text3.textContent = name
+
+
+            svg.appendChild(circle);  // 将圆元素添加到 SVG 元素中
+            svg.appendChild(line1)
+            svg.appendChild(line2)
+            svg.appendChild(text1)
+            svg.appendChild(text2)
+            svg.appendChild(text3)
+
+            return svg
+        }
+
+
+        const stamp1 = generateStamp("自动化设计","2024/09/11", "王忠义")
+
+        // $("#sealContainer").append(stamp1);  // 将 SVG 元素添加到 HTML 文档中
+        // document.getElementById("sealContainer").appendChild(stamp1)
+        //document.getElementById("sealContainer").appendChild(stamp1)
+        // $("#sealContainer").append(svg);  // 将 SVG 元素添加到 HTML 文档中
 
     });
 

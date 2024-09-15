@@ -4,7 +4,7 @@ from flask_sqlalchemy.pagination import Pagination
 from sqlalchemy.event import listen
 from flask_jwt_extended import current_user, jwt_required
 
-from ..models import TaskModel, TaskTypeModel, ManHourModel, Permission
+from ..models import TaskModel, TaskTypeModel, ManHourModel, Permission, DepartmentModel, UserModel
 from ..extensions import db
 from pmlite.decorators import permission_required, admin_required
 
@@ -96,6 +96,9 @@ def task_list_as_treetable():
     user_id = request.args.get('user_id')
     project_id = request.args.get('project_id')
     status = request.args.get('status')
+    department_id = request.args.get('department_id')
+    if department_id:
+        user_id = None
 
     query = request.args.get('query')
     q = db.select(TaskModel)
@@ -119,6 +122,13 @@ def task_list_as_treetable():
         q = q.where(TaskModel.planned_end_date >= date_start)
     if date_end:
         q = q.where(TaskModel.planned_end_date <= date_end)
+
+    if department_id:
+        user_list = []
+        users = db.session.execute(db.select(UserModel).where(UserModel.department_id == department_id)).scalars().all()
+        for user in users:
+            user_list.append(user.id)
+        q = q.where(TaskModel.owner_id.in_(user_list))
 
     print(q)
 
