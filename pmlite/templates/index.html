@@ -31,26 +31,33 @@
             <li class="layui-nav-item layui-nav-itemed project-show" style="display: none">
               <a class="" href="javascript:;">项目管理</a>
               <dl class="layui-nav-child">
-                <dd><a href="{{ url_for('project.index') }}" data-menuId="101">所有项目</a></dd>
-                <dd><a href="{{ url_for('project.index', status='uncompleted') }}" data-menuId="102">未完成项目</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('project.index') }}" menu_name="所有项目" menu_id="101">所有项目</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('project.index', status='uncompleted') }}" menu_name="未完成项目" menu_id="102">未完成项目</a></dd>
               </dl>
             </li>
             <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">
               <a class="" href="javascript:;">任务管理</a>
               <dl class="layui-nav-child">
-                <dd><a href="{{ url_for('task.index') }}" data-menuId="201">所有任务</a></dd>
-                <dd><a href="{{ url_for('task.index', query='uncompleted') }}" data-menuId="202">未完成任务</a></dd>
-                <dd><a href="{{ url_for('task.index', query='create') }}" data-menuId="203">我创建的</a></dd>
-                <dd><a href="{{ url_for('task.index', query='own') }}" data-menuId="204">我负责的</a></dd>
-                <dd><a href="{{ url_for('task.manHour') }}" data-menuId="204">全部工时</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('task.index') }}" menu_name="所有任务" menu_id="201">所有任务</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='uncompleted') }}" menu_name="未完成任务" menu_id="202">未完成任务</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='create') }}" menu_name="我创建的" menu_id="203">我创建的</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='own') }}" menu_name="我负责的" menu_id="204">我负责的</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('task.manHour') }}" menu_name="全部工时" menu_id="205">全部工时</a></dd>
               </dl>
             </li>
-            <li class="layui-nav-item admin-show" style="display: none">
+            <li class="layui-nav-item layui-nav-itemed purchase-show" style="display: none">
+              <a class="" href="javascript:;">外购品联络单</a>
+              <dl class="layui-nav-child">
+                <dd><a class="left-nav" menu_url="{{ url_for('purchase.index') }}" menu_name="台账" menu_id="301">台账</a></dd>
+              </dl>
+            </li>
+            <li class="layui-nav-item layui-nav-itemed admin-show" style="display: none">
               <a href="javascript:;">系统设置</a>
               <dl class="layui-nav-child">
-                <dd><a href="{{ url_for('department.index') }}" data-menuId="301">部门管理</a></dd>
-                <dd><a href="{{ url_for('user.index') }}" data-menuId="302">用户管理</a></dd>
-                <dd><a href="{{ url_for('machine.index') }}" data-menuId="303">机型管理</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('department.index') }}" menu_name="部门管理" menu_id="901">部门管理</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('user.index') }}" menu_name="用户管理" menu_id="902">用户管理</a></dd
+                <dd><a class="left-nav" menu_url="{{ url_for('machine.index') }}" menu_name="机型管理" menu_id="903">机型管理</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('system.supplier') }}" menu_name="供应商管理" menu_id="904">供应商管理</a></dd>
               </dl>
             </li>
           </ul>
@@ -60,7 +67,8 @@
 
 
     <!-- 内容主体区域 -->
-        <div class="layui-tab" lay-filter="page-tab" lay-allowclose="true">
+<!--?        <div class="layui-tab" lay-filter="page-tab" lay-allowclose="true">-->
+        <div class="layui-tab" lay-filter="head_tabs" lay-allowclose="true">
             <ul class="layui-tab-title"></ul>
             <div class="layui-tab-content"></div>
         </div>
@@ -74,51 +82,109 @@ layui.use(['element', 'layer', 'util'], function(){
     var util = layui.util;
     var $ = layui.$;
 
-    const tabAdd = function(label, html, layId){
-        element.tabAdd('page-tab', {
-            title: label,
-            content: html,
-            id: layId,
-            change: true
-        })
+
+    // 触发事件
+    let active = {
+        tabAdd: function (){
+            // 新增1个tab
+            let menu_url = $(this).attr('menu_url');
+            let menu_name = $(this).attr('menu_name');
+            let menu_id = $(this).attr('menu_id');
+            console.log(menu_url)
+            console.log(menu_name)
+            console.log(menu_id)
+            // 先判断是否已经有了tab
+            let arrayObj = new Array();  // 先创建1个数组
+            $(".layui-tab-title").find("li").each(function(){
+                let menuId = $(this).attr('lay-id')
+                    arrayObj.push(menuId)
+            });
+            console.log(arrayObj)
+            let have = $.inArray(menu_id, arrayObj);
+            console.log(have)
+            if (have>=0){
+                // tab已有标签
+                element.tabChange('head_tabs', menu_id);  // 切换到当前点击的页面
+            } else {
+                console.log('no tab')
+                console.log('<iframe style="width:100%; height:100%;" src="' + menu_url + '"></iframe>')
+                // 没有相同tab
+                element.tabAdd('head_tabs', {
+                    title: menu_name,
+                    content: '<iframe style="position: absolute; width:100%; height:100%; border: none" src="' + menu_url +  '"></iframe>',
+                    id: menu_id
+                })
+                element.tabChange('head_tabs', menu_id);  // 切换到当前点击的页面
+            }
+        }
+    };
 
 
-    }
+    element.on('tab(head_tabs)', function (data){
+       let lay_id = $(this).attr("lay-id");
+       let nav_tree = $(".layui-nav-tree");
+       // 移除其他选中
+       nav_tree.find("a[menu_id]").parent().removeClass("layui-this");
+       // 选中点击的
+        let kv = "a[menu_id='" + lay_id + "']"
+        nav_tree.find(kv).parent().addClass("layui-this")
+        nav_tree.find(kv).parent().parent().parent().addClass("layui-nav-itemed")
+    });
 
-    //左侧菜单跳转事件
-    $("dd>a").click(function (event){
-
-        const othis = $(this)
-        event.preventDefault();
-
-        element.tabDelete('page-tab',othis.attr("data-menuId"))
-        html = '<iframe class="aaiframe" src="' + $(this).attr("href") +  '" style="position: absolute; width: 100%; height: 100%;border:none"></iframe>'
-        tabAdd(othis.text(), html, othis.attr("data-menuId"))
-    })
-
-    // hash 地址定位
-    let hashName = 'tabid'; // hash 名称
-    let layid = location.hash.replace(new RegExp('^#'+ hashName + '='), ''); // 获取 lay-id 值
-
-    // 初始切换
-    element.tabChange('page-tab', layid);
-    // 切换事件
-    element.on('tab(page-tab)', function(obj){
-        console.log('切换tab')
-        location.hash = hashName +'='+ this.getAttribute('lay-id');
+    $(".left-nav").click(function (){
+        console.log("aaa")
+       let type = "tabAdd";
+       let othis = $(this);
+       // active[type] ? active[type].call(this, othis) : '';
+       active[type] ? active.tabAdd.call(othis) : '';
     });
 
 
-    // 根据hash变化，更新网页内容
-    function updateContent(){
-        let hash = location.hash.slice(1);
-        console.log(hash)
-        if (hash === '/project'){
 
-            console.log($(this).text())
-            $('#content').html('<h1>hahaha</h1>')
-        }
-    }
+    // const tabAdd = function(label, html, layId){
+    //     element.tabAdd('page-tab', {
+    //         title: label,
+    //         content: html,
+    //         id: layId,
+    //         change: true
+    //     })
+    // }
+    //
+    // //左侧菜单跳转事件
+    // $("dd>a").click(function (event){
+    //
+    //     const othis = $(this)
+    //     event.preventDefault();
+    //
+    //     element.tabDelete('page-tab',othis.attr("data-menuId"))
+    //     html = '<iframe src="' + $(this).attr("href") +  '" style="position: absolute; width: 100%; height: 100%;border:none"></iframe>'
+    //     console.log(html)
+    //     tabAdd(othis.text(), html, othis.attr("data-menuId"))
+    // })
+    //
+    // // hash 地址定位
+    // let hashName = 'tabid'; // hash 名称
+    // let layid = location.hash.replace(new RegExp('^#'+ hashName + '='), ''); // 获取 lay-id 值
+    //
+    // // 初始切换
+    // element.tabChange('page-tab', layid);
+    // // 切换事件
+    // element.on('tab(page-tab)', function(obj){
+    //     console.log('切换tab')
+    //     location.hash = hashName +'='+ this.getAttribute('lay-id');
+    // });
+    //
+    //
+    // // 根据hash变化，更新网页内容
+    // function updateContent(){
+    //     let hash = location.hash.slice(1);
+    //     console.log(hash)
+    //     if (hash === '/project'){
+    //
+    //         console.log($(this).text())
+    //         $('#content').html('<h1>hahaha</h1>')
+    //     }
+    // }
 
     // 监听hash变化，更新内容
     //window.addEventListener('hashchange', updateContent)
@@ -160,6 +226,7 @@ layui.use(['element', 'layer', 'util'], function(){
                 }
                 if ((res.permissions & admin) == admin) {
                     $('.admin-show').show()
+                    $('.purchase-show').show()
                 }
 
             }

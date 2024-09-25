@@ -1,9 +1,9 @@
 {% extends '_base.html' %}
-{% block title %}项目管理{% endblock %}
+{% block title %}外购品{% endblock %}
 {% block body %}
 <!-- 项目表格 -->
 <div class="layui-fluid">
-    <table class="layui-hide" id="project-table"></table>
+    <table class="layui-hide" id="wgp-table"></table>
 </div>
 
 <!-- 任务列表弹窗  -->
@@ -212,17 +212,11 @@
             elem: '.date-input'
         })
 
-        let url = '/api/v1/project/pagination'
-
-        if ('{{ status }}'){
-            url += '?status=' + '{{ status }}'
-        }
-
         // 渲染表格
         table.render({
             elem: '#project-table',
             id: 'project-table',
-            url: url,
+            url: '/api/v1/project',
             toolbar: '#toolbar',
             page: true,
             height: 'full-80',

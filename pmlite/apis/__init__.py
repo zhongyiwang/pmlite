@@ -6,6 +6,7 @@ from .user import user_api
 from .project import project_api
 from .task import task_api
 from .machine import machine_api
+from .supplier import supplier_api
 
 
 def register_apis(app: Flask):
@@ -17,5 +18,7 @@ def register_apis(app: Flask):
     apis.register_blueprint(project_api)
     apis.register_blueprint(task_api)
     apis.register_blueprint(machine_api)
+    apis.register_blueprint(supplier_api)
+
 
     app.register_blueprint(apis)

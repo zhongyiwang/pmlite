@@ -6,6 +6,8 @@ from .user import user_bp
 from .project import project_bp
 from .task import task_bp
 from .machine import machine_bp
+from .purchase import purchase_bp
+from .system import system_bp
 
 
 def register_views(app: Flask):
@@ -15,6 +17,8 @@ def register_views(app: Flask):
     app.register_blueprint(project_bp)
     app.register_blueprint(task_bp)
     app.register_blueprint(machine_bp)
+    app.register_blueprint(purchase_bp)
+    app.register_blueprint(system_bp)
 
     app.jinja_env.auto_reload = True
 

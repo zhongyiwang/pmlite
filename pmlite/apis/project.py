@@ -12,19 +12,28 @@ project_api = Blueprint("project", __name__, url_prefix="/project")
 # 获取项目列表
 @project_api.route('/')
 def project_view():
+    projects = db.session.execute(db.select(ProjectModel)).scalars().all()
+    return {
+        'code': 0,
+        'msg': '信息查询成功',
+        'count': len(projects),
+        'data': [project.json() for project in projects]
+    }
+
+
+# 获取项目列表，分页显示
+@project_api.route('/pagination')
+def project_view_pagination():
     status = request.args.get('status')
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('limit', type=int, default=10)
+
     if status == "uncompleted":
         q = db.select(ProjectModel).where(ProjectModel.status != "已完成")
     else:
         q = db.select(ProjectModel)
 
     pages: Pagination = db.paginate(q, page=page, per_page=per_page)
-    # print(pages.items[0].line_type.value[0])
-    # paginate = UserModel.query.paginate(page=page, per_page=per_page, error_out=False)
-    # items = paginate.items
-    # items: [UserModel] = paginate.items
 
     return {
         'code': 0,
@@ -32,6 +41,8 @@ def project_view():
         'count': pages.total,
         'data': [item.json() for item in pages.items]
     }
+
+
 
 
 # 获取项目的任务列表

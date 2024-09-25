@@ -1,0 +1,247 @@
+{% extends '_base.html' %}
+{% block title %}供应商管理{% endblock %}
+{% block body %}
+<!-- 供应商表格 -->
+<div class="layui-fluid">
+    <table class="layui-hide" id="supplier-table"></table>
+</div>
+
+<!--添加/编辑 弹窗表单-->
+<form class="layui-form" action="" id="supplier-form" lay-filter="supplier-form" style="margin-top: 20px; display: none">
+    <div style="padding-right: 20px;">
+        <div class="layui-form-item" style="display: none">
+            <label class="layui-form-label">ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="id" value="0" lay-verify="required" autocomplete="off" class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">公司名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" lay-verify="required" lay-affix="clear" placeholder="请输入公司名称" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">联系人</label>
+            <div class="layui-input-block">
+                <input type="text" name="contact" lay-verify="required" lay-affix="clear" placeholder="请输入联系人" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">手机号</label>
+            <div class="layui-input-block">
+                <input type="text" name="mobile" lay-verify="required|phone" lay-affix="clear" autocomplete="off" placeholder="请输入手机号"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">传真</label>
+            <div class="layui-input-block">
+                <input type="text" name="fax" lay-affix="clear" autocomplete="off" placeholder="请输入传真号"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">邮箱地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="email" lay-verify="email" lay-affix="clear" class="layui-input" placeholder="请输入邮箱地址">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">公司地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="address" lay-affix="clear" class="layui-input" placeholder="请输入公司地址">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">邮政编码</label>
+            <div class="layui-input-block">
+                <input type="text" name="postal_code" lay-affix="clear" class="layui-input" placeholder="请输入邮政编码">
+            </div>
+        </div>
+        <div class="layui-form-item" pane>
+            <label class="layui-form-label">长期合作</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="long_term" lay-skin="switch" lay-filter="switchTest" title="是|否">
+            </div>
+        </div>
+        <div class="layui-form-item" pane>
+            <label class="layui-form-label">禁用</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="disabled" lay-skin="switch" lay-filter="switchTest" title="是|否">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit lay-filter="supplier-form-submit">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- 顶部工具栏 -->
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加供应商</button>
+    </div>
+</script>
+
+<!-- 右侧工具栏 -->
+<script type="text/html" id="tools">
+    <a class="layui-btn layui-btn-xs" lay-event="tool-edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="tool-del">删除</a>
+</script>
+
+<script>
+    // 更改 长期合作 列的渲染
+    function render_longTerm(d) {
+        if (d.long_term) {
+            return '是'
+        } else {
+            return '否'
+        }
+    }
+
+    // 更改 禁用 列的渲染
+    function render_disable(d) {
+        if (d.disabled) {
+            return '是'
+        } else {
+            return '否'
+        }
+    }
+
+    layui.use(function () {
+        var table = layui.table;
+        var $ = layui.$;
+        var form = layui.form;
+        var layer = layui.layer;
+
+
+        // 渲染表格
+        table.render({
+            elem: '#supplier-table',
+            id: 'supplier-table',
+            url: '/api/v1/supplier/pagination',
+            toolbar: '#toolbar',
+            height: 'full-80',
+            page: true,
+            cols: [
+                [   // 标题栏
+                    {field: 'id', title: 'ID', minWidth: 30, sort: true, align: 'center'},
+                    {field: 'name', title: '公司名称', minWidth: 80, align: 'center'},
+                    {field: 'contact', title: '联系人', minWidth: 120, align: 'center'},
+                    {field: 'mobile', title: '手机号码', minWidth: 120, align: 'center'},
+                    {field: 'email', title: '邮箱地址', minWidth: 120, align: 'center'},
+                    {field: 'fax', title: '传真', minWidth: 120, align: 'center'},
+                    {field: 'address', title: '公司地址', minWidth: 250, align: 'center'},
+                    {field: 'postal_code', title: '邮政编码', minWidth: 250, align: 'center'},
+                    {field: 'create_time', title: '添加时间', minWidth: 200, align: 'center'},
+                    {field: 'long_term', title: '长期合作', minWidth: 100, align: 'center', templet: render_longTerm},
+                    {field: 'disabled', title: '禁用', minWidth: 100, align: 'center', templet: render_disable},
+                    {title: '操作', fixed: "right", width: 120, toolbar: '#tools'}
+                ]
+            ],
+
+        });
+
+        // 顶部工具栏事件
+        table.on('toolbar(supplier-table)', function (obj){
+            var options = obj.config;  //获取当前表格属性配置项
+
+            // 根据不同的事件名进行相应的操作
+            switch (obj.event){  // 对应模板元素中的 lay-event 属性值
+                case 'toolbar-add':
+                    $("#supplier-form")[0].reset();  // 将ID表单清空
+                    layer.open({
+                        type: 1,
+                        title: "添加供应商",
+                        shade: false,
+                        content: $("#supplier-form"),
+                        area: ["50%", "80%"]
+                    })
+                    break;
+            }
+        })
+
+        // 单元格工具事件（操作列的按钮组）
+        table.on('tool(supplier-table)', function (obj) {
+            if (obj.event === 'tool-edit') {  // 编辑
+                form.val('supplier-form', obj.data);
+
+                layer.open({
+                    type: 1,
+                    title: '修改供应商信息',
+                    area: ['50%', '80%'],
+                    content: $('#supplier-form'),  // 捕获的元素
+                });
+            } else if ( obj.event === 'tool-del') {  // 删除
+                layer.confirm('确认删除么？', function (index) {
+                    $.ajax({
+                        url: `/api/v1/supplier/${obj.data.id}`,
+                        type: "DELETE",
+                        contentType: "application/json",
+                        success: function (res){
+                            if (!res.code){
+                                layer.msg(res.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function(){
+                                    table.reloadData('supplier-table')
+                                })
+                            }
+                        }
+                    })
+                    layer.close(index);
+                });
+            }
+        });
+
+
+        // 弹窗表单提交事件
+        form.on('submit(supplier-form-submit)', function (data) {
+            let field = data.field; // 获取表单字段值
+            // layui中开关的被选中是“on”，需要转换成ture或false
+            // ？. 为可选链运算符，即使不存在该属性的值，也不会报错
+            field.long_term = field?.long_term ? true: false
+            field.disabled = field?.disabled ? true: false
+            if (field.id == 0){
+                field.id = null;
+                method = "POST";
+                url = "/api/v1/supplier";
+            }else{
+                method = "PUT";
+                url = `/api/v1/supplier/${field.id}`;
+            }
+
+            $.ajax({
+                method: method,
+                url: url,
+                data: JSON.stringify(field),
+                contentType: "application/json",
+                //datatype: "json",
+                success: function (res){
+                    layer.msg(res.msg, {
+                        icon: 1,
+                        time: 1000
+                    }, function(){
+                        layer.closeAll('page');
+                        table.reloadData('supplier-table')
+                    })
+                },
+                error: function (res){
+                    console.log("error")
+                    console.log(res)
+                    layer.msg(res.msg,{
+                        icon: 2,
+                        time: 1000
+                    })
+                }
+            })
+            return false; // 阻止默认 form 跳转
+        });
+    });
+
+</script>
+{% endblock %}
