@@ -112,3 +112,5 @@ def user_profile():
         "data": current_user.json(),
         'permissions': current_user.role.permissions if current_user.role else ""
     }
+
+

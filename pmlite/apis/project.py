@@ -12,7 +12,11 @@ project_api = Blueprint("project", __name__, url_prefix="/project")
 # 获取项目列表
 @project_api.route('/')
 def project_view():
-    projects = db.session.execute(db.select(ProjectModel)).scalars().all()
+    status = request.args.get('status')
+    q = db.select(ProjectModel)
+    if status == "uncompleted":
+        q = db.select(ProjectModel).where(ProjectModel.status != "已完成")
+    projects = db.session.execute(q).scalars().all()
     return {
         'code': 0,
         'msg': '信息查询成功',

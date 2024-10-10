@@ -33,6 +33,7 @@
               <dl class="layui-nav-child">
                 <dd><a class="left-nav" menu_url="{{ url_for('project.index') }}" menu_name="所有项目" menu_id="101">所有项目</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('project.index', status='uncompleted') }}" menu_name="未完成项目" menu_id="102">未完成项目</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('gantt.index', from='project') }}" menu_name="项目甘特图" menu_id="103">项目甘特图</a></dd>
               </dl>
             </li>
             <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">
@@ -43,19 +44,21 @@
                 <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='create') }}" menu_name="我创建的" menu_id="203">我创建的</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='own') }}" menu_name="我负责的" menu_id="204">我负责的</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('task.manHour') }}" menu_name="全部工时" menu_id="205">全部工时</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('gantt.index', from='task') }}" menu_name="任务甘特图" menu_id="206">任务甘特图</a></dd>
               </dl>
             </li>
             <li class="layui-nav-item layui-nav-itemed purchase-show" style="display: none">
               <a class="" href="javascript:;">外购品联络单</a>
               <dl class="layui-nav-child">
                 <dd><a class="left-nav" menu_url="{{ url_for('purchase.index') }}" menu_name="台账" menu_id="301">台账</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('gantt.index') }}" menu_name="甘特图测试" menu_id="302">甘特图测试</a></dd>
               </dl>
             </li>
             <li class="layui-nav-item layui-nav-itemed admin-show" style="display: none">
               <a href="javascript:;">系统设置</a>
               <dl class="layui-nav-child">
                 <dd><a class="left-nav" menu_url="{{ url_for('department.index') }}" menu_name="部门管理" menu_id="901">部门管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('user.index') }}" menu_name="用户管理" menu_id="902">用户管理</a></dd
+                <dd><a class="left-nav" menu_url="{{ url_for('user.index') }}" menu_name="用户管理" menu_id="902">用户管理</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('machine.index') }}" menu_name="机型管理" menu_id="903">机型管理</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('system.supplier') }}" menu_name="供应商管理" menu_id="904">供应商管理</a></dd>
               </dl>

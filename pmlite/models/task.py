@@ -58,7 +58,9 @@ class TaskModel(BaseModel):
     __tablename__ = 'task'
     id = Column(Integer, primary_key=True, autoincrement=True, comment="自增id")
     title = Column(String(50), nullable=False, comment='任务标题')
+    planned_start_date = Column(DateTime, comment='计划开始日期')
     planned_end_date = Column(DateTime, comment='计划完成日期')
+    actual_start_date = Column(DateTime, comment='实际开始日期')
     actual_end_date = Column(DateTime, comment='实际完成日期')
     status = Column(Enum("未开始", "进行中", "已完成"), default="未开始", comment='完成状态')
     planned_man_hours = Column(Float, comment='计划工时')
@@ -89,7 +91,9 @@ class TaskModel(BaseModel):
         return {
             "id": self.id,
             "title": self.title,
+            "planned_start_date": self.planned_start_date.strftime("%Y-%m-%d") if self.planned_start_date else "",
             "planned_end_date": self.planned_end_date.strftime("%Y-%m-%d") if self.planned_end_date else "",
+            "actual_start_date": self.actual_start_date.strftime("%Y-%m-%d") if self.actual_start_date else "",
             "actual_end_date": self.actual_end_date.strftime("%Y-%m-%d") if self.actual_end_date else "",
             "status": self.status,
             "planned_man_hours": self.planned_man_hours,

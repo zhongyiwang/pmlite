@@ -103,6 +103,12 @@
             </div>
         </div>
         <div class="layui-form-item">
+            <label class="layui-form-label">计划开始日期</label>
+            <div class="layui-input-block layui-input-wrap">
+                <input type="text" name="planned_start_date" lay-affix="clear" placeholder="请选择计划开始日期" class="layui-input date-input"></input>
+            </div>
+        </div>
+        <div class="layui-form-item">
             <label class="layui-form-label">计划完成日期</label>
             <div class="layui-input-block layui-input-wrap">
                 <input type="text" name="planned_end_date" lay-affix="clear" placeholder="请选择计划完成日期" class="layui-input date-input"></input>
@@ -264,17 +270,22 @@
     }
 
 
-    layui.use(function () {
+    // layui.use(['treeTable','table', 'jquery', 'form', 'layer', 'laydate', 'dropdown', 'renderProject'], function () {
+    // layui.use(['renderProject'], function () {
+    layui.use(['pmlite'], function () {
         var treeTable = layui.treeTable;
         var table = layui.table;
-        var $ = layui.$;
+        var $ = layui.jquery;
         var form = layui.form;
         var layer = layui.layer;
         let laydate = layui.laydate;
         let dropdown = layui.dropdown;
+        // let renderProject = layui.renderProject;
+        let pmlite = layui.pmlite;
 
         let task_id = 0
 
+        // import {get_projects_} from "../../static/js/pmlite";
 
 
         // 给默认的ajax请求添加权限
@@ -316,7 +327,9 @@
                     {field: 'project', title: '所属项目', align: 'center', width: 150, sort: true, hide: hideCol},
                     {field: 'creator', title: '创建者', align: 'center', width: 80},
                     {field: 'owner', title: '负责人', align: 'center', width: 100, sort: true},
+                    {field: 'planned_start_date', title: '计划开始日期', align: 'center', width: 120},
                     {field: 'planned_end_date', title: '计划完成日期', align: 'center', width: 120},
+                    {field: 'actual_start_date', title: '实际开始日期', Width: 120, align: 'center', width: 120},
                     {field: 'actual_end_date', title: '实际完成日期', Width: 120, align: 'center', width: 120},
                     {field: 'planned_man_hours', title: '计划工时', align: 'center', width: 100},
                     {field: 'actual_man_hours', title: '实际工时', align: 'center', width: 100},
@@ -422,27 +435,31 @@
 
 
         // 获取项目列表，并渲染
-        const get_projects_new = function (obj) {
-            $.ajax({
-                url: "/api/v1/project",
-                type: "get",
-                async: false,
-                success: function (res) {
-                    console.log(res.data)
-                    let content = '<option value="">请选择项目名称</option>'
-                    $.each(res.data, function (i, val) {
-                        content += '<option value="' + val.id + '">' + val.name + '</option>'
-                        //}
-                    })
-                    // console.log(content)
-                    $('#project_id_f').html(content)
-                    //console.log(s.html())
-                    form.render('select')
-                }
-            })
-        }
-        get_projects_new()  // 渲染搜索表单
+        // const get_projects_new = function (obj) {
+        //     $.ajax({
+        //         url: "/api/v1/project",
+        //         type: "get",
+        //         async: false,
+        //         success: function (res) {
+        //             console.log(res.data)
+        //             let content = '<option value="">请选择项目名称</option>'
+        //             $.each(res.data, function (i, val) {
+        //                 content += '<option value="' + val.id + '">' + val.name + '</option>'
+        //                 //}
+        //             })
+        //             // console.log(content)
+        //             $('#project_id_f').html(content)
+        //             //console.log(s.html())
+        //             form.render('select')
+        //         }
+        //     })
+        // }
+        // get_projects_new()  // 渲染搜索表单
 
+        pmlite.getProjects('project_id_f')  // 顶部查询条件中项目渲染
+        pmlite.getUsers('user_id_f')  // 顶部查询条件渲染用户
+        // const $ele = $('#project_id_f')
+        // get_projects_($ele, form)
 
 
 
@@ -476,27 +493,29 @@
         }
 
         // 获取用户列表，并渲染
-        const get_users_new = function (obj) {
-            $.ajax({
-                url: "/api/v1/user",
-                type: "get",
-                async: false,
-                success: function (res) {
-                    console.log(res.data)
-                    let content = '<option value="">任务负责人（可搜索）</option>'
-                    $.each(res.data, function (i, val) {
-                        content += '<option value="' + val.id + '">' + val.name + '</option>'
+        // const get_users_new = function (obj) {
+        //     $.ajax({
+        //         url: "/api/v1/user",
+        //         type: "get",
+        //         async: false,
+        //         success: function (res) {
+        //             console.log(res.data)
+        //             let content = '<option value="">任务负责人（可搜索）</option>'
+        //             $.each(res.data, function (i, val) {
+        //                 content += '<option value="' + val.id + '">' + val.name + '</option>'
+        //
+        //             })
+        //             // console.log(content)
+        //             $('#user_id_f').html(content)
+        //             //console.log(s.html())
+        //             form.render('select')
+        //         }
+        //     })
+        // }
 
-                    })
-                    // console.log(content)
-                    $('#user_id_f').html(content)
-                    //console.log(s.html())
-                    form.render('select')
-                }
-            })
-        }
+        //get_users_new()  // 渲染搜索表单
 
-        get_users_new()  // 渲染搜索表单
+
 
         // 获取用户列表，并渲染
         const get_users = function (obj) {
@@ -533,6 +552,7 @@
             // 根据不同的事件名进行相应的操作
             switch (obj.event){  // 对应模板元素中的 lay-event 属性值
                 case 'toolbar-add':
+                    // console.log("obj", obj)
                     $("#task-form")[0].reset();  // 将ID表单清空
                     layer.open({
                         type: 1,
@@ -543,7 +563,8 @@
                     })
                     get_types()  // 获取部门，并渲染select
                     get_projects()  // 获取未完成项目，并渲染select
-                    get_users()  // 获取用户，并渲染select
+                    // get_users()  // 获取用户，并渲染select
+                    pmlite.getUsers('owner_id', undefined, 'owner', true)
                     break;
                     //form.render($("#user-form"))
             }
@@ -553,12 +574,14 @@
         treeTable.on('tool(task-table)', function (obj) {
             if (obj.event === 'task-edit') {  // 编辑
                 form.val('task-form', obj.data);
+                console.log("obj", obj)
 
                 // 获取部门列表，并渲染非一级部门
                 get_types(obj)  // 获取部门，并渲染select
                 get_projects(obj)  // 获取未完成项目，并渲染select
-                get_users(obj)  // 获取用户，并渲染select
-
+                // renderProject.getProjects('project_id', 'uncompleted', obj)
+                // get_users(obj)  // 获取用户，并渲染select
+                pmlite.getUsers('owner_id', obj, 'owner')
                 layer.open({
                     type: 1,
                     title: '修改任务',
@@ -688,8 +711,8 @@
             if(!obj.data.parent_id){
                 get_types()  // 获取部门，并渲染select
                 get_projects()  // 获取未完成项目，并渲染select
-                get_users()  // 获取用户，并渲染select
-
+                // get_users()  // 获取用户，并渲染select
+                pmlite.getUsers('owner_id', undefined, 'owner', 1)
                 $("#task-form")[0].reset();  // 将ID表单清空
                 $("#parent_id").val(obj.data.id)
                 $("#title").val(obj.data.title + "_")

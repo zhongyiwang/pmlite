@@ -1,0 +1,136 @@
+{% extends '_base.html' %}
+{% block title %}项目管理{% endblock %}
+{% block body %}
+
+<!--?<div class="contain">-->
+<div class="layui-fluid">
+    <form class="layui-form layui-row layui-col-space16">
+      <div class="layui-col-md2" id="project_query" style="display: none">
+        <div class="layui-input-wrap">
+          <div class="layui-input-prefix">
+            <i class="layui-icon layui-icon-list"></i>
+          </div>
+          <select name="project_id" id="project_select" lay-filter="project-select" lay-search="">
+              <option value="">请选择项目名称</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="layui-col-md2" id="department_query" style="display: none">
+        <div class="layui-input-wrap">
+          <select name="department_id">
+              <option value="">部门</option>
+              <option value=3>产品设计室</option>
+              <option value=4>营业技术室</option>
+              <option value=5>自动化设计室</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="layui-col-md2" id="user_query" style="display: none">
+        <div class="layui-input-wrap">
+          <div class="layui-input-prefix">
+            <i class="layui-icon layui-icon-username"></i>
+          </div>
+          <select name="user_id" id="user_select" lay-filter="user-select" lay-search="">
+              <option value="">请选择负责人</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="layui-btn-container layui-col-md2">
+        <button class="layui-btn" lay-submit lay-filter="gantt-search">查询</button>
+        <button type="reset" class="layui-btn layui-btn-primary">清空</button>
+      </div>
+    </form>
+    <div class="gantt"></div>
+</div>
+
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/jquery.fn.gantt.js" charset="GB2312"></script>
+
+<script>
+    // const urlFrom = new URLSearchParams(location.search).get('from')
+    //
+    // // $("#department_query").hide()
+    // if (urlFrom === "project"){
+    //     $("#project_query").show()
+    //     pmlite.getProjects('project_select')
+    // } else if (urlFrom === 'task'){
+    //     $("#user_query").show()
+    // }
+
+    layui.use(['pmlite'], function (){
+        let form = layui.form
+        let pmlite = layui.pmlite
+
+        // 给默认的ajax请求添加权限
+        // $.ajaxSetup({
+        //     headers: {
+        //         Authorization: "Bearer " + localStorage.getItem("access_token")
+        //     }
+        // })
+
+        const urlFrom = new URLSearchParams(location.search).get('from')
+
+            // $("#department_query").hide()
+            if (urlFrom === "project"){
+                $("#project_query").show()
+                pmlite.getProjects('project_select')
+            } else if (urlFrom === 'task'){
+                $("#user_query").show()
+                pmlite.getUsers('user_select', undefined, undefined, 1)
+            }
+
+
+
+        // pmlite.getProjects('project_select')
+
+        form.on('submit(gantt-search)', function (data){
+            let field = data.field;
+            let url = ""
+            const project_id = field.project_id;
+            const department_id = field.department_id;
+            const user_id = field.user_id;
+            if (project_id){
+                url = '/api/v1/gantt/' + project_id
+            }
+
+            $(".gantt").gantt({
+                // source: "/api/v1/gantt/2",
+                source: url,
+                scale: "days",
+                minScale: "days",
+                navigate: "scroll",
+	            scrollToToday: false,
+	            months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+	            dow: ["日", "一", "二", "三", "四", "五", "六"],
+	            waitText: "加载中。。。",
+	            itemsPerPage: 7
+            });
+
+            return false; // 阻止默认 form 跳转
+        })
+
+
+
+    })
+
+        // $(function() {
+        //     "use strict";
+        //     $(".gantt").gantt({
+        //         source: "/api/v1/gantt/2",
+        //         scale: "days",
+        //         minScale: "days",
+        //         navigate: "scroll",
+	    //         scrollToToday: false,
+	    //         months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+	    //         dow: ["日", "一", "二", "三", "四", "五", "六"],
+	    //         waitText: "加载中。。。",
+	    //         itemsPerPage: 7
+        //     });
+        // });
+
+    </script>
+
+{% endblock %}
