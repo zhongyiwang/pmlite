@@ -93,14 +93,16 @@
             url: url,
             toolbar: '#toolbar',
             page: true,
+            limit: 30,
             height: "full-140",
+            totalRow: true,
             cols: [
                 [   // 标题栏
                     {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left'},
-                    {field: 'task', title: '任务标题'},
+                    {field: 'task', title: '任务标题', totalRow:'合计'},
                     {field: 'user', title: '登录人', sort: true},
                     {field: 'work_date', title: '登录日期', sort: true},
-                    {field: 'man_hour', title: '登录工时'},
+                    {field: 'man_hour', title: '登录工时', totalRow: '{% raw %}{{ parseInt(d.TOTAL_NUMS) }}{% endraw %} '},
 
                 ]
             ],

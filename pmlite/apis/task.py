@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, request
+from sqlalchemy import desc
 from flask_sqlalchemy.pagination import Pagination
 from sqlalchemy.event import listen
 from flask_jwt_extended import current_user, jwt_required
@@ -67,8 +68,8 @@ def manHour_view():
     user_id = request.args.get('user_id')
 
     page = request.args.get('page', type=int, default=1)
-    per_page = request.args.get('limit', type=int, default=10)
-    q = db.select(ManHourModel)
+    per_page = request.args.get('limit', type=int, default=30)
+    q = db.select(ManHourModel).order_by(desc(ManHourModel.work_date))
     if user_id:
         q = q.where(ManHourModel.user_id == user_id)
     if date_start:

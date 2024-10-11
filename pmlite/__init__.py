@@ -9,7 +9,7 @@ from .models import Permission
 # from pmlite.models import UserModel
 
 
-def create_app(config_name="dev"):
+def create_app(config_name="prod"):
     app = Flask("pmlite")
     app.config.from_object(config[config_name])
 
