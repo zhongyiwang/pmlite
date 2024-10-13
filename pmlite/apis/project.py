@@ -30,7 +30,7 @@ def project_view():
 def project_view_pagination():
     status = request.args.get('status')
     page = request.args.get('page', type=int, default=1)
-    per_page = request.args.get('limit', type=int, default=10)
+    per_page = request.args.get('limit', type=int, default=30)
 
     if status == "uncompleted":
         q = db.select(ProjectModel).where(ProjectModel.status != "已完成")

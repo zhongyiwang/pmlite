@@ -63,19 +63,29 @@ def sub_task_list(tid):
 @task_api.route('/man-hour')
 @jwt_required()
 def manHour_view():
+    print('url:',request.url)
     date_start = request.args.get('start')
     date_end = request.args.get('end')
     user_id = request.args.get('user_id')
+    department_id = request.args.get('department_id')
 
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('limit', type=int, default=30)
     q = db.select(ManHourModel).order_by(desc(ManHourModel.work_date))
     if user_id:
         q = q.where(ManHourModel.user_id == user_id)
+        department_id = ""
     if date_start:
         q = q.where(ManHourModel.work_date >= date_start)
     if date_end:
         q = q.where(ManHourModel.work_date <= date_end)
+    if department_id:
+        user_list = []
+        users = db.session.execute(db.select(UserModel).where(UserModel.department_id == department_id)).scalars().all()
+        for user in users:
+            user_list.append(user.id)
+        q = q.where(ManHourModel.user_id.in_(user_list))
+
 
     pages: Pagination = db.paginate(q, page=page, per_page=per_page)
 
@@ -279,15 +289,30 @@ def man_hour_list(tid):
 
 # 工时变动（新增、修改、删除）时，同步更新任务（含父任务）的实际总工时
 def update_task_actual_man_housr(tid):
-    # 更换工时所在任务
+    # 更新工时所在任务
     task: TaskModel = db.get_or_404(TaskModel, tid)
     task.actual_man_hours = db.session.query(db.func.sum(ManHourModel.man_hour)) \
         .filter(ManHourModel.task_id == tid).scalar()
     task.save()
-    # 更换工时所在任务的父任务（如有）
+    # 更新工时所在任务的父任务（如有）
     if task.parent_id:
         parent_task: TaskModel = db.get_or_404(TaskModel, task.parent_id)
         parent_task.actual_man_hours = db.session.query(db.func.sum(TaskModel.actual_man_hours)) \
+            .filter(TaskModel.parent_id == task.parent_id).scalar()
+        parent_task.save()
+
+
+# 工时变动（新增、修改、删除）时，同步更新任务（含父任务）的实际开始日期
+def update_task_actual_start_date(tid):
+    task: TaskModel = db.get_or_404(TaskModel, tid)
+    task.actual_start_date = db.session.query(db.func.min(ManHourModel.work_date)) \
+        .filter(ManHourModel.task_id == tid).scalar()
+    print(task.actual_start_date)
+    task.save()
+    # 更新工时所在任务的父任务（如有）
+    if task.parent_id:
+        parent_task: TaskModel = db.get_or_404(TaskModel, task.parent_id)
+        parent_task.actual_start_date = db.session.query(db.func.min(TaskModel.actual_start_date)) \
             .filter(TaskModel.parent_id == task.parent_id).scalar()
         parent_task.save()
 
@@ -301,10 +326,10 @@ def man_hour_add(tid):
     man_hour.update(data)
     man_hour.user_id = current_user.id
 
-
     try:
         man_hour.save()
         update_task_actual_man_housr(tid)
+        update_task_actual_start_date(tid)
     except Exception as e:
         print('工时添加失败')
         print(e)
@@ -327,6 +352,7 @@ def man_hour_edit(tid, mid):
     try:
         man_hour.save()
         update_task_actual_man_housr(tid)
+        update_task_actual_start_date(tid)
     except Exception as e:
         print('工时修改失败')
         print(e)
@@ -351,6 +377,7 @@ def man_hour_delete(tid, mid):
             db.session.delete(man_hour)
             db.session.commit()
             update_task_actual_man_housr(tid)
+            update_task_actual_start_date(tid)
         except Exception as e:
             print('工时删除失败')
             print(e)

@@ -85,45 +85,57 @@ layui.use(['element', 'layer', 'util'], function(){
     var util = layui.util;
     var $ = layui.$;
 
+    // 从localStorage中获取并恢复所有标签页
+    let tabs = JSON.parse(localStorage.getItem('tabs')) || [];
+    tabs.forEach(tab => {
+        element.tabAdd('head_tabs', {
+            title: tab.title,
+            content: tab.content,
+            id: tab.id
+        })
+    })
+    // 获取网址hash中的'tabid'的值，切换到对应tab标签
+    let layid = location.hash.replace(new RegExp('^#tabid='), ''); // 获取 lay-id 值
+    element.tabChange('head_tabs', layid);
 
-    // 触发事件
+    // 触发事件（点击的左侧的导航）
     let active = {
         tabAdd: function (){
             // 新增1个tab
             let menu_url = $(this).attr('menu_url');
             let menu_name = $(this).attr('menu_name');
             let menu_id = $(this).attr('menu_id');
-            console.log(menu_url)
-            console.log(menu_name)
-            console.log(menu_id)
-            // 先判断是否已经有了tab
-            let arrayObj = new Array();  // 先创建1个数组
+            let content = '<iframe style="position: absolute; width:100%; height:100%; border: none" src="' + menu_url +  '"></iframe>'
+            // 先判断是否已经有了该tab
+            let arrayObj = new Array();  // 先创建1个数组，用户存放所有的menu_id
             $(".layui-tab-title").find("li").each(function(){
                 let menuId = $(this).attr('lay-id')
                     arrayObj.push(menuId)
             });
-            console.log(arrayObj)
             let have = $.inArray(menu_id, arrayObj);
-            console.log(have)
             if (have>=0){
                 // tab已有标签
                 element.tabChange('head_tabs', menu_id);  // 切换到当前点击的页面
             } else {
-                console.log('no tab')
-                console.log('<iframe style="width:100%; height:100%;" src="' + menu_url + '"></iframe>')
-                // 没有相同tab
+                // 没有相同tab，创建tab
                 element.tabAdd('head_tabs', {
                     title: menu_name,
-                    content: '<iframe style="position: absolute; width:100%; height:100%; border: none" src="' + menu_url +  '"></iframe>',
+                    content: content,
                     id: menu_id
                 })
+                // 保存标签页信息到localStorage
+                // let tabs = JSON.parse(localStorage.getItem('tabs')) || [];
+                tabs.push({title: menu_name, content: content, id: menu_id})
+                localStorage.setItem('tabs', JSON.stringify(tabs))
+
                 element.tabChange('head_tabs', menu_id);  // 切换到当前点击的页面
             }
         }
     };
 
-
+    // tab切换事件，切换左侧导航栏的显示状态
     element.on('tab(head_tabs)', function (data){
+       location.hash = 'tabid='+ this.getAttribute('lay-id');
        let lay_id = $(this).attr("lay-id");
        let nav_tree = $(".layui-nav-tree");
        // 移除其他选中
@@ -134,68 +146,18 @@ layui.use(['element', 'layer', 'util'], function(){
         nav_tree.find(kv).parent().parent().parent().addClass("layui-nav-itemed")
     });
 
+    // tab删除事件，删除localStorage中tabs中对应的tab
+    element.on('tabDelete(head_tabs)', function (data){
+        tabs = tabs.filter(tab => tab.id !== data.id)
+        localStorage.setItem('tabs', JSON.stringify(tabs))
+    })
+
     $(".left-nav").click(function (){
-        console.log("aaa")
        let type = "tabAdd";
        let othis = $(this);
        // active[type] ? active[type].call(this, othis) : '';
        active[type] ? active.tabAdd.call(othis) : '';
     });
-
-
-
-    // const tabAdd = function(label, html, layId){
-    //     element.tabAdd('page-tab', {
-    //         title: label,
-    //         content: html,
-    //         id: layId,
-    //         change: true
-    //     })
-    // }
-    //
-    // //左侧菜单跳转事件
-    // $("dd>a").click(function (event){
-    //
-    //     const othis = $(this)
-    //     event.preventDefault();
-    //
-    //     element.tabDelete('page-tab',othis.attr("data-menuId"))
-    //     html = '<iframe src="' + $(this).attr("href") +  '" style="position: absolute; width: 100%; height: 100%;border:none"></iframe>'
-    //     console.log(html)
-    //     tabAdd(othis.text(), html, othis.attr("data-menuId"))
-    // })
-    //
-    // // hash 地址定位
-    // let hashName = 'tabid'; // hash 名称
-    // let layid = location.hash.replace(new RegExp('^#'+ hashName + '='), ''); // 获取 lay-id 值
-    //
-    // // 初始切换
-    // element.tabChange('page-tab', layid);
-    // // 切换事件
-    // element.on('tab(page-tab)', function(obj){
-    //     console.log('切换tab')
-    //     location.hash = hashName +'='+ this.getAttribute('lay-id');
-    // });
-    //
-    //
-    // // 根据hash变化，更新网页内容
-    // function updateContent(){
-    //     let hash = location.hash.slice(1);
-    //     console.log(hash)
-    //     if (hash === '/project'){
-    //
-    //         console.log($(this).text())
-    //         $('#content').html('<h1>hahaha</h1>')
-    //     }
-    // }
-
-    // 监听hash变化，更新内容
-    //window.addEventListener('hashchange', updateContent)
-
-    // 初始化加载
-    //updateContent()
-
-
 
     // 给默认的ajax请求添加权限
     $.ajaxSetup({

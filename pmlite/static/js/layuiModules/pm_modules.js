@@ -38,9 +38,15 @@ layui.define(['jquery', 'form'], function (exports){
                 }
             })
         },
-        getUsers: function (elementId, obj, userType, flag){
+        /**
+         * 从数据库获取用户信息后，渲染前端select
+         * @params elementId select元素的id
+         * @params obj,userType 如果提供obj对象，并且obj.data[userType]值与用户对应的user.name相同时默认选中
+         * @params selfFlag 布尔值，未true时，默认选中当前用户
+         * */
+        getUsers: function (elementId, obj, userType, selfFlag, callback){
             let current_user_id  // 定义变量：当前登录用户id
-            if (flag) {  // 如果传递该参数，服务器查询获取当前登录用户id
+            if (selfFlag) {  // 如果传递该参数，服务器查询获取当前登录用户id
                 $.ajax({
                     type: "GET",
                     url: "/api/v1/user/profile",
@@ -48,11 +54,9 @@ layui.define(['jquery', 'form'], function (exports){
                     success: function (res) {
                         if (res.code === 0) {
                             current_user_id = res.data.id
-                            console.log('ccccc')
                         }
                     }
                 })
-                console.log('绑定当前登录用户：', current_user_id)
             }
 
             $.ajax({
@@ -75,6 +79,10 @@ layui.define(['jquery', 'form'], function (exports){
                         })
                     }
                     form.render('select')
+                    if (callback){
+                        callback()
+                    }
+
                 }
             })
         }

@@ -184,7 +184,27 @@
 
 .fn-gantt .bar {
     background-color: #D0E4FD;
+    background-color: #fdd0e4;
+    background-color: #4472C4;
     height: 18px;
+    margin: 0 3px 3px 0;
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+-webkit-box-shadow: 0 0 1px rgba(0,0,0,0.25) inset;
+   -moz-box-shadow: 0 0 1px rgba(0,0,0,0.25) inset;
+        box-shadow: 0 0 1px rgba(0,0,0,0.25) inset;
+-webkit-border-radius: 3px;
+   -moz-border-radius: 3px;
+        border-radius: 3px;
+}
+
+.fn-gantt .bar2 {
+    background-color: #fdd0e4;
+    background-color: #e4fdd0;
+    background-color: #002E63;
+    background-color: #92D050;
+    height: 8px;
     margin: 0 3px 3px 0;
     position: absolute;
     z-index: 10;
@@ -213,6 +233,11 @@
 .fn-gantt .ganttRed {
     background-color: #F9C4E1;
 }
+
+.fn-gantt .ganttRed2 {
+    background-color: #ED7D31;
+}
+
 .fn-gantt .ganttRed .fn-label {
     color: #78436D !important;
 }

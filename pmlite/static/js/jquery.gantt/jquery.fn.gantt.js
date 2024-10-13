@@ -904,16 +904,16 @@
                                             core.navigateTo(element, tools.getCellSize() * -6);
                                         }
                                     }))
-                                .append($('<button type="button" class="nav-link nav-zoomIn"/>')
-                                    .html('&#43;')
-                                    .click(function () {
-                                        core.zoomInOut(element, -1);
-                                    }))
-                                .append($('<button type="button" class="nav-link nav-zoomOut"/>')
-                                    .html('&#45;')
-                                    .click(function () {
-                                        core.zoomInOut(element, 1);
-                                    }))
+                                // .append($('<button type="button" class="nav-link nav-zoomIn"/>')
+                                //     .html('&#43;')
+                                //     .click(function () {
+                                //         core.zoomInOut(element, -1);
+                                //     }))
+                                // .append($('<button type="button" class="nav-link nav-zoomOut"/>')
+                                //     .html('&#45;')
+                                //     .click(function () {
+                                //         core.zoomInOut(element, 1);
+                                //     }))
                                     )
                                 );
                     $(document).mouseup(function () {
@@ -1019,9 +1019,9 @@
                 return bar;
             },
 
-            createProgressBar2: function (label, desc, classNames, dataObj) {
+            createProgressBar2: function (divClass, label, desc, classNames, dataObj) {
                 label = label || "";
-                var bar = $('<div class="bar2"><div class="fn-label">' + label + '</div></div>')
+                var bar = $('<div class="' + divClass + '"><div class="fn-label">' + label + '</div></div>')
                         .data("dataObj", dataObj);
                 if (desc) {
                     bar
@@ -1077,7 +1077,7 @@
             // 解析数据并填充数据面板（进度条）
             fillData: function (element, datapanel, leftpanel /* <- never used? */) {
                 var cellWidth = tools.getCellSize();  // 单元格的宽度：默认是24px
-                var barOffset = (cellWidth - 18) / 2;  // 进度条的宽度：18px，单边边距：3px
+                var barOffset = (cellWidth - 18) / 2;  // 计划进度条的宽度：18px，单边边距：3px
                 var dataPanelWidth = datapanel.width();  // 数据面板宽度
                 var invertColor = function (colStr) {
                     try {
@@ -1100,7 +1100,7 @@
 
                         $.each(entry.values, function (j, day) {
                             var _bar;
-                            var from, to, cFrom, cTo, dFrom, dTo, dl, dp;
+                            var from, to, cFrom, cTo, dFrom, dTo, dl, dp, dFrom_a, dTo_a;
                             var topEl, top;
                             switch (settings.scale) {
                             // **Hourly data**
@@ -1196,14 +1196,14 @@
                             case "days":
                                 /* falls through */
                             default:
-                                dFrom = tools.genId(tools.dateDeserialize(day.from));  // 起始时间戳
-                                dTo = tools.genId(tools.dateDeserialize(day.to));  // 结束时间戳
+                                dFrom = tools.genId(tools.dateDeserialize(day.from));  // 计划起始时间戳
+                                dTo = tools.genId(tools.dateDeserialize(day.to));  // 计划结束时间戳
                                 from = $(element).find("#dh-" + dFrom);  // 根据起始时间戳找到对应日期的div元素
                                 cFrom = from.data("offset");  // 获得对应div元素中的offset值
                                 dl = Math.round((dTo - dFrom) / UTC_DAY_IN_MS) + 1;  // 获得持续天数（1天即1格）
                                 dp = 100 * (cellWidth * dl - 1) / dataPanelWidth;  // 获取持续天数占总天数的百分比
 
-                                _bar = core.createProgressBar(day.label, day.desc, day.customClass, day.dataObj);
+                                _bar = core.createProgressBar2('bar', day.label, day.desc, day.customClass, day.dataObj);
 
                                 // find row
                                 // 查找所在行
@@ -1216,6 +1216,7 @@
                                 });
 
                                 datapanel.append(_bar);
+
                             }
 
                             var $l = _bar.find(".fn-label");
@@ -1230,7 +1231,7 @@
             },
             fillData2: function (element, datapanel, leftpanel /* <- never used? */) {
                 var cellWidth = tools.getCellSize();  // 单元格的宽度：默认是24px
-                var barOffset = (cellWidth - 10) / 2;  // 进度条的宽度：18px，单边边距：3px
+                var barOffset = (cellWidth - 8) / 2;  // 进度条的宽度：18px，单边边距：3px
                 var dataPanelWidth = datapanel.width();  // 数据面板宽度
                 var invertColor = function (colStr) {
                     try {
@@ -1263,20 +1264,26 @@
                                     /* falls through */
                                 default:
                                     dFrom = tools.genId(tools.dateDeserialize(day.a_from));  // 起始时间戳
-                                    dTo = tools.genId(tools.dateDeserialize(day.a_to));  // 结束时间戳
+                                    dTo = tools.genId(tools.dateDeserialize(day.to));  // 计划结束时间戳
+                                    let dTo2 = tools.genId(tools.dateDeserialize(day.a_to));  // 实际结束时间戳
                                     if (isNaN(dFrom)){
                                         break
                                     }
-                                    if (isNaN(dTo)){
-                                        dTo = new Date().setHours(0,0,0,0)
-                                        day.customClass2 = "ganttRed2"
+                                    if (isNaN(dTo2)){
+                                        let todayNum = new Date().setHours(0,0,0,0)
+                                        dTo2 = todayNum
+
+                                        if (todayNum > dTo){
+                                            day.customClass2 = "ganttRed2"
+                                        }
+
                                     }
                                     from = $(element).find("#dh-" + dFrom);  // 根据起始时间戳找到对应日期的div元素
                                     cFrom = from.data("offset");  // 获得对应div元素中的offset值
-                                    dl = Math.round((dTo - dFrom) / UTC_DAY_IN_MS) + 1;  // 获得持续天数（1天即1格）
+                                    dl = Math.round((dTo2 - dFrom) / UTC_DAY_IN_MS) + 1;  // 获得持续天数（1天即1格）
                                     dp = 100 * (cellWidth * dl - 1) / dataPanelWidth;  // 获取持续天数占总天数的百分比
 
-                                    _bar = core.createProgressBar2(day.label, day.desc, day.customClass2, day.dataObj);
+                                    _bar = core.createProgressBar2('bar2', day.label, day.desc, day.customClass2, day.dataObj);
 
                                     // find row
                                     // 查找所在行

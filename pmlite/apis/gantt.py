@@ -39,7 +39,9 @@ def user_gantt_view(uid):
             task_obj['desc'] = ""
             task_obj['values'] = [{
                 "from": task_data['planned_start_date'],
-                "to": task_data['planned_end_date']
+                "to": task_data['planned_end_date'],
+                "a_from": task_data['actual_start_date'],
+                "a_to": task_data['actual_end_date']
             }]
             task_list.append(task_obj)
     return task_list
