@@ -1249,7 +1249,6 @@
                 // Loop through the values of each data element and set a row
                 // 遍历每个数据元素的值并设置一行
                 $.each(element.data, function (i, entry) {
-                    console.log(element.data)
                     if (i >= element.pageNum * settings.itemsPerPage &&
                         i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
 
