@@ -9,7 +9,8 @@ gantt_api = Blueprint("gantt", __name__, url_prefix="/gantt")
 @gantt_api.route("/project/<int:pid>")
 def gantt_view(pid):
     q = db.select(TaskModel).where(TaskModel.project_id == pid)
-    tasks = db.session.execute(q).scalars().all()
+    tasks = db.session.execute(q.filter(TaskModel.parent_id.is_(None))).scalars().all()
+    print(tasks)
     task_list = []
     for task in tasks:
         if task.planned_start_date and task.planned_end_date:
@@ -19,9 +20,25 @@ def gantt_view(pid):
             task_obj['desc'] = ""
             task_obj['values'] = [{
                 "from": task_data['planned_start_date'],
-                "to": task_data['planned_end_date']
+                "to": task_data['planned_end_date'],
+                "a_from": task_data['actual_start_date'],
+                "a_to": task_data['actual_end_date']
             }]
             task_list.append(task_obj)
+        if task.children:
+            for sub_task in task.children:
+                sub_task_data = sub_task.json()
+                sub_task_obj = {}
+                sub_task_obj['name'] = sub_task_data['title']
+                sub_task_obj['desc'] = ""
+                sub_task_obj['values'] = [{
+                    "from": sub_task_data['planned_start_date'],
+                    "to": sub_task_data['planned_end_date'],
+                    "a_from": sub_task_data['actual_start_date'],
+                    "a_to": sub_task_data['actual_end_date']
+                }]
+                task_list.append(sub_task_obj)
+    print(task_list)
     return task_list
 
 

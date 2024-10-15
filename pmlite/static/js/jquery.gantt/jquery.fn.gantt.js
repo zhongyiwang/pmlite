@@ -1591,7 +1591,18 @@
                     $.each(entry.values, function (i, date) {
                         var toDate = tools.dateDeserialize(date.to);
                         if (isNaN(toDate)) { return; }
-                        maxDate = maxDate < toDate ? toDate : maxDate;
+                        // maxDate = maxDate < toDate ? toDate : maxDate;
+
+                        // 以下新增
+                        var a_toDate = tools.dateDeserialize(date.a_to);
+                        if (a_toDate > toDate) {
+                            maxDate = maxDate < a_toDate ? a_toDate : maxDate;
+                        } else {
+                            maxDate = maxDate < toDate ? toDate : maxDate;
+                        }
+
+                        //以上新增
+
                     });
                 });
                 maxDate = maxDate || new Date();
@@ -1629,7 +1640,19 @@
                     $.each(entry.values, function (i, date) {
                         var fromDate = tools.dateDeserialize(date.from);
                         if (isNaN(fromDate)) { return; }
-                        minDate = minDate > fromDate || minDate === null ? fromDate : minDate;
+
+                        //以下新增代码
+                        var a_fromDate = tools.dateDeserialize(date.a_from);
+                        console.log('aaa')
+                        console.log(date.a_from,a_fromDate)
+                        if (a_fromDate < fromDate) {
+                            minDate = minDate > a_fromDate || minDate === null ? a_fromDate : minDate;
+                        } else {
+                            minDate = minDate > fromDate || minDate === null ? fromDate : minDate;
+                        }
+
+                        // 以上新增代码
+                        // minDate = minDate > fromDate || minDate === null ? fromDate : minDate;
                     });
                 });
                 minDate = minDate || new Date();
