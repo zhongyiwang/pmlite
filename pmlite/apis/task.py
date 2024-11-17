@@ -44,6 +44,62 @@ def task_view():
     }
 
 
+# 获取任务列表-new
+@task_api.route('/new')
+@jwt_required()
+def task_view2():
+    page = request.args.get('page', type=int, default=1)
+    per_page = request.args.get('limit', type=int, default=10)
+    status = request.args.get('status')
+    created = request.args.get('created')
+    directed = request.args.get('directed')
+    date_start = request.args.get('start')
+    date_end = request.args.get('end')
+    user_id = request.args.get('user_id')
+    department_id = request.args.get('department_id')
+    if department_id:
+        user_id = None
+
+    print('api_url', request.url)
+    q = db.select(TaskModel).order_by(desc(TaskModel.id))
+    if status == 'uncompleted':
+        q = q.where(TaskModel.status != '已完成')
+    if created:  # 我创建的
+        q = q.where(TaskModel.creator == current_user)
+    if directed:  # 我负责的
+        q = q.where(TaskModel.owner == current_user)
+    if user_id:
+        q = q.where(TaskModel.owner_id == user_id)
+    if date_start:
+        q = q.where(TaskModel.planned_start_date >= date_start)
+    if date_end:
+        q = q.where(TaskModel.planned_end_date <= date_end)
+
+    if department_id:
+        user_list = []
+        users = db.session.execute(db.select(UserModel).where(UserModel.department_id == department_id)).scalars().all()
+        for user in users:
+            user_list.append(user.id)
+        q = q.where(TaskModel.owner_id.in_(user_list))
+
+    pages: Pagination = db.paginate(q, page=page, per_page=per_page)
+
+    ret = []
+    for item in pages.items:
+        item_json = item.json()
+        if item.parent_id:
+            print(item.title, item.parent.title)
+            item_json['title'] = item_json['title'] + ' → ' + item.parent.title
+        ret.append(item_json)
+
+    return {
+        'code': 0,
+        'msg': '信息查询成功',
+        'count': pages.total,
+        'data': ret
+    }
+
+
 # 获取某任务工时列表
 @task_api.get('/<int:tid>/subTasks')
 def sub_task_list(tid):
@@ -102,6 +158,7 @@ def manHour_view():
 @jwt_required()
 @permission_required(Permission.TASK)
 def task_list_as_treetable():
+    print('api_url', request.url, request.args)
     date_start = request.args.get('start')
     date_end = request.args.get('end')
     user_id = request.args.get('user_id')
@@ -112,7 +169,8 @@ def task_list_as_treetable():
         user_id = None
 
     query = request.args.get('query')
-    q = db.select(TaskModel)
+    # q = db.select(TaskModel)
+    q = db.select(TaskModel).order_by(desc(TaskModel.id))
 
     if query == "uncompleted":
         q = q.where(TaskModel.status != "已完成")
@@ -196,7 +254,7 @@ def update_task_planned_man_hours(task):
         parent_task.save()
 
 
-# 添加
+# 添加任务
 @task_api.post('/')
 @jwt_required()
 def task_add():

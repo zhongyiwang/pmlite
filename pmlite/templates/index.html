@@ -49,9 +49,18 @@
                 <dd><a class="left-nav" menu_url="{{ url_for('task.index') }}" menu_name="所有任务" menu_id="201">所有任务</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='uncompleted') }}" menu_name="未完成任务" menu_id="202">未完成任务</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='create') }}" menu_name="我创建的" menu_id="203">我创建的</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='own') }}" menu_name="我负责的" menu_id="204">我负责的</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='own', c_user=1, status='uncompleted') }}" menu_name="我负责的" menu_id="204">我负责的</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('task.manHour') }}" menu_name="全部工时" menu_id="205">全部工时</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('gantt.index', from='task') }}" menu_name="任务甘特图" menu_id="206">任务甘特图</a></dd>
+              </dl>
+            </li>
+            <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">
+              <a class="" href="javascript:;">任务管理 - 新</a>
+              <dl class="layui-nav-child">
+                <dd><a class="left-nav" menu_url="{{ url_for('task.index2') }}" menu_name="所有任务" menu_id="2201">所有任务</a></dd>
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('task.index2', status='uncompleted') }}" menu_name="未完成任务" menu_id="2202">未完成任务</a></dd>-->
+                <dd><a class="left-nav" menu_url="{{ url_for('task.index2', created=1) }}" menu_name="我创建的" menu_id="2203">我创建的</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('task.index2', directed=1) }}" menu_name="我负责的" menu_id="2204">我负责的</a></dd>
               </dl>
             </li>
             <li class="layui-nav-item layui-nav-itemed purchase-show" style="display: none">
@@ -158,6 +167,12 @@ layui.use(['element', 'layer', 'util'], function(){
     element.on('tabDelete(head_tabs)', function (data){
         tabs = tabs.filter(tab => tab.id !== data.id)
         localStorage.setItem('tabs', JSON.stringify(tabs))
+    })
+
+    // 浏览器刷新，或关闭tab时执行操作
+    // 删除本地存储的tabs
+    window.addEventListener('beforeunload', function (){
+        localStorage.removeItem('tabs')
     })
 
     $(".left-nav").click(function (){

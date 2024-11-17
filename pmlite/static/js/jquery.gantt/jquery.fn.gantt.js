@@ -1643,8 +1643,6 @@
 
                         //以下新增代码
                         var a_fromDate = tools.dateDeserialize(date.a_from);
-                        console.log('aaa')
-                        console.log(date.a_from,a_fromDate)
                         if (a_fromDate < fromDate) {
                             minDate = minDate > a_fromDate || minDate === null ? a_fromDate : minDate;
                         } else {

@@ -110,8 +110,22 @@
             toolbar: '#toolbar',
             page: true,
             height: 'full-80',
-            cols: [
-                [   // 标题栏
+            // cols: [
+            //     [   // 标题栏
+            //         {field: 'id', title: 'ID', minWidth: 30, sort: true, align: 'center'},
+            //         {field: 'number', title: '员工编号', minWidth: 80, sort: true, align: 'center'},
+            //         {field: 'name', title: '姓名', minWidth: 80, align: 'center'},
+            //         {field: 'department', title: '部门', minWidth: 120, align: 'center'},
+            //         {field: 'mobile', title: '电话', minWidth: 120, align: 'center'},
+            //         {field: 'mobile_short', title: '集团短号', minWidth: 120, align: 'center'},
+            //         {field: 'email', title: '邮箱', minWidth: 250, align: 'center'},
+            //         {field: 'create_time', title: '添加时间', minWidth: 200, align: 'center'},
+            //         {field: 'disabled', title: '禁用', minWidth: 100, align: 'center', templet: render_disable},
+            //         {title: '操作', fixed: "right", width: 120, toolbar: '#tools'}
+            //     ]
+            // ],
+            cols: [function (){
+                let arr = [   // 标题栏
                     {field: 'id', title: 'ID', minWidth: 30, sort: true, align: 'center'},
                     {field: 'number', title: '员工编号', minWidth: 80, sort: true, align: 'center'},
                     {field: 'name', title: '姓名', minWidth: 80, align: 'center'},
@@ -122,8 +136,27 @@
                     {field: 'create_time', title: '添加时间', minWidth: 200, align: 'center'},
                     {field: 'disabled', title: '禁用', minWidth: 100, align: 'center', templet: render_disable},
                     {title: '操作', fixed: "right", width: 120, toolbar: '#tools'}
-                ]
-            ],
+                ];
+                // 初始化筛选状态
+                let local = layui.data('userTable-filter');
+                layui.each(arr, function (index, item){
+                    if(item.field in local){
+                        item.hide = local[item.field];
+                    }
+                });
+                return arr;
+            }()],
+            done: function (){
+                // 记录筛选状态
+                let that = this;
+                that.elem.next().on('mousedown', 'input[lay-filter="LAY_TABLE_TOOL_COLS"]+', function (){
+                    let input = $(this).prev()[0];
+                    layui.data('userTable-filter', {
+                        key: input.name,
+                        value: input.checked
+                    })
+                });
+            }
 
         });
 

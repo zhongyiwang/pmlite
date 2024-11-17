@@ -5,71 +5,68 @@
 <div class="layui-fluid">
     <!-- 搜索表单 -->
     <form class="layui-form layui-row layui-col-space16">
-      <div class="layui-col-md2">
-        <div class="layui-input-wrap">
-          <div class="layui-input-prefix">
-            <i class="layui-icon layui-icon-list"></i>
-          </div>
-          <select name="project_id" id="project_id_f" lay-filter="project-select" lay-search="">
-              <option value="">请选择项目名称</option>
-          </select>
-        </div>
-      </div>
+        <div style="float: left">
+            <div class="layui-row layui-col-space16">
+                  <div class="layui-col-md2">
+                    <div class="layui-input-wrap">
+                      <select name="department_id">
+                          <option value="">部门</option>
+                          <option value=3>产品设计室</option>
+                          <option value=4>营业技术室</option>
+                          <option value=5>自动化设计室</option>
+                      </select>
+                    </div>
+                  </div>
 
-      <div class="layui-col-md2">
-        <div class="layui-input-wrap">
-          <select name="department_id">
-              <option value="">部门</option>
-              <option value=3>产品设计室</option>
-              <option value=4>营业技术室</option>
-              <option value=5>自动化设计室</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="layui-col-md2">
-        <div class="layui-input-wrap">
-          <div class="layui-input-prefix">
-            <i class="layui-icon layui-icon-username"></i>
-          </div>
-          <select name="user_id" id="user_id_f" lay-filter="user-select" lay-search="">
-              <option value="">请选择负责人</option>
-          </select>
-        </div>
-      </div>
-      <div class="layui-col-md1">
-        <div class="layui-input-wrap">
-          <div class="layui-input-prefix">
-            <i class="layui-icon layui-icon-username"></i>
-          </div>
-          <select name="status">
-              <option value="">任务状态</option>
-              <option value="">全部</option>
-              <option value="completed">已完成</option>
-              <option value="uncompleted">未完成</option>
-          </select>
-        </div>
-      </div>
-      <div class="layui-col-md1">
-        <div class="layui-input-wrap">
-            <div class="layui-input-prefix">
-                <i class="layui-icon layui-icon-date"></i>
+                  <div class="layui-col-md2">
+                    <div class="layui-input-wrap">
+                      <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-username"></i>
+                      </div>
+                      <select name="user_id" id="user_id_f" lay-filter="user-select" lay-search="">
+                          <option value="">请选择负责人</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="layui-col-md2">
+                    <div class="layui-input-wrap">
+                        <div class="layui-input-prefix">
+                            <i class="layui-icon layui-icon-date"></i>
+                        </div>
+                        <input type="text" name="date-start" readonly placeholder="开始日期" lay-affix="clear" class="layui-input date-input">
+                    </div>
+                  </div>
+                  <div class="layui-col-md2">
+                    <div class="layui-input-wrap">
+                      <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-date"></i>
+                      </div>
+                      <input type="text" name="date-end" readonly placeholder="结束日期" class="layui-input date-input">
+                    </div>
+                  </div>
+                    <div class="layui-btn-container layui-col-md2">
+                    <button class="layui-btn" lay-submit lay-filter="table-search">查询</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">清空</button>
+                  </div>
             </div>
-            <input type="text" name="date-start" readonly placeholder="开始日期" lay-affix="clear" class="layui-input date-input">
+
         </div>
-      </div>
-      <div class="layui-col-md1">
-        <div class="layui-input-wrap">
-          <div class="layui-input-prefix">
-            <i class="layui-icon layui-icon-date"></i>
+        <div style="float: right">
+            <div>
+              <label class="layui-form-label">显示已完成</label>
+              <div class="layui-input-block">
+                  <input type="checkbox" name="status2" id="status-switch" lay-skin="switch" lay-filter="statusSwitch">
+              </div>
           </div>
-          <input type="text" name="date-end" readonly placeholder="结束日期" class="layui-input date-input">
         </div>
-      </div>
-      <div class="layui-btn-container layui-col-md2">
-        <button class="layui-btn" lay-submit lay-filter="table-search">查询</button>
-        <button type="reset" class="layui-btn layui-btn-primary">清空</button>
-      </div>
+
+
+
+
+<!--?      <div class="layui-btn-container layui-col-md2">-->
+<!--?        <button class="layui-btn" lay-submit lay-filter="table-search">查询</button>-->
+<!--?        <button type="reset" class="layui-btn layui-btn-primary">清空</button>-->
+<!--?      </div>-->
     </form>
     <table class="layui-hide" id="task-table" lay-filter="task-table"></table>
 </div>
@@ -81,7 +78,7 @@
 
 <!--添加/编辑 任务 弹窗表单-->
 <form class="layui-form" action="" id="task-form" lay-filter="task-form" style="margin-top: 20px; display: none">
-    <div style="padding-right: 20px;">
+    <div style="padding-right: 20px; height: 376px; overflow: auto">
         <div class="layui-form-item" style="display: none">
             <label class="layui-form-label">ID</label>
             <div class="layui-input-block">
@@ -95,7 +92,7 @@
                        class="layui-input">
             </div>
         </div>
-        <div class="layui-form-item" style="">
+        <div class="layui-form-item" style="display: none">
             <label class="layui-form-label">父任务ID</label>
             <div class="layui-input-block">
                 <input type="text" name="parent_id" id="parent_id" lay-affix="clear" autocomplete="off" placeholder="请输入父任务ID"
@@ -103,19 +100,19 @@
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">计划开始日期</label>
+            <label class="layui-form-label">计划开始</label>
             <div class="layui-input-block layui-input-wrap">
                 <input type="text" name="planned_start_date" lay-affix="clear" placeholder="请选择计划开始日期" class="layui-input date-input"></input>
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">计划完成日期</label>
+            <label class="layui-form-label">计划完成</label>
             <div class="layui-input-block layui-input-wrap">
                 <input type="text" name="planned_end_date" lay-affix="clear" placeholder="请选择计划完成日期" class="layui-input date-input"></input>
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">实际完成日期</label>
+            <label class="layui-form-label">实际完成</label>
             <div class="layui-input-block">
                 <input type="text" name="actual_end_date" lay-affix="clear" placeholder="请选择实际完成日期" class="layui-input date-input"></input>
             </div>
@@ -162,10 +159,25 @@
                 </select>
             </div>
         </div>
+<!--?        <div class="layui-form-item">-->
+<!--?            <input type="checkbox" name="continue" title="继续创建下一条">-->
+<!--?            <div class="layui-input-block">-->
+<!--?                <button type="submit" class="layui-btn" lay-submit lay-filter="task-form-submit">立即提交</button>-->
+<!--?                <button type="reset" class="layui-btn layui-btn-primary">重置</button>-->
+<!--?            </div>-->
+<!--?        </div>-->
+    </div>
+    <div>
         <div class="layui-form-item">
-            <div class="layui-input-block">
-                <button type="submit" class="layui-btn" lay-submit lay-filter="task-form-submit">立即提交</button>
-                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            <div style="padding: 0 40px;">
+                <div style="float: left">
+                    <input type="checkbox" name="continue" title="继续创建下一条">
+                </div>
+                <div style="float: right">
+                    <button type="submit" class="layui-btn" lay-submit lay-filter="task-form-submit">立即提交</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+
             </div>
         </div>
     </div>
@@ -219,15 +231,6 @@
 <script type="text/html" id="toolbar">
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加任务</button>
-        <button class="layui-btn layui-btn-sm layui-btn-primary" id = "treeMode">
-            <span>显示模式</span>
-            <i class="layui-icon layui-icon-down layui-font-12"></i>
-        </button>
-<!--?        <button class="layui-btn layui-btn-sm layui-btn-primary" id = "taskStatus">-->
-<!--?            <span>任务状态</span>-->
-<!--?            <i class="layui-icon layui-icon-down layui-font-12"></i>-->
-<!--?        </button>-->
-
     </div>
 </script>
 
@@ -274,6 +277,16 @@
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 
+<!--?任务状态-->
+<script type="text/html" id="dropdown-status">
+    {% raw %}
+       <button class="layui-btn layui-btn-primary dropdown-ststus">
+           <span>{{=d.status || '无'}}</span>
+           <i class="layui-icon layui-icon-down layui-font-12"></i>
+       </button>
+    {% endraw %}
+</script>
+
 <script>
     // 更改 禁用 列的渲染
     function render_disable(d) {
@@ -310,39 +323,46 @@
             }
         })
 
+        // 为class为date-input的元素添加日期选择框
         laydate.render({
             elem: '.date-input'
         })
 
-        let url = '/api/v1/task/treetable';
-
-        // 根据从视图函数传递的参数，动态构建url
-        if ('{{ query }}'){
-           url += '?query=' + '{{ query }}'
+        // 根据url传递的参数，动态修改查询url
+        let url = '/api/v1/task/new?'
+        if ('{{ created }}' == 1){  // 我创建的任务
+            url += '&created=1'
         }
+        if ('{{ directed }}' == 1){  // 我负责的任务
+            url += '&directed=1'
+        }
+        let taskShow = layui.data('taskTable-switch')
+        if (taskShow.showAll) {  // 显示全部任务
+            $('#status-switch').prop("checked", true)  // 使显示已完成switch选中
+        } else {
+            url += '&status=uncompleted'
+        }
+        console.log('请求url:', url)
 
-        url += '&c_user=' + '{{c_user|default("")}}' + '&status=' + '{{ status }}'
-        console.log("page_url:", url)
 
         let hideCol = false;
-        if ('{{ pid }}' !== "None"){
-            url = '/api/v1/project/{{ pid }}/tasks';
-            hideCol = true
-        }
+        // if ('{{ pid }}' !== "None"){
+        //     url = '/api/v1/project/{{ pid }}/tasks';
+        //     hideCol = true
+        // }
 
         // 渲染表格
-        treeTable.render({
+        table.render({
             elem: '#task-table',
             id: 'task-table',
             url: url,
-            // url: '/api/v1/task',
             toolbar: '#toolbar',
             page: true,
-            limit: 10,
+            limit: 20,
             height: 'full-140',
-            cols: [
-                [   // 标题栏
-                    {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left'},
+            cols: [function(){
+               let arr = [
+                    {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left', sort: true},
                     {field: 'title', title: '任务标题', minWidth: 300, fixed: 'left'},
                     {field: 'task_type', title: '任务类型', width:100, hide: hideCol},
                     {field: 'project', title: '所属项目', align: 'center', width: 150, sort: true, hide: hideCol},
@@ -355,70 +375,26 @@
                     {field: 'planned_man_hours', title: '计划工时', align: 'center', width: 100},
                     {field: 'actual_man_hours', title: '实际工时', align: 'center', width: 100},
                     {field: 'status', title: '完成状态', align: 'center', width: 120, sort: true},
+                    // {field: 'status', title: '完成状态', align: 'center', width: 120, sort: true, templet: '#dropdown-status'},
                     {title: '操作', fixed: "right", width: 180, toolbar: '#tools'}
-                ]
-            ],
-            tree: {
-                view: {
-                    'expandAllDefault': true,
-                    'dblClickExpand': false
-                },
-                customName: {
-                    'name': 'title',
-                }
-            },
+               ];
+               let local = layui.data('taskTable-cols');
+               layui.each(arr, function (index, item){
+                   if(item.field in local){
+                       item.hide = local[item.field];
+                   }
+               });
+                return arr;
+            }()],
             done: function (){
-                let id = this.id;
-                // 显示模式
-                dropdown.render({
-                    elem: '#treeMode',
-                    data: [{
-                        id: 'table-show',
-                        title: '折叠模式'
-                    },{
-                        id: 'treeTable-show',
-                        title: '展示模式'
-                    }],
-                    // 菜单被点击的事件
-                    click: function (obj){
-                        switch(obj.id){
-                            case 'table-show':
-                                treeTable.expandAll('task-table', false); // 关闭全部节点
-                            break;
-                            case 'treeTable-show':
-                                treeTable.expandAll('task-table', true); // 关闭全部节点
-                            break;
-                        }
-                    }
-                });
-                // 任务状态
-                dropdown.render({
-                    elem: '#taskStatus',
-                    data: [{
-                        id: 'all',
-                        title: '全部'
-                    },{
-                        id: 'uncompleted',
-                        title: '未完成'
-                    }],
-                    // 菜单被点击的事件
-                    click: function (obj){
-                        const page_url = new URL(location.href)
-                        const pid = page_url.searchParams.get('pid')
-                        switch(obj.id){
-                            case 'all':
-                                treeTable.reload('task-table', {
-                                    url: '/api/v1/project/' +  pid + '/tasks'
-                                });
-                            break;
-                            case 'uncompleted':
-
-                                // treeTable.reload('task-table', {
-                                //     url: location.href + "&"
-                                // });
-                            break;
-                        }
-                    }
+                // 记录显示列筛选状态
+                let that = this;
+                that.elem.next().on('mousedown', 'input[lay-filter="LAY_TABLE_TOOL_COLS"]+', function (){
+                    let input = $(this).prev()[0];
+                    layui.data('taskTable-cols', {
+                        key: input.name,
+                        value: input.checked
+                    })
                 });
             }
         });
@@ -455,28 +431,6 @@
         }
 
 
-        // 获取项目列表，并渲染
-        // const get_projects_new = function (obj) {
-        //     $.ajax({
-        //         url: "/api/v1/project",
-        //         type: "get",
-        //         async: false,
-        //         success: function (res) {
-        //             console.log(res.data)
-        //             let content = '<option value="">请选择项目名称</option>'
-        //             $.each(res.data, function (i, val) {
-        //                 content += '<option value="' + val.id + '">' + val.name + '</option>'
-        //                 //}
-        //             })
-        //             // console.log(content)
-        //             $('#project_id_f').html(content)
-        //             //console.log(s.html())
-        //             form.render('select')
-        //         }
-        //     })
-        // }
-        // get_projects_new()  // 渲染搜索表单
-
         pmlite.getProjects('project_id_f')  // 顶部查询条件中项目渲染
         pmlite.getUsers('user_id_f')  // 顶部查询条件渲染用户
         // const $ele = $('#project_id_f')
@@ -512,29 +466,6 @@
                 }
             })
         }
-
-        // 获取用户列表，并渲染
-        // const get_users_new = function (obj) {
-        //     $.ajax({
-        //         url: "/api/v1/user",
-        //         type: "get",
-        //         async: false,
-        //         success: function (res) {
-        //             console.log(res.data)
-        //             let content = '<option value="">任务负责人（可搜索）</option>'
-        //             $.each(res.data, function (i, val) {
-        //                 content += '<option value="' + val.id + '">' + val.name + '</option>'
-        //
-        //             })
-        //             // console.log(content)
-        //             $('#user_id_f').html(content)
-        //             //console.log(s.html())
-        //             form.render('select')
-        //         }
-        //     })
-        // }
-
-        //get_users_new()  // 渲染搜索表单
 
 
 
@@ -730,13 +661,13 @@
         treeTable.on('rowDouble(task-table)', function (obj) {
             console.log(obj.data)
             if(!obj.data.parent_id){
-                get_types()  // 获取部门，并渲染select
-                get_projects()  // 获取未完成项目，并渲染select
+                get_types(obj)  // 获取部门，并渲染select
+                get_projects(obj)  // 获取未完成项目，并渲染select
                 // get_users()  // 获取用户，并渲染select
                 pmlite.getUsers('owner_id', undefined, 'owner', 1)
                 $("#task-form")[0].reset();  // 将ID表单清空
-                $("#parent_id").val(obj.data.id)
-                $("#title").val(obj.data.title + "_")
+                $("#parent_id").val(obj.data.id)  // 绑定父任务id
+                // $("#title").val(obj.data.title + "_")  // 预设子任务标题前缀
                 layer.open({
                     type: 1,
                     title: "添加子任务",
@@ -754,14 +685,35 @@
 
         });
 
+        // 显示已完成 的switch切换事件
+        form.on('switch(statusSwitch)', function (data){
+            layui.data('taskTable-switch', {
+                key: 'showAll',
+                value: this.checked
+            })
+            if (this.checked) {  // 选中，即显示已完成
+                url = url.replace('status=uncompleted', '')
+            } else {
+                if (url.endsWith('&')){
+                    url += 'status=uncompleted'
+                } else {
+                    url += '&status=uncompleted'
+                }
+
+            }
+            console.log('请求url:', url)
+            table.reload('task-table', {
+                    url: url
+                })
+        })
 
         // 任务弹窗表单提交事件
         form.on('submit(task-form-submit)', function (data) {
-            console.log(data)
+            console.log(data.field)
             let field = data.field; // 获取表单字段值
             // layui中开关的被选中是“on”，需要转换成ture或false
             // ？. 为可选链运算符，即使不存在该属性的值，也不会报错
-            //field.disabled = field?.disabled ? true: false
+            field.continue = field?.continue ? true: false
             if (field.id == 0){
                 field.id = null;
                 method = "POST";
@@ -782,7 +734,11 @@
                         icon: 1,
                         time: 1000
                     }, function(){
-                        layer.closeAll('page');
+                        if (field.continue){
+                            $('#title').val("");
+                        } else{
+                            layer.closeAll('page');
+                        }
                         table.reloadData('task-table')
                     })
                 },
@@ -851,16 +807,10 @@
         // 搜索表单提交按钮
         form.on('submit(table-search)', function (data) {
             let field = data.field; // 获取表单字段值
-            console.log(field)
-            url = '/api/v1/task/treetable'
-            // url = '/api/v1/task/man-hour'
-            url += '?start=' + field['date-start'] + '&end=' + field['date-end'] + '&user_id=' + field['user_id'] + '&project_id=' + field['project_id']
-                    + '&status=' + field['status']
-                    + '&department_id=' + field['department_id']
-            console.log(url)
-            // console.log(url)
-            treeTable.reload('task-table', {
-                url: url
+            let newUrl = url +  '&start=' + field['date-start'] + '&end=' + field['date-end'] + '&user_id=' + field['user_id'] + '&department_id=' + field['department_id']
+            console.log('请求url:', newUrl)
+            table.reload('task-table', {
+                url: newUrl
             })
             return false; // 阻止默认 form 跳转
         });

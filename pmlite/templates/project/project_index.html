@@ -1,0 +1,385 @@
+{% extends '_base.html' %}
+{% block title %}项目管理{% endblock %}
+{% block body %}
+<div class="layui-fluid" style="background-color: #f2f2f2">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md8">
+            <div class="layui-card">
+                <div class="layui-card-header">项目状态</div>
+                <div class="layui-card-body">
+                    <div class="status-form">
+
+                    </div>
+                    <div class="status-list">
+                        <div class="status-item">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-card">
+                <div class="layui-card-header">项目信息</div>
+                <div class="layui-card-body">
+                    00
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-card">
+                <div class="layui-card-header">项目计划</div>
+                <div class="layui-card-body">
+                    <div class="layui-row" style="line-height: 30px">
+                        <div class="layui-col-md4">内审日期：</div>
+                        <div class="layui-col-md8">2024/11/8</div>
+                        <div class="layui-col-md4">外审日期：</div>
+                        <div class="layui-col-md8">2024/11/8</div>
+                        <div class="layui-col-md4">设计出图1：</div>
+                        <div class="layui-col-md8">2024/11/8</div>
+                        <div class="layui-col-md4">设计出图2：</div>
+                        <div class="layui-col-md8">2024/11/8</div>
+                        <div class="layui-col-md4">设计出图3：</div>
+                        <div class="layui-col-md8">2024/11/8</div>
+                        <div class="layui-col-md4">外购品到货：</div>
+                        <div class="layui-col-md8">2024/11/8</div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="layui-card">
+                <div class="layui-card-header">任务统计</div>
+                <div class="layui-card-body">
+                    <div class="layui-row">
+                        <div class="layui-col-md4">
+                            <div class="item-title">任务总数</div>
+                            <div class="item-count">0</div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="item-title">已完成</div>
+                            <div class="item-count">0</div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="item-title">进行中</div>
+                            <div class="item-count">0</div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="item-title">未开始</div>
+                            <div class="item-count">0</div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="item-title">延期任务</div>
+                            <div class="item-count">0</div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="item-title">今日到期</div>
+                            <div class="item-count">0</div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="item-title">完成率</div>
+                            <div class="item-count">0</div>
+                        </div>
+                        <div class="layui-col-md4">
+                            <div class="item-title">延期率</div>
+                            <div class="item-count">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 顶部工具栏 -->
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加项目</button>
+    </div>
+</script>
+
+<!-- 右侧工具栏 -->
+<script type="text/html" id="tools" >
+    <button class="layui-btn layui-btn-xs" lay-event="tool-edit">编辑</button>
+    <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="tool-del">删除</button>
+</script>
+
+<!-- 右侧工具栏 只能编辑自己创建的-->
+<script type="text/html" id="tools-not-user" >
+    {% raw %}
+    {{# if (d.creator_id == user_id) { }}
+    <button class="layui-btn layui-btn-xs" lay-event="tool-edit">编辑</button>
+    <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="tool-del">删除</button>
+    {{# }else{ }}
+    <button class="layui-btn-disabled layui-btn-xs" lay-event="tool-edit" disabled>编辑</button>
+    <button class="layui-btn-disabled layui-btn-danger layui-btn-xs" lay-event="tool-del" disabled>删除</button>
+    {{# } }}
+    {% endraw %}
+</script>
+
+<script>
+    // 更改 禁用 列的渲染
+    function render_status(d) {
+        if (d.status) {
+            return '是'
+        } else {
+            return '否'
+        }
+    }
+
+    // 获取登录时保存的用户id
+    const user_id = localStorage.getItem('user_id')
+
+
+    layui.use(function () {
+        var table = layui.table;
+        let treeTable = layui.treeTable;
+        var $ = layui.$;
+        var form = layui.form;
+        var layer = layui.layer;
+        let laydate = layui.laydate;
+        let dropdown = layui.dropdown;
+
+
+
+        // 给默认的ajax请求添加权限
+        $.ajaxSetup({
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("access_token")
+            }
+        })
+
+        laydate.render({
+            elem: '.date-input'
+        })
+
+        let url = '/api/v1/project/pagination'
+
+        if ('{{ status }}'){
+            url += '?status=' + '{{ status }}'
+        }
+
+        // 渲染表格
+        table.render({
+            elem: '#project-table',
+            id: 'project-table',
+            url: url,
+            toolbar: '#toolbar',
+            page: true,
+            limit: 30,
+            height: 'full-80',
+            cols: [
+                [   // 标题栏
+                    {field: 'id', title: 'ID', width:50, align: 'center'},
+                    {field: 'name', title: '项目名称', width:160, align: 'center'},
+                    {field: 'contract', title: '合同编号', width:130, align: 'center'},
+                    {field: 'machine_type', title: '机型', width:120, align: 'center'},
+                    {field: 'customer', title: '客户名称', width:200, align: 'center'},
+                    {field: 'workpiece', title: '工件名称', width:120, align: 'center'},
+                    {field: 'line_type', title: '自动线类型', width:120, align: 'center'},
+                    {field: 'status', title: '完成状态', width:100,  align: 'center'},
+                    {field: 'internal_check_date', title: '内审日期', width:110, align: 'center'},
+                    {field: 'external_check_date', title: '外审日期', width:110, align: 'center'},
+                    {field: 'drawing_date1', title: '外购品下发', width:110, align: 'center'},
+                    {field: 'drawing_date2', title: '主要零件出图', width:110, align: 'center'},
+                    {field: 'drawing_date3', title: '全部出图', width:110, align: 'center'},
+                    {field: 'arrival_date', title: '要求到货日期', width:120, align: 'center'},
+                    {field: 'designer', title: '自动化设计', width:110, align: 'center'},
+                    {field: 'manager', title: '项目经理', width:110,align: 'center'},
+                    {title: '操作', fixed: "right", width: 120, toolbar: '#tools'}
+                ]
+            ],
+
+        });
+
+
+        // 获取机型列表，并渲染
+        const get_machine_types = function (obj) {
+            $.ajax({
+                url: "/api/v1/machine",
+                type: "get",
+                async: false,
+                success: function (res) {
+                    let content = '<option value="">请选择机型</option>'
+                    //console.log(res.data)
+                    $.each(res.data, function (i, val) {
+                        if (obj && val.name === obj.data.machine_type) {
+                            content += '<option value="' + val.id + '" selected>' + val.name + '</option>'
+                        } else {
+                            content += '<option value="' + val.id + '">' + val.name + '</option>'
+                        }
+                    })
+                    // console.log(content)
+                    let s = $('#machine_id')
+                    s.html(content)
+                    //console.log(s.html())
+                    form.render('select')
+                }
+            })
+        }
+
+        // 获取用户列表，并渲染
+        const get_users = function (obj) {
+            $.ajax({
+                url: "/api/v1/user",
+                type: "get",
+                async: false,
+                success: function (res) {
+                    let content1 = content2 = '<option value="">请选择负责人（可搜索）</option>'
+                    //console.log(res.data)
+                    $.each(res.data, function (i, val) {
+                        if (obj && val.name === obj.data.designer) {
+                            content1 += '<option value="' + val.id + '" selected>' + val.name + '</option>'
+                        } else {
+                            content1 += '<option value="' + val.id + '">' + val.name + '</option>'
+                        }
+                    })
+                    $.each(res.data, function (i, val) {
+                        if (obj && val.name === obj.data.manager) {
+                            content2 += '<option value="' + val.id + '" selected>' + val.name + '</option>'
+                        } else {
+                            content2 += '<option value="' + val.id + '">' + val.name + '</option>'
+                        }
+                    })
+                    // console.log(content)
+                    $('#designer_id').html(content1)
+                    $('#manager_id').html(content2)
+                    form.render('select')
+                }
+            })
+        }
+
+        // 顶部工具栏事件
+        table.on('toolbar(project-table)', function (obj){
+            var options = obj.config;  //获取当前表格属性配置项
+
+            // 根据不同的事件名进行相应的操作
+            switch (obj.event){  // 对应模板元素中的 lay-event 属性值
+                case 'toolbar-add':
+                    $("#project-form")[0].reset();  // 将ID表单清空
+                    layer.open({
+                        type: 1,
+                        title: "添加项目",
+                        shade: false,
+                        content: $("#project-form"),
+                        area: ["50%", "80%"]
+                    })
+                    get_machine_types()  // 获取部门，并渲染select
+                    get_users()
+                    break;
+                    //form.render($("#user-form"))
+            }
+        })
+
+        // 单元格工具事件（操作列的按钮组）
+        table.on('tool(project-table)', function (obj) {
+            if (obj.event === 'tool-edit') {  // 编辑
+                form.val('project-form', obj.data);
+
+                // 自动线类型select选项的渲染
+                $("#line_type option:contains('" + obj.data.line_type + "')").prop('selected', true)
+
+
+                get_machine_types(obj)
+                get_users(obj)
+
+
+                layer.open({
+                    type: 1,
+                    title: '修改用户',
+                    area: ['50%', '80%'],
+                    content: $('#project-form'),  // 捕获的元素
+                });
+            } else if ( obj.event === 'tool-del') {  // 删除
+                layer.confirm('确认删除么？', function (index) {
+                    $.ajax({
+                        url: `/api/v1/project/${obj.data.id}`,
+                        type: "DELETE",
+                        contentType: "application/json",
+                        success: function (res){
+                            if (!res.code){
+                                layer.msg(res.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function(){
+                                    table.reloadData('project-table')
+                                })
+                            } else {
+                                layer.msg(res.msg, {
+                                    icon: 2,
+                                    time: 1500,
+                                })
+                            }
+                        }
+                    })
+                    layer.close(index);
+                });
+            }
+        });
+
+        // 行双击事件( 单击事件为: row )
+        table.on('rowDouble(project-table)', function (obj){
+            let purl = `/api/v1/project/${obj.data.id}/tasks`
+
+            // 任务弹窗
+            layer.open({
+                type: 2,  // iframe弹窗
+                title: '任务列表',
+                offset: 'r',
+                anim: 'slideLeft',
+                area: ['90%', '100%'],
+                shadeClose: true,
+                // content: $('#task-page'),
+                content: "{{url_for('task.index')}}" + "?pid=" + obj.data.id,
+                // success: function (layero, index){
+                    // let iframeWin = window[layero.find('iframe')[0]['name']]; // 获得弹窗的元素
+                    // iframeWin.child({'purl': `/api/v1/project/${obj.data.id}/tasks`}) // 向iframe传参数
+                // }
+            });
+
+
+
+
+        });
+
+
+        // 弹窗表单提交事件
+        form.on('submit(user-form-submit)', function (data) {
+            let field = data.field; // 获取表单字段值
+            console.log(field)
+            // layui中开关的被选中是“on”，需要转换成ture或false
+            // ？. 为可选链运算符，即使不存在该属性的值，也不会报错
+            if (field.id == 0){
+                field.id = null;
+                method = "POST";
+                url = "/api/v1/project";
+            }else{
+                method = "PUT";
+                url = `/api/v1/project/${field.id}`;
+            }
+
+            $.ajax({
+                method: method,
+                url: url,
+                data: JSON.stringify(field),
+                contentType: "application/json",
+                //datatype: "json",
+                success: function (res){
+                    layer.msg(res.msg, {
+                        icon: 1,
+                        time: 1000
+                    }, function(){
+                        layer.closeAll('page');
+                        table.reloadData('project-table')
+                    })
+                },
+                error: function (res){
+                    layer.msg(res.msg,{
+                        icon: 2,
+                        time: 1000
+                    })
+                }
+            })
+            return false; // 阻止默认 form 跳转
+        });
+    });
+
+</script>
+{% endblock %}

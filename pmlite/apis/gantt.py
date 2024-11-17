@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from ..extensions import db
 from ..models import TaskModel
+import json
 
 gantt_api = Blueprint("gantt", __name__, url_prefix="/gantt")
 
@@ -17,12 +18,22 @@ def gantt_view(pid):
             task_data = task.json()
             task_obj = {}
             task_obj['name'] = task_data['title']
-            task_obj['desc'] = ""
-            task_obj['values'] = [{
+            task_obj['desc'] = task_data['owner']
+            dataObj = {
                 "from": task_data['planned_start_date'],
                 "to": task_data['planned_end_date'],
                 "a_from": task_data['actual_start_date'],
                 "a_to": task_data['actual_end_date']
+            }
+            task_obj['values'] = [{
+                "from": task_data['planned_start_date'],
+                "to": task_data['planned_end_date'],
+                "label": "",
+                # "desc": json.dumps(dataObj, indent=4)[1:-1].replace(',', '<br>'),
+                "a_from": task_data['actual_start_date'],
+                "a_to": task_data['actual_end_date'],
+                "customClass": "",
+
             }]
             task_list.append(task_obj)
         if task.children:
@@ -30,7 +41,7 @@ def gantt_view(pid):
                 sub_task_data = sub_task.json()
                 sub_task_obj = {}
                 sub_task_obj['name'] = sub_task_data['title']
-                sub_task_obj['desc'] = ""
+                sub_task_obj['desc'] = task_data['owner']
                 sub_task_obj['values'] = [{
                     "from": sub_task_data['planned_start_date'],
                     "to": sub_task_data['planned_end_date'],

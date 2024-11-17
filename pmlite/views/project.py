@@ -8,3 +8,9 @@ project_bp = Blueprint('project', __name__, url_prefix="/project")
 def index():
     status = request.args.get('status')
     return render_template('project/index.html', status=status)
+
+
+# 项目详细视图
+@project_bp.route('/<int:pid>')
+def main(pid):
+    return render_template('project/project_index.html')
