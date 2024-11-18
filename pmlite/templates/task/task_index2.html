@@ -523,8 +523,13 @@
         })
 
         // 单元格工具事件（操作列的按钮组）
-        treeTable.on('tool(task-table)', function (obj) {
+        table.on('tool(task-table)', function (obj) {
             if (obj.event === 'task-edit') {  // 编辑
+                let title = obj.data.title
+                if (title.indexOf('→') != -1) {
+                    title = title.substring(0, title.indexOf('→')).trim()
+                }
+                obj.data.title = title
                 form.val('task-form', obj.data);
                 console.log("obj", obj)
 
