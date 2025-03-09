@@ -22,5 +22,4 @@ def register_apis(app: Flask):
     apis.register_blueprint(supplier_api)
     apis.register_blueprint(gantt_api)
 
-
     app.register_blueprint(apis)

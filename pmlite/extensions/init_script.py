@@ -5,7 +5,7 @@ from datetime import datetime
 from flask import Flask, current_app
 
 from ..extensions import db
-from ..models import UserModel, DepartmentModel, MachineTypeModel, ProjectModel, TaskTypeModel, TaskModel, ManHourModel
+from ..models import UserModel, DepartmentModel, MachineTypeModel, ProjectModel, TaskTypeModel, TaskModel, ManHourModel, ProjectNodeTitleModel
 
 
 def is_valid_date(date_str):
@@ -41,6 +41,9 @@ def csv_to_database(path, model):
 def register_script(app: Flask):
     @app.cli.command()
     def init():
+        """
+        flask初始化
+        """
         db.drop_all()
         db.create_all()
         root = current_app.config.get("ROOT_PATH")
@@ -64,3 +67,12 @@ def register_script(app: Flask):
         # 工时表
         man_hour_data_path = os.path.join(root, "pmlite", "static", "data", "man_hour.csv")
         csv_to_database(man_hour_data_path, ManHourModel)
+
+    @app.cli.command("import_project_node_title")
+    def import_project_node_title():
+        """
+        从csv文件中导入项目的节点标题数据
+        """
+        root = current_app.config.get("ROOT_PATH")
+        project_node_title_data_path = os.path.join(root, "pmlite", "static", "data", "project_node_title.csv")
+        csv_to_database(project_node_title_data_path, ProjectNodeTitleModel)

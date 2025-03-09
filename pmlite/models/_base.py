@@ -16,11 +16,15 @@ class BaseModel(db.Model):
 
     def update(self, data):
         for key, value in data.items():
+            # 当字段中包含date字样时，需要将字符串转换成日期类型
             if "date" in key:
-                try:
-                    value = datetime.strptime(value, "%Y-%m-%d")
-                except ValueError as e:
-                    value = None
+                # 只有是字符串类型的时候，才尝试日期解析
+                # 避免在复制数据时，datetime类型和None类型报错
+                if isinstance(value, str):
+                    try:
+                        value = datetime.strptime(value, "%Y-%m-%d")
+                    except ValueError as e:
+                        value = None
             else:
                 if value == "":
                     value = None

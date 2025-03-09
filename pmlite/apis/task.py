@@ -100,6 +100,61 @@ def task_view2():
     }
 
 
+# 获取任务列表-new
+@task_api.route('/new2')
+@jwt_required()
+def task_view3():
+    page = request.args.get('page', type=int, default=1)
+    per_page = request.args.get('limit', type=int, default=10)
+    status = request.args.get('status')
+    created = request.args.get('created')
+    directed = request.args.get('directed')
+    date_start = request.args.get('start')
+    date_end = request.args.get('end')
+    user_id = request.args.get('user_id')
+    department_id = request.args.get('department_id')
+    if department_id:
+        user_id = None
+
+    print('api_url', request.url)
+    q = db.select(TaskModel).order_by(desc(TaskModel.id))
+    if status == 'uncompleted':
+        q = q.where(TaskModel.status != '已完成')
+    if created:  # 我创建的
+        q = q.where(TaskModel.creator == current_user)
+    if directed:  # 我负责的
+        q = q.where(TaskModel.owner == current_user)
+    if user_id:
+        q = q.where(TaskModel.owner_id == user_id)
+    if date_start:
+        q = q.where(TaskModel.planned_start_date >= date_start)
+    if date_end:
+        q = q.where(TaskModel.planned_end_date <= date_end)
+
+    if department_id:
+        user_list = []
+        users = db.session.execute(db.select(UserModel).where(UserModel.department_id == department_id)).scalars().all()
+        for user in users:
+            user_list.append(user.id)
+        q = q.where(TaskModel.owner_id.in_(user_list))
+
+    pages: Pagination = db.paginate(q, page=page, per_page=per_page)
+
+    ret = []
+    for item in pages.items:
+        item_json = item.json()
+        if item.parent_id:
+            print(item.title, item.parent.title)
+            item_json['title'] = item_json['title'] + ' → ' + item.parent.title
+        ret.append(item_json)
+
+    return {
+        'code': 0,
+        'msg': '信息查询成功',
+        'count': pages.total,
+        'data': ret
+    }
+
 # 获取某任务工时列表
 @task_api.get('/<int:tid>/subTasks')
 def sub_task_list(tid):
@@ -153,6 +208,96 @@ def manHour_view():
     }
 
 
+# 获取任务列表，以树状表格显示
+@task_api.get("/treetable")
+@jwt_required()
+@permission_required(Permission.TASK)
+def task_list_as_treetable():
+    print('api_url', request.url, request.args)
+    page = request.args.get('page', type=int, default=1)
+    per_page = request.args.get('limit', type=int, default=10)
+    date_start = request.args.get('start')
+    date_end = request.args.get('end')
+    user_id = request.args.get('user_id')
+    project_id = request.args.get('project_id')
+    status = request.args.get('status')
+    department_id = request.args.get('department_id')
+    if department_id:
+        user_id = None
+
+    query = request.args.get('query')
+    # 构建查询
+    # q = db.select(TaskModel)
+    q = db.select(TaskModel).order_by(desc(TaskModel.id)).where(TaskModel.parent_id.is_(None))
+
+    if query == "uncompleted":
+        q = q.where(TaskModel.status != "已完成")
+    if query == "own":
+        q = q.where(TaskModel.owner == current_user)
+    if query == "create":
+        q = q.where(TaskModel.creator == current_user)
+
+    if project_id:
+        q = q.where(TaskModel.project_id == project_id)
+    if user_id:
+        q = q.where(TaskModel.owner_id == user_id)
+    if status and status == 'completed':
+        q = q.where(TaskModel.status == "已完成")
+    if status and status == 'uncompleted':
+        q = q.where(TaskModel.status != "已完成")
+    if date_start:
+        q = q.where(TaskModel.planned_end_date >= date_start)
+    if date_end:
+        q = q.where(TaskModel.planned_end_date <= date_end)
+
+    if department_id:
+        user_list = []
+        users = db.session.execute(db.select(UserModel).where(UserModel.department_id == department_id)).scalars().all()
+        for user in users:
+            user_list.append(user.id)
+        q = q.where(TaskModel.owner_id.in_(user_list))
+
+    print(q)
+
+    task_list = db.session.execute(q).scalars().all()
+    print(len(task_list))
+
+    # 分页
+    paginated_tasks = db.paginate(q, page=page, per_page=per_page)
+
+
+
+    ret = []
+    # for child in task_list:
+    for child in paginated_tasks:
+        child_data = child.json()
+
+        child_data["children"] = []
+        if child.children:
+            child_data["isParent"] = True
+            if query == "uncompleted" or status == 'uncompleted':
+                child.children = list(filter(lambda x: x.status != '已完成', child.children))
+            for son in child.children:
+                try:
+                    task_list.remove(son)
+                except:
+                    pass
+                finally:
+                    son_data = son.json()
+
+                    child_data['children'].append(son_data)
+        ret.append(child_data)
+    return {
+        "code": 0,
+        "message": "数据请求成功！",
+        # "count": '',
+        "count": paginated_tasks.total,
+        "data": ret
+        # "data": [item.json() for item in paginated_tasks.items]
+    }
+
+
+'''
 # 获取任务列表，以树状表格显示
 @task_api.get("/treetable")
 @jwt_required()
@@ -228,6 +373,7 @@ def task_list_as_treetable():
         "count": '',
         "data": ret
     }
+'''
 
 
 # 获取任务类型列表
@@ -263,8 +409,10 @@ def task_add():
     task.update(data)
     task.creator_id = current_user.id
     try:
+        print('bbbb')
         task.save()
-        update_task_planned_man_hours(task)
+        task.update_parent_planned_work_hours()  # 更新父任务的计划工时
+        # update_task_planned_man_hours(task)
     except Exception as e:
         print('任务添加失败。')
         print(e)
@@ -286,7 +434,9 @@ def task_edit(tid):
     task.update(data)
     try:
         task.save()
-        update_task_planned_man_hours(task)
+        task.update_parent_date()  # 更新父任务的日期
+        task.update_parent_planned_work_hours()  # 更新父任务的计划工时
+        # update_task_planned_man_hours(task)
     except Exception as e:
         print('任务修改失败')
         print(e)
@@ -309,8 +459,10 @@ def task_delete(tid):
         try:
             pass
             db.session.delete(task)
-            update_task_planned_man_hours(task)
-            db.session.commit()
+            # update_task_planned_man_hours(task)
+            # db.session.commit()
+            task.update_parent_planned_work_hours()  # 更新父任务的计划工时
+            task.update_actual_work_hours()  # 更新任务及父任务的实际工时
         except Exception as e:
             print('任务删除失败')
             print(e)
@@ -386,7 +538,8 @@ def man_hour_add(tid):
 
     try:
         man_hour.save()
-        update_task_actual_man_housr(tid)
+        # update_task_actual_man_housr
+        man_hour.task.update_actual_work_hours()  # 更新任务及父任务的实际工时
         update_task_actual_start_date(tid)
     except Exception as e:
         print('工时添加失败')
@@ -409,7 +562,8 @@ def man_hour_edit(tid, mid):
     man_hour.update(data)
     try:
         man_hour.save()
-        update_task_actual_man_housr(tid)
+        # update_task_actual_man_housr(tid)
+        man_hour.task.update_actual_work_hours()  # 更新任务及父任务的实际工时
         update_task_actual_start_date(tid)
     except Exception as e:
         print('工时修改失败')
@@ -433,8 +587,9 @@ def man_hour_delete(tid, mid):
         try:
             pass
             db.session.delete(man_hour)
-            db.session.commit()
-            update_task_actual_man_housr(tid)
+            # db.session.commit()
+            # update_task_actual_man_housr(tid)
+            man_hour.task.update_actual_work_hours()  # 更新任务及父任务的实际工时
             update_task_actual_start_date(tid)
         except Exception as e:
             print('工时删除失败')

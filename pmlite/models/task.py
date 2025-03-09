@@ -1,7 +1,7 @@
 from datetime import datetime
 from pmlite.extensions import db
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean, Text, Enum, Float
-
+from sqlalchemy.event import listens_for
 from ._base import BaseModel, StatusEnum
 
 
@@ -33,7 +33,6 @@ class ManHourModel(BaseModel):
     work_date = Column(DateTime, nullable=False, comment='日期')
     man_hour = Column(Float, comment='工时数')
     content = Column(String(50), comment='工时内容')
-
 
     task_id = Column(Integer, ForeignKey("task.id"), comment='任务id')
     task = db.relationship("TaskModel", backref=db.backref("man_hours", cascade="all"))
@@ -87,6 +86,57 @@ class TaskModel(BaseModel):
     def __repr__(self):
         return "<Task %r>" % self.title
 
+    # 更新父任务的日期
+    def update_parent_date(self):
+        if self.parent:
+            sub_tasks = self.parent.children
+            # 更新父任务的计划开始日期为所有子任务中最早的计划开始日期
+            if any(task.planned_start_date for task in sub_tasks):
+                earliest_planned_start = min([task.planned_start_date for task in sub_tasks if task.planned_start_date])
+                self.parent.planned_start_date = earliest_planned_start
+            else:
+                self.parent.planned_start_date = None
+
+            # 更新父任务的计划结束日期为所有子任务中最晚的计划结束日期
+            if any(task.planned_end_date for task in sub_tasks):
+                latest_planned_end = max([task.planned_end_date for task in sub_tasks if task.planned_end_date])
+                self.parent.planned_end_date = latest_planned_end
+            else:
+                self.parent.planned_end_date = None
+
+            # 更新父任务的实际开始日期为所有子任务中最早的实际开始日期
+            if any(task.actual_start_date for task in sub_tasks):
+                earliest_actual_start = min([task.actual_start_date for task in sub_tasks if task.actual_start_date])
+                self.parent.actual_start_date = earliest_actual_start
+            else:
+                self.parent.actual_start_date = None
+
+            # 更新父任务的实际结束日期为所有子任务中最晚的实际结束日期
+            if any(task.actual_end_date for task in sub_tasks):
+                latest_actual_end = max([task.actual_end_date for task in sub_tasks if task.actual_end_date])
+                self.parent.actual_end_date = latest_actual_end
+            else:
+                self.parent.actual_end_date = None
+
+            db.session.commit()
+
+    # 更新父任务的计划工时
+    def update_parent_planned_work_hours(self):
+        if self.parent:
+            # sub_tasks = self.parent.children
+            total_hours = sum([task.planned_man_hours for task in self.parent.children if task.planned_man_hours])
+            self.parent.planned_man_hours = total_hours
+            db.session.commit()
+
+    # 更新任务及父任务的实际工时
+    def update_actual_work_hours(self):
+        total_hours = sum([wh.man_hour for wh in self.man_hours if wh.man_hour])
+        self.actual_man_hours = total_hours
+        if self.parent:
+            parent_total_hours = sum([task.actual_man_hours for task in self.parent.children if task.actual_man_hours])
+            self.parent.actual_man_hours = parent_total_hours
+        db.session.commit()
+
     def json(self):
         return {
             "id": self.id,
@@ -98,6 +148,7 @@ class TaskModel(BaseModel):
             "status": self.status,
             "planned_man_hours": self.planned_man_hours,
             "actual_man_hours": self.actual_man_hours,
+            "project_id": self.project_id,
             "project": self.project.name if self.project else "",
             "task_type": self.task_type.name if self.task_type else "",
             "creator": self.creator.name if self.creator else "",
@@ -106,3 +157,18 @@ class TaskModel(BaseModel):
             "is_parent": True if self.children else False
         }
 
+    @classmethod
+    def update_parent_status(cls, parent_task):
+        # 检查所有子任务是否都已完成
+        all_children_completed = all(child.status == "已完成" for child in parent_task.children)
+        if all_children_completed:
+            parent_task.status = "已完成"
+            db.session.commit()
+
+
+# @listens_for(TaskModel, 'after_insert')
+# @listens_for(TaskModel, 'after_update')
+# @listens_for(TaskModel, 'after_delete')
+# def update_parent(mapper, connection, target):
+#     print('aaaaa')
+#     target.update_parent_planned_work_hours()

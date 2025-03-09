@@ -1,0 +1,226 @@
+{% extends '_base.html' %}
+{% block title %}节点标题管理{% endblock %}
+{% block body %}
+<!-- 表格 -->
+<div class="layui-fluid">
+    <table class="layui-hide" id="node-title-table"></table>
+</div>
+
+<!--添加/编辑弹窗表单-->
+<form class="layui-form" action="" id="node-title-form" lay-filter="node-title-form" style="margin-top: 20px; display: none">
+    <div style="padding-right: 20px;">
+        <div class="layui-form-item" style="display: none">
+            <label class="layui-form-label">ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="id" value="0" lay-verify="required" autocomplete="off" class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">节点编号</label>
+            <div class="layui-input-block">
+                <input type="text" name="node_id" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请输入节点编号"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">节点名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" lay-verify="required" lay-affix="clear" placeholder="请输入节点名称" class="layui-input"></input>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">上级节点</label>
+            <div class="layui-input-block">
+                <input type="text" name="parent_id" id="parent_id" lay-affix="clear" autocomplete="off" placeholder=""
+                       class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit lay-filter="user-form-submit">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- 顶部工具栏 -->
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加</button>
+    </div>
+</script>
+
+<!-- 右侧工具栏 -->
+<script type="text/html" id="tools">
+    <a class="layui-btn layui-btn-xs" lay-event="tool-edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="tool-del">删除</a>
+</script>
+
+<script>
+    layui.use(function () {
+        var treeTable = layui.treeTable;
+        var $ = layui.$;
+        var form = layui.form;
+        var layer = layui.layer;
+
+
+
+        // 渲染表格
+        treeTable.render({
+            elem: '#node-title-table',
+            id: 'node-title-table',
+            url: '/api/v1/project/node_title',
+            toolbar: '#toolbar',
+            height: 'full-80',
+            cols: [
+                [   // 标题栏
+                    {type: 'radio', fixed: 'left', hide: true},
+                    {field: 'id', title: 'ID', width: 80, sort: true, align: 'center', hide: true},
+                    {field: 'node_id', title: '节点序号', width: 120, sort: true, align: 'center'},
+                    {field: 'name', title: '节点名称', width: 400, align: 'left'},
+                    {title: '操作', fixed: "right", width: 120, toolbar: '#tools'}
+                ]
+            ],
+            tree: {
+                view:{
+                    expandAllDefault: true
+                }
+            },
+        });
+
+
+
+        // 顶部工具栏事件
+        treeTable.on('toolbar(node-title-table)', function (obj){
+            var options = obj.config;  //获取当前表格属性配置项
+            let checkStatus = treeTable.checkStatus(obj.config.id); // 获取选中行状态
+
+            // 根据不同的事件名进行相应的操作
+            switch (obj.event){  // 对应模板元素中的 lay-event 属性值
+                case 'toolbar-add':
+                    $("#node-title-form")[0].reset();  // 将ID表单清空
+
+                    // 如果有选中某行，判断选中行是否时父节点
+                    // 如果是父节点，将父节点的id填写至父节点的文本框中
+                    if(checkStatus.data.length === 1){
+                        if(checkStatus.data[0].isParent){
+                            $('#parent_id').val(checkStatus.data[0].id)
+                        }
+                    }
+
+                    // 显示弹窗
+                    layer.open({
+                        type: 1,
+                        title: "添加节点",
+                        // shade: false,
+                        shadeClose: true,
+                        content: $("#node-title-form"),
+                        area: ["600px", "300px"]
+                    })
+                    break;
+            }
+        })
+
+        // 行点击事件
+        // 点击某行后，默认选中了该行
+        treeTable.on('row(node-title-table)', function (obj){
+            let data = obj.data;  // 获取该行数据
+            // 设置选中状态
+            obj.setRowChecked({
+                // type: 'radio'
+            });
+        })
+
+        // 单元格工具事件（操作列的按钮组）
+        treeTable.on('tool(node-title-table)', function (obj) {
+            if (obj.event === 'tool-edit') {  // 编辑
+                form.val('node-title-form', obj.data);
+
+                layer.open({
+                    type: 1,
+                    title: '修改节点',
+                    area: ["600px", "300px"],
+                    content: $('#node-title-form'),  // 捕获的元素
+                });
+            } else if ( obj.event === 'tool-del') {  // 删除
+                layer.confirm('确认删除么？', function (index) {
+                    $.ajax({
+                        url: `/api/v1/project/node_title/${obj.data.id}`,
+                        type: "DELETE",
+                        contentType: "application/json",
+                        success: function (res){
+                            console.log(res)
+                            if (!res.code){  // 删除成功
+                                layer.msg(res.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function(){
+                                    treeTable.reloadData('node-title-table', {
+                                        scrollPos: 'fixed'
+                                    })
+                                    // 重新加载数据后，将页面滚动到原来的位置
+
+                                })
+                            } else {  // 删除失败（有子任务）
+                                layer.msg(res.msg, {
+                                    icon:2,
+                                    time: 1000
+                                })
+                            }
+                        }
+                    })
+                    layer.close(index);
+                });
+            }
+        });
+
+        // 弹窗表单提交事件
+        form.on('submit(user-form-submit)', function (data) {
+            let field = data.field; // 获取表单字段值
+            // layui中开关的被选中是“on”，需要转换成ture或false
+            // ？. 为可选链运算符，即使不存在该属性的值，也不会报错
+            // field.disabled = field?.disabled ? true: false
+            let method, url = ''
+            if (field.id == 0){
+                field.id = null;
+                method = "POST";
+                url = "/api/v1/project/node_title";
+            }else{
+                method = "PUT";
+                url = `/api/v1/project/node_title/${field.id}`;
+            }
+
+            $.ajax({
+                method: method,
+                url: url,
+                data: JSON.stringify(field),
+                contentType: "application/json",
+                //datatype: "json",
+                success: function (res){
+                    console.log(res)
+                    layer.msg(res.msg, {
+                        icon: 1,
+                        time: 1000
+                    }, function(){
+                        layer.closeAll('page');
+                        treeTable.reloadData('node-title-table', {
+                            scrollPos: 'fixed'
+                        })
+                    })
+                },
+                error: function (res){
+                    console.log("error")
+                    console.log(res)
+                    layer.msg(res.msg,{
+                        icon: 2,
+                        time: 1000
+                    })
+                }
+            })
+            return false; // 阻止默认 form 跳转
+        });
+    });
+
+</script>
+{% endblock %}

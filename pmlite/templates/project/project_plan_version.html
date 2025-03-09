@@ -1,0 +1,364 @@
+{% extends '_base.html' %}
+{% block title %}计划版本管理{% endblock %}
+{% block body %}
+<!-- 表格 -->
+<div class="layui-fluid">
+    <table class="layui-hide" id="plan-version-table"></table>
+</div>
+
+<!--添加/编辑用户弹窗表单-->
+<form class="layui-form" action="" id="user-form" lay-filter="user-form" style="margin-top: 20px; display: none">
+    <div style="padding-right: 20px;">
+        <div class="layui-form-item" style="display: none">
+            <label class="layui-form-label">ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="id" value="0" lay-verify="required" autocomplete="off" class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">员工编号</label>
+            <div class="layui-input-block">
+                <input type="text" name="number" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请输入员工编号"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">姓名</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" lay-verify="required" lay-affix="clear" placeholder="请输入姓名" class="layui-input"></input>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">部门</label>
+            <div class="layui-input-block">
+                <select name="department_id" id="department_id" lay-verify="required" lay-filter="department_select">
+                    <option value="">请选择部门</option>
+                </select>
+
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">手机号</label>
+            <div class="layui-input-block">
+                <input type="text" name="mobile" lay-verify="required|phone" lay-affix="clear" autocomplete="off" placeholder="请输入手机号"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">集团短号</label>
+            <div class="layui-input-block">
+                <input type="text" name="mobile_short" lay-affix="clear" autocomplete="off" placeholder="请输入集团短号"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">邮箱</label>
+            <div class="layui-input-block">
+                <input type="text" name="email" lay-verify="required|email" lay-affix="clear" class="layui-input" placeholder="请输入邮箱地址">
+            </div>
+        </div>
+        <div class="layui-form-item" pane>
+            <label class="layui-form-label">禁用</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="disabled" lay-skin="switch" lay-filter="switchTest" title="是|否">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit lay-filter="user-form-submit">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- 顶部工具栏 -->
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加用户</button>
+    </div>
+</script>
+
+<!-- 右侧工具栏 -->
+<script type="text/html" id="tools">
+    <a class="layui-btn layui-btn-xs" lay-event="tool-release">发布</a>
+    <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="tool-cancel">撤销发布</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="tool-del">删除</a>
+</script>
+
+<script>
+    // 更改 禁用 列的渲染
+    function render_release(d) {
+        if (d.is_released) {
+            return '已发布'
+        } else {
+            return '编辑中'
+        }
+    }
+
+    layui.use(function () {
+        var table = layui.table;
+        var $ = layui.$;
+        var form = layui.form;
+        var layer = layui.layer;
+
+
+        // 渲染表格
+        table.render({
+            elem: '#plan-version-table',
+            id: 'plan-version-table',
+            url: '/api/v1/project/plan_version',
+            // toolbar: '#toolbar',
+            page: true,
+            height: 'full-80',
+            // cols: [
+            //     [   // 标题栏
+            //         {field: 'id', title: 'ID', minWidth: 30, sort: true, align: 'center'},
+            //         {field: 'number', title: '员工编号', minWidth: 80, sort: true, align: 'center'},
+            //         {field: 'name', title: '姓名', minWidth: 80, align: 'center'},
+            //         {field: 'department', title: '部门', minWidth: 120, align: 'center'},
+            //         {field: 'mobile', title: '电话', minWidth: 120, align: 'center'},
+            //         {field: 'mobile_short', title: '集团短号', minWidth: 120, align: 'center'},
+            //         {field: 'email', title: '邮箱', minWidth: 250, align: 'center'},
+            //         {field: 'create_time', title: '添加时间', minWidth: 200, align: 'center'},
+            //         {field: 'disabled', title: '禁用', minWidth: 100, align: 'center', templet: render_disable},
+            //         {title: '操作', fixed: "right", width: 120, toolbar: '#tools'}
+            //     ]
+            // ],
+            cols: [function (){
+                let arr = [   // 标题栏
+                    {field: 'id', title: 'ID', minWidth: 30, sort: true, align: 'center'},
+                    {field: 'project', title: '项目', minWidth: 80, sort: true, align: 'center'},
+                    {field: 'plan_version', title: '版本', minWidth: 80, align: 'center'},
+                    // {field: 'status', title: '状态', minWidth: 120, align: 'center'},
+                    {field: 'is_released', title: '状态', minWidth: 120, align: 'center', templet: render_release},
+                    {field: 'release_date', title: '发布日期', minWidth: 120, align: 'center'},
+                    {field: 'signed_users', title: '签章人员', minWidth: 120, align: 'center'},
+                    // {field: 'email', title: '邮箱', minWidth: 250, align: 'center'},
+                    // {field: 'create_time', title: '添加时间', minWidth: 200, align: 'center'},
+                    // {field: 'disabled', title: '禁用', minWidth: 100, align: 'center', templet: render_disable},
+                    {title: '操作', fixed: "right", toolbar: '#tools'}
+                ];
+                // 初始化筛选状态
+                let local = layui.data('userTable-filter');
+                layui.each(arr, function (index, item){
+                    if(item.field in local){
+                        item.hide = local[item.field];
+                    }
+                });
+                return arr;
+            }()],
+            done: function (){
+                // 记录筛选状态
+                let that = this;
+                that.elem.next().on('mousedown', 'input[lay-filter="LAY_TABLE_TOOL_COLS"]+', function (){
+                    let input = $(this).prev()[0];
+                    layui.data('userTable-filter', {
+                        key: input.name,
+                        value: input.checked
+                    })
+                });
+            }
+
+        });
+
+        // 获取部门列表，并渲染
+        const get_department = function (obj) {
+            $.ajax({
+                url: "/api/v1/department",
+                type: "get",
+                async: false,
+                success: function (res) {
+                    // console.log(res)
+                    let content = '<option value="">请选择部门</option>'
+                    $.each(res.data, function (i, val) {
+                        // content += '<option value="' + val.id + '">' + val.name + '</option>'
+                        //if (val.parent_id != 0) {
+                            if (obj && val.name === obj.data.department) {
+                                content += '<option value="' + val.id + '" selected>' + val.name + '</option>'
+                            } else {
+                                content += '<option value="' + val.id + '">' + val.name + '</option>'
+                            }
+                        //}
+                    })
+                    // console.log(content)
+                    let s = $('#department_id')
+                    s.html(content)
+                    //console.log(s.html())
+                    form.render('select')
+                }
+            })
+        }
+
+        // 顶部工具栏事件
+        table.on('toolbar(user-table)', function (obj){
+            var options = obj.config;  //获取当前表格属性配置项
+
+            // 根据不同的事件名进行相应的操作
+            switch (obj.event){  // 对应模板元素中的 lay-event 属性值
+                case 'toolbar-add':
+                    $("#user-form")[0].reset();  // 将ID表单清空
+                    layer.open({
+                        type: 1,
+                        title: "添加用户",
+                        shade: false,
+                        content: $("#user-form"),
+                        area: ["50%", "80%"]
+                    })
+                    get_department()  // 获取部门，并渲染select
+                    break;
+                    //form.render($("#user-form"))
+            }
+        })
+
+        // 单元格工具事件（操作列的按钮组）
+        table.on('tool(plan-version-table)', function (obj){
+            console.log(obj.data)
+            if (obj.event === 'tool-release') {  // 编辑
+                layer.confirm('确认发布么？', function (){
+                    $.ajax({
+                        method: "PUT",
+                        url: `/api/v1/project/plan_version/${obj.data.id}`,
+                        data: JSON.stringify({
+                            is_released: true
+                        }),
+                        contentType: "application/json",
+                        success: function (res){
+                            layer.msg(res.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function(){
+                                table.reloadData('plan-version-table')
+                            })
+                        },
+                        error: function (res){
+                            layer.msg(res.msg,{
+                                icon: 2,
+                                time: 1000
+                            })
+                        }
+                    })
+                })
+            } else if (obj.event === 'tool-cancel'){
+                layer.confirm('确认撤销发布么？', function (){
+                    $.ajax({
+                        method: "PUT",
+                        url: `/api/v1/project/plan_version/${obj.data.id}`,
+                        data: JSON.stringify({
+                            is_released: false
+                        }),
+                        contentType: "application/json",
+                        success: function (res){
+                            layer.msg(res.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function(){
+                                table.reloadData('plan-version-table')
+                            })
+                        },
+                        error: function (res){
+                            layer.msg(res.msg,{
+                                icon: 2,
+                                time: 1000
+                            })
+                        }
+                    })
+                })
+            } else if ( obj.event === 'tool-del') {  // 删除
+                layer.confirm('确认删除么？', function (index) {
+                    $.ajax({
+                        url: `/api/v1/user/${obj.data.id}`,
+                        type: "DELETE",
+                        contentType: "application/json",
+                        success: function (res){
+                            if (!res.code){
+                                layer.msg(res.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function(){
+                                    table.reloadData('plan-version-table')
+                                })
+                            }
+                        }
+                    })
+                    layer.close(index);
+                });
+            }
+        });
+
+
+        // 删除提交的方法
+        const del_user_api = async (id) => {
+            const options = {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+            }
+            const response = await fetch(`/api/user/${id}`, options)
+            return await response.json()
+        }
+        window.del_user = (obj) => {
+            console.log(obj)
+            del_user_api(obj.data.id).then(function (ret) {
+                // 提交成功之后的回调
+                if (!ret.code) {
+                    layer.msg(ret.msg, {
+                        icon: 1,
+                        time: 1000,
+                    }, function () {
+                        table.reload('user');
+                    });
+                } else {
+                    layer.msg(ret.msg, {
+                        icon: 2,
+                        time: 1000,
+                    });
+                }
+            })
+        }
+
+
+        // 弹窗表单提交事件
+        form.on('submit(user-form-submit)', function (data) {
+            let field = data.field; // 获取表单字段值
+            // layui中开关的被选中是“on”，需要转换成ture或false
+            // ？. 为可选链运算符，即使不存在该属性的值，也不会报错
+            field.disabled = field?.disabled ? true: false
+            if (field.id == 0){
+                field.id = null;
+                method = "POST";
+                url = "/api/v1/user";
+            }else{
+                method = "PUT";
+                url = `/api/v1/user/${field.id}`;
+            }
+
+            $.ajax({
+                method: method,
+                url: url,
+                data: JSON.stringify(field),
+                contentType: "application/json",
+                //datatype: "json",
+                success: function (res){
+                    layer.msg(res.msg, {
+                        icon: 1,
+                        time: 1000
+                    }, function(){
+                        layer.closeAll('page');
+                        table.reloadData('user-table')
+                    })
+                },
+                error: function (res){
+                    console.log("error")
+                    console.log(res)
+                    layer.msg(res.msg,{
+                        icon: 2,
+                        time: 1000
+                    })
+                }
+            })
+            return false; // 阻止默认 form 跳转
+        });
+    });
+
+</script>
+{% endblock %}
