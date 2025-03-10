@@ -338,7 +338,7 @@
             // url: '/api/v1/task',
             toolbar: '#toolbar',
             page: true,
-            limit: 10,
+            limit: 30,
             height: 'full-140',
             cols: [
                 [   // 标题栏
@@ -734,9 +734,10 @@
                 get_projects()  // 获取未完成项目，并渲染select
                 // get_users()  // 获取用户，并渲染select
                 pmlite.getUsers('owner_id', undefined, 'owner', 1)
+                pmlite.getUsers('owner_id', undefined, 'owner', 0, obj.data.owner_id)
                 $("#task-form")[0].reset();  // 将ID表单清空
                 $("#parent_id").val(obj.data.id)
-                $("#title").val(obj.data.title + "_")
+                // $("#title").val(obj.data.title + "_")
                 layer.open({
                     type: 1,
                     title: "添加子任务",

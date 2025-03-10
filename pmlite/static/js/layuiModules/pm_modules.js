@@ -43,8 +43,9 @@ layui.define(['jquery', 'form'], function (exports){
          * @params elementId select元素的id
          * @params obj,userType 如果提供obj对象，并且obj.data[userType]值与用户对应的user.name相同时默认选中
          * @params selfFlag 布尔值，未true时，默认选中当前用户
+         * @params userId 如果传递了userID，默认选中该用户
          * */
-        getUsers: function (elementId, obj, userType, selfFlag, callback){
+        getUsers: function (elementId, obj, userType, selfFlag, userId, callback){
             let current_user_id  // 定义变量：当前登录用户id
             if (selfFlag) {  // 如果传递该参数，服务器查询获取当前登录用户id
                 $.ajax({
@@ -72,6 +73,8 @@ layui.define(['jquery', 'form'], function (exports){
                                 $("#" + elementId).append('<option value="' + val.id + '" selected>' + val.name + '</option>')
                             } else if (current_user_id && current_user_id == val.id) {
 
+                                $("#" + elementId).append('<option value="' + val.id + '" selected>' + val.name + '</option>')
+                            } else if (userId && userId == val.id){
                                 $("#" + elementId).append('<option value="' + val.id + '" selected>' + val.name + '</option>')
                             } else {
                                 $("#" + elementId).append('<option value="' + val.id + '">' + val.name + '</option>')

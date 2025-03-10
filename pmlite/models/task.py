@@ -152,6 +152,7 @@ class TaskModel(BaseModel):
             "project": self.project.name if self.project else "",
             "task_type": self.task_type.name if self.task_type else "",
             "creator": self.creator.name if self.creator else "",
+            "owner_id": self.owner_id,
             "owner": self.owner.name if self.owner else "",
             "parent_id": self.parent_id,
             "is_parent": True if self.children else False

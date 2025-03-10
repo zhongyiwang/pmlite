@@ -411,6 +411,7 @@ def task_add():
     try:
         print('bbbb')
         task.save()
+        task.update_parent_date()  # 更新父任务的日期
         task.update_parent_planned_work_hours()  # 更新父任务的计划工时
         # update_task_planned_man_hours(task)
     except Exception as e:
@@ -461,6 +462,7 @@ def task_delete(tid):
             db.session.delete(task)
             # update_task_planned_man_hours(task)
             # db.session.commit()
+            task.update_parent_date()  # 更新父任务的日期
             task.update_parent_planned_work_hours()  # 更新父任务的计划工时
             task.update_actual_work_hours()  # 更新任务及父任务的实际工时
         except Exception as e:
