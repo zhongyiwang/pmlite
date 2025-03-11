@@ -156,7 +156,7 @@
             </div>
         </div>
         <div class="layui-form-item">
-            <label class="layui-form-label">自动化设计</label>
+            <label class="layui-form-label">自动化设计（电气）</label>
             <div class="layui-input-block">
                 <select name="ae_designer_id" id="ae_designer_id" lay-filter="ae_designer_id_select" class="user-select" lay-search="">
                     <option value="">请选择设计员</option>
@@ -351,10 +351,10 @@
             cols: [
                     [
                         // 一级表头
-                        {field: 'id', title: 'ID', width:50, align: 'center', rowspan: 2, hide:true},
+                        {field: 'id', title: 'ID', width:50, align: 'center', rowspan: 2, hide:true, fixed: "left"},
                         // {field: 'name', title: '项目名称', width:160, align: 'center', rowspan: 2},
                         // {field: 'customer', title: '客户名称', width:200, align: 'center', edit: 'text', rowspan: 2},
-                        {field: 'customer', title: '客户名称', minWidth:300, align: 'center', rowspan: 2},
+                        {field: 'customer', title: '客户名称', minWidth:300, align: 'center', rowspan: 2, fixed: "left"},
                         {field: 'contract', title: '合同编号', minWidth:160, align: 'center', sort:true, rowspan: 2},
                         {field: 'project_number', title: '项目编号', minWidth:90, align: 'center', edit: 'text', rowspan: 2},
                         {field: 'machine_type', title: '机型', minWidth:120, align: 'center', rowspan: 2},

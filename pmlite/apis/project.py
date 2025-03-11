@@ -1,6 +1,7 @@
 import datetime
 
 from flask import Blueprint, request
+from sqlalchemy import desc
 from flask_sqlalchemy.pagination import Pagination
 from flask_jwt_extended import current_user, jwt_required
 
@@ -21,7 +22,7 @@ def project_view():
     show_all = request.args.get('showAll')
     customer = request.args.get('customer')
 
-    q = db.select(ProjectModel)
+    q = db.select(ProjectModel).order_by(desc(ProjectModel.id))
 
     if not show_all:  # 默认获取未完成项目
         q = q.filter(ProjectModel.is_close.isnot(True))
@@ -73,7 +74,7 @@ def project_automation_view():
     show_all = request.args.get('showAll')
     customer = request.args.get('customer')
 
-    q = db.select(ProjectModel).filter(ProjectModel.is_automation.is_(True))
+    q = db.select(ProjectModel).filter(ProjectModel.is_automation.is_(True)).order_by(desc(ProjectModel.id))
 
     if not show_all:  # 默认获取未完成项目
         q = q.filter(ProjectModel.is_close.isnot(True))

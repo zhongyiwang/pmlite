@@ -24,7 +24,7 @@ def login_in():
 
     # 生成访问令牌
     access_token = create_access_token(user)
-    # 生成刷新令牌
+    # 生成刷新令牌（用于`access_token`过期后获取新的`access_token`，而无需用户重新登录）
     refresh_token = create_refresh_token(user)
 
     response = make_response(

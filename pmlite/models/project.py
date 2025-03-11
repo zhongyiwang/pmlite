@@ -156,6 +156,16 @@ class ProjectModel(BaseModel):
         pass
 
 
+# 项目状态模型
+class ProjectStatusModel(BaseModel):
+    __tablename__ = 'project_status'
+    id = Column(Integer, primary_key=True, autoincrement=True, comment="自增id")
+    m_drawing_end = Column(Boolean, default=False, comment='机械出图完成')
+    e_drawing_end = Column(Boolean, default=False, comment='电气出图完成')
+    am_drawing_end = Column(Boolean, default=False, comment='自动化机械出图完成')
+    ae_drawing_end = Column(Boolean, default=False, comment='自动化电气出图完成')
+
+
 # 项目计划的节点
 class ProjectNodeModel(BaseModel):
     __tablename__ = 'project_node'
@@ -191,12 +201,12 @@ class ProjectNodeModel(BaseModel):
     def calculate_period(self):
         # 计算计划周期
         if self.planned_end_date and self.planned_start_date:
-            self.planned_period = (self.planned_end_date - self.planned_start_date).days
+            self.planned_period = (self.planned_end_date - self.planned_start_date).days + 1
         else:
             self.planned_period = None
         # 计算实际周期
         if self.actual_end_date and self.actual_start_date:
-            self.actual_period = (self.actual_end_date - self.actual_start_date).days
+            self.actual_period = (self.actual_end_date - self.actual_start_date).days + 1
         else:
             self.actual_period = None
 

@@ -6,6 +6,7 @@ jwt = JWTManager()
 
 
 # 从用户对象中提取唯一标识符，被用来生产JWT中的identity字段
+# 当调用`create_access_token`并传入用户对象时，`flask-jwt-extended`会自动调用这个函数还获取用户标识，并储存在JWT中。
 @jwt.user_identity_loader
 def user_identity_lookup(user):
     return user.id

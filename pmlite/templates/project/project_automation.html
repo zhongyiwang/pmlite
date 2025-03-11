@@ -544,15 +544,15 @@
             cols: [
                     [
                         // 一级表头
-                        {field: 'id', title: 'ID', width:50, align: 'center', hide:true, rowspan: 2},
-                        {field: 'customer', title: '客户名称', width:250, align: 'center', rowspan: 2},
+                        {field: 'id', title: 'ID', width:50, align: 'center', hide:true, rowspan: 2, fixed: "left"},
+                        {field: 'customer', title: '客户名称', width:250, align: 'center', rowspan: 2, fixed: "left"},
                         {field: 'contract', title: '合同编号', width:200, align: 'center', sort:true, rowspan: 2, hide: true},
                         {field: 'project_number', title: '项目编号', width:100, align: 'center', edit: 'text', rowspan: 2, hide: true},
                         {field: 'bom_number', title: 'BOM编号', width:100, align: 'center', edit: 'text', rowspan: 2},
                         {field: 'machine_type', title: '机型', width:150, align: 'center', rowspan: 2, hide:true},
                         {title: '负责人', align: 'center', colspan: 3},
                         {title: '项目会审', align: 'center', colspan: 3},
-                        {field: 'arrival_date', title: '部品到货', width:120, align: 'center', rowspan: 2},
+                        {field: 'arrival_date', title: '部品到货', minWidth:110, align: 'center', rowspan: 2},
                         {title: '出图日期', align: 'center', colspan: 4},
 
                         // {field: 'arrival_date', title: '要求到货日期', width:160, align: 'center', rowspan: 2},
@@ -562,20 +562,20 @@
                         //     let color = 'green';
                         //     return '<div style="width: 10px;height: 10px;border-radius: 50%;background-color:' + color + ';"></div>';
                         //     }},
-                        {title: '操作', fixed: "right",width:300, toolbar: '#tools', rowspan: 2}
+                        {title: '操作', align: 'center', fixed: "right",width:100, toolbar: '#tools', rowspan: 2}
                         // {field: 'status', title: '完成状态', width:160, align: 'center', edit: true, event: 'status-dropdown', rowspan: 2},
                         // {field: 'progress', title: '完成进度', width:350, align: 'center',templet: render_progress, rowspan: 2},
                     ], [
-                        {field: 'manager', title: '项目经理', width:100, align: 'center'},
-                        {field: 'am_designer', title: '自动化', width:100, align: 'center'},
-                        {field: 'ae_designer', title: '自动化电气', width:100, align: 'center'},
-                        {field: 'internal_check_date', title: '内审', width:120, align: 'center'},
-                        {field: 'external_check_date1', title: '外审1', width:120, align: 'center'},
-                        {field: 'external_check_date2', title: '外审2', width:120, align: 'center'},
-                        {field: 'am_drawing_date1', title: '长线外购', width:120, align: 'center'},
-                        {field: 'am_drawing_date2', title: '长线设计', width:120, align: 'center'},
-                        {field: 'am_drawing_date3', title: '全部出图', width:120, align: 'center'},
-                        {field: 'ae_drawing_date', title: '电气出图', width:120, align: 'center'},
+                        {field: 'manager', title: '项目经理', minWidth:100, align: 'center'},
+                        {field: 'am_designer', title: '自动化', minWidth:100, align: 'center'},
+                        {field: 'ae_designer', title: '自动化电气', minWidth:100, align: 'center'},
+                        {field: 'internal_check_date', title: '内审', minWidth:110, align: 'center'},
+                        {field: 'external_check_date1', title: '外审1', minWidth:110, align: 'center'},
+                        {field: 'external_check_date2', title: '外审2', minWidth:110, align: 'center'},
+                        {field: 'am_drawing_date1', title: '长线外购', minWidth:110, align: 'center'},
+                        {field: 'am_drawing_date2', title: '长线设计', minWidth:110, align: 'center'},
+                        {field: 'am_drawing_date3', title: '全部出图', minWidth:110, align: 'center'},
+                        {field: 'ae_drawing_date', title: '电气出图', minWidth:110, align: 'center'},
                     ]
                 ],
             done: function (res, curr, count){
