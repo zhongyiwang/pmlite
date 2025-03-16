@@ -228,14 +228,16 @@
 </form>
 
 
-<!-- 任务表顶部工具栏 -->
+<!-- 顶部工具栏（任务表） -->
 <script type="text/html" id="toolbar">
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加任务</button>
-        <button class="layui-btn layui-btn-sm layui-btn-primary" id = "treeMode">
-            <span>显示模式</span>
-            <i class="layui-icon layui-icon-down layui-font-12"></i>
-        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="toolbar-expand">全部展开</button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="toolbar-unExpand">全部折叠</button>
+<!--?        <button class="layui-btn layui-btn-sm layui-btn-primary" id = "treeMode">-->
+<!--?            <span>显示模式</span>-->
+<!--?            <i class="layui-icon layui-icon-down layui-font-12"></i>-->
+<!--?        </button>-->
 <!--?        <button class="layui-btn layui-btn-sm layui-btn-primary" id = "taskStatus">-->
 <!--?            <span>任务状态</span>-->
 <!--?            <i class="layui-icon layui-icon-down layui-font-12"></i>-->
@@ -259,11 +261,15 @@
 </script>
 
 
-<!-- 任务表右侧工具栏 -->
+<!-- 右侧工具栏(任务表) -->
 <script type="text/html" id="tools">
+    {% raw %}
+    {{# if (!d.isParent) { }}
     <a class="layui-btn layui-btn-xs" lay-event="task-edit">编辑</a>
     <a class="layui-btn layui-btn-xs" lay-event="show-man-hour-page">工时</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="task-del">删除</a>
+    {{# } }}
+    {% endraw %}
 </script>
 
 <!-- 任务表右侧工具栏 -->
@@ -644,6 +650,12 @@
                     pmlite.getUsers('owner_id', undefined, 'owner', true)
                     break;
                     //form.render($("#user-form"))
+                case 'toolbar-expand':
+                    treeTable.expandAll('task-table', true)
+                    break;
+                case 'toolbar-unExpand':
+                    treeTable.expandAll('task-table', false)
+                    break;
             }
         })
 
