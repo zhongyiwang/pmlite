@@ -1,0 +1,11 @@
+id,name,desc
+1,project_view,查看项目
+2,project_create,创建项目
+3,project_update,修改项目
+4,project_delete,删除项目
+5,project_plan_plan_edit,编辑项目计划
+6,project_plan_actual_edit,编辑项目实际
+7,task_view,查看任务
+8,task_create,创建任务
+9,task_update,修改任务
+10,task_delete,删除任务

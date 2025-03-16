@@ -1,7 +1,7 @@
 import datetime
 
 from flask import Blueprint, request
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 from flask_sqlalchemy.pagination import Pagination
 from flask_jwt_extended import current_user, jwt_required
 
@@ -14,6 +14,7 @@ project_api = Blueprint("project", __name__, url_prefix="/project")
 
 # 获取项目列表，以分页的形式显示
 @project_api.route('/')
+@jwt_required()
 def project_view():
     # 分页查询字符串
     page = request.args.get('page', type=int, default=1)
@@ -21,6 +22,7 @@ def project_view():
     # 自定义查询字符串
     show_all = request.args.get('showAll')
     customer = request.args.get('customer')
+    mine = request.args.get('mine')
 
     q = db.select(ProjectModel).order_by(desc(ProjectModel.id))
 
@@ -30,6 +32,13 @@ def project_view():
     if customer:  # 外部查询，模糊查询客户字段
         page = 1  # 避免在选择分页后查询报警，查询默认显示第1页数据
         q = q.filter(ProjectModel.customer.like('%' + customer + '%'))
+
+    if mine:
+        q = q.filter(or_(ProjectModel.manager_id == current_user.id,
+                        ProjectModel.m_designer_id == current_user.id,
+                        ProjectModel.e_designer_id == current_user.id,
+                        ProjectModel.am_designer_id == current_user.id,
+                        ProjectModel.ae_designer_id == current_user.id,))
 
     pages: Pagination = db.paginate(q, page=page, per_page=per_page)
 

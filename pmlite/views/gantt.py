@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request
 from flask_jwt_extended import jwt_required
-from pmlite.decorators import permission_required, admin_required
-from pmlite.models import Permission
+# from pmlite.decorators import permission_required, admin_required
+# from pmlite.models import Permission
 
 gantt_bp = Blueprint('gantt', __name__, url_prefix="/gantt")
 

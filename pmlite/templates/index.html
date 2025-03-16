@@ -128,7 +128,7 @@ layui.use(['element', 'layer', 'util'], function(){
             let menu_url = $(this).attr('menu_url');
             let menu_name = $(this).attr('menu_name');
             let menu_id = $(this).attr('menu_id');
-            let content = '<iframe style="position: absolute; width:100%; height:100%; border: none" src="' + menu_url +  '"></iframe>'
+            let content = '<iframe style="position: absolute; width:100%; height:100%; border: none" id="contentFrame" src="' + menu_url +  '"></iframe>'
             // 先判断是否已经有了该tab
             let arrayObj = new Array();  // 先创建1个数组，用户存放所有的menu_id
             $(".layui-tab-title").find("li").each(function(){
@@ -167,6 +167,18 @@ layui.use(['element', 'layer', 'util'], function(){
         let kv = "a[menu_id='" + lay_id + "']"
         nav_tree.find(kv).parent().addClass("layui-this")
         nav_tree.find(kv).parent().parent().parent().addClass("layui-nav-itemed")
+
+        // 让浏览器显示iframe页面标题
+        // 根据显示的tab类，查找到其下的iframe，然后设置浏览器显示标题
+        let activeIframe = document.querySelector('.layui-tab-item.layui-show').querySelector('iframe');
+        activeIframe.addEventListener('load', function (){
+            try {
+                document.title = this.contentWindow.document.title
+            } catch (error) {
+                console.log("无法获取iframe标题吃", error)
+            }
+        })
+
     });
 
     // tab删除事件，删除localStorage中tabs中对应的tab
@@ -205,23 +217,12 @@ layui.use(['element', 'layer', 'util'], function(){
             } else{  // 已登录，显示用户姓名
                 $("#user").text(res.data.name)
 
-                const project = '{{Permission.PROJECT}}'
-                const task = '{{Permission.TASK}}'
-                const quoter = '{{Permission.QUOTER}}'
-                const admin = '{{Permission.ADMIN}}'
-                if ((res.permissions & project) == project) {
-                    $('.project-show').show()
-                }
-                if ((res.permissions & task) == task) {
-                    $('.task-show').show()
-                }
-                if ((res.permissions & quoter) == quoter) {
-                    $('.quoter-show').show()
-                }
-                if ((res.permissions & admin) == admin) {
-                    $('.admin-show').show()
-                    $('.purchase-show').show()
-                }
+                $('.project-show').show()
+                $('.task-show').show()
+                $('.quoter-show').show()
+                $('.admin-show').show()
+                $('.purchase-show').show()
+
 
             }
         },

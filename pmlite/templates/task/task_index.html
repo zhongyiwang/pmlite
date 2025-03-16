@@ -5,71 +5,84 @@
 <div class="layui-fluid">
     <!-- 搜索表单 -->
     <form class="layui-form layui-row layui-col-space16">
-      <div class="layui-col-md2">
-        <div class="layui-input-wrap">
-          <div class="layui-input-prefix">
-            <i class="layui-icon layui-icon-list"></i>
-          </div>
-          <select name="project_id" id="project_id_f" lay-filter="project-select" lay-search="">
-              <option value="">请选择项目名称</option>
-          </select>
-        </div>
-      </div>
+        <div style="float:left">
+            <div class="layui-row layui-col-space16">
+<!--?                <div class="layui-col-md2">-->
+<!--?                    <div class="layui-input-wrap">-->
+<!--?                      <div class="layui-input-prefix">-->
+<!--?                        <i class="layui-icon layui-icon-list"></i>-->
+<!--?                      </div>-->
+<!--?                      <select name="project_id" id="project_id_f" lay-filter="project-select" lay-search="">-->
+<!--?                          <option value="">请选择项目名称</option>-->
+<!--?                      </select>-->
+<!--?                    </div>-->
+<!--?                </div>-->
 
-      <div class="layui-col-md2">
-        <div class="layui-input-wrap">
-          <select name="department_id">
-              <option value="">部门</option>
-              <option value=3>产品设计室</option>
-              <option value=4>营业技术室</option>
-              <option value=5>自动化设计室</option>
-          </select>
-        </div>
-      </div>
+                <div class="layui-col-md2">
+                    <div class="layui-input-wrap">
+                      <select name="department_id">
+                          <option value="">部门</option>
+                          <option value=3>产品设计室</option>
+                          <option value=4>营业技术室</option>
+                          <option value=5>自动化设计室</option>
+                      </select>
+                    </div>
+                </div>
 
-      <div class="layui-col-md2">
-        <div class="layui-input-wrap">
-          <div class="layui-input-prefix">
-            <i class="layui-icon layui-icon-username"></i>
-          </div>
-          <select name="user_id" id="user_id_f" lay-filter="user-select" lay-search="">
-              <option value="">请选择负责人</option>
-          </select>
-        </div>
-      </div>
-      <div class="layui-col-md1">
-        <div class="layui-input-wrap">
-          <div class="layui-input-prefix">
-            <i class="layui-icon layui-icon-username"></i>
-          </div>
-          <select name="status">
-              <option value="">任务状态</option>
-              <option value="">全部</option>
-              <option value="completed">已完成</option>
-              <option value="uncompleted">未完成</option>
-          </select>
-        </div>
-      </div>
-      <div class="layui-col-md1">
-        <div class="layui-input-wrap">
-            <div class="layui-input-prefix">
-                <i class="layui-icon layui-icon-date"></i>
+                <div class="layui-col-md2">
+                    <div class="layui-input-wrap">
+                      <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-username"></i>
+                      </div>
+                      <select name="user_id" id="user_id_f" lay-filter="user-select" lay-search="">
+                          <option value="">请选择负责人</option>
+                      </select>
+                    </div>
+                </div>
+<!--?                <div class="layui-col-md1">-->
+<!--?                    <div class="layui-input-wrap">-->
+<!--?                      <div class="layui-input-prefix">-->
+<!--?                        <i class="layui-icon layui-icon-username"></i>-->
+<!--?                      </div>-->
+<!--?                      <select name="status">-->
+<!--?                          <option value="">任务状态</option>-->
+<!--?                          <option value="">全部</option>-->
+<!--?                          <option value="completed">已完成</option>-->
+<!--?                          <option value="uncompleted">未完成</option>-->
+<!--?                      </select>-->
+<!--?                    </div>-->
+<!--?                </div>-->
+                <div class="layui-col-md2">
+                    <div class="layui-input-wrap">
+                        <div class="layui-input-prefix">
+                            <i class="layui-icon layui-icon-date"></i>
+                        </div>
+                        <input type="text" name="date-start" readonly placeholder="开始日期" lay-affix="clear" class="layui-input date-input">
+                    </div>
+                </div>
+                <div class="layui-col-md2">
+                    <div class="layui-input-wrap">
+                      <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-date"></i>
+                      </div>
+                      <input type="text" name="date-end" readonly placeholder="结束日期" class="layui-input date-input">
+                    </div>
+                </div>
+                <div class="layui-btn-container layui-col-md2">
+                    <button class="layui-btn" lay-submit lay-filter="table-search">查询</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">清空</button>
+                </div>
             </div>
-            <input type="text" name="date-start" readonly placeholder="开始日期" lay-affix="clear" class="layui-input date-input">
         </div>
-      </div>
-      <div class="layui-col-md1">
-        <div class="layui-input-wrap">
-          <div class="layui-input-prefix">
-            <i class="layui-icon layui-icon-date"></i>
-          </div>
-          <input type="text" name="date-end" readonly placeholder="结束日期" class="layui-input date-input">
+        <div style="float: right">
+            <div>
+                <label class="layui-form-label">显示已完成</label>
+                <div class="layui-input-block">
+                    <input type="checkbox" name="status2" id="status-switch" lay-skin="switch" lay-filter="statusSwitch">
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="layui-btn-container layui-col-md2">
-        <button class="layui-btn" lay-submit lay-filter="table-search">查询</button>
-        <button type="reset" class="layui-btn layui-btn-primary">清空</button>
-      </div>
+
     </form>
     <table class="layui-hide" id="task-table" lay-filter="task-table"></table>
 </div>
@@ -321,6 +334,13 @@
            url += '?query=' + '{{ query }}'
         }
 
+        let taskShowAll = layui.data('task').taskShowAll
+        if (taskShowAll){
+            $('#status-switch').prop("checked", true)  // 使显示已完成switch选中
+        } else {
+            url += '&status=uncompleted'
+        }
+
         url += '&c_user=' + '{{c_user|default("")}}' + '&status=' + '{{ status }}'
         console.log("page_url:", url)
 
@@ -340,11 +360,11 @@
             page: true,
             limit: 30,
             height: 'full-140',
-            cols: [
-                [   // 标题栏
-                    {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left'},
+            cols: [function (){
+                let arr = [
+                    {field: 'id', title: 'ID', width: 60, align: 'center', fixed: 'left'},
                     {field: 'title', title: '任务标题', minWidth: 300, fixed: 'left'},
-                    {field: 'task_type', title: '任务类型', width:100, hide: hideCol},
+                    {field: 'task_type', title: '任务类型', width: 100, hide: hideCol},
                     {field: 'project', title: '所属项目', align: 'center', width: 150, sort: true, hide: hideCol},
                     {field: 'creator', title: '创建者', align: 'center', width: 80},
                     {field: 'owner', title: '负责人', align: 'center', width: 100, sort: true},
@@ -356,8 +376,35 @@
                     {field: 'actual_man_hours', title: '实际工时', align: 'center', width: 100},
                     {field: 'status', title: '完成状态', align: 'center', width: 120, sort: true},
                     {title: '操作', fixed: "right", width: 180, toolbar: '#tools'}
-                ]
-            ],
+
+                ];
+                let local = layui.data('taskTableCols');
+                layui.each(arr, function (index, item){
+                    if(item.field in local){
+                        item.hide = local[item.field]
+                    }
+                });
+                return arr;
+            }()],
+
+            // cols: [
+            //     [   // 标题栏
+            //         {field: 'id', title: 'ID', width:60 ,align: 'center', fixed: 'left'},
+            //         {field: 'title', title: '任务标题', minWidth: 300, fixed: 'left'},
+            //         {field: 'task_type', title: '任务类型', width:100, hide: hideCol},
+            //         {field: 'project', title: '所属项目', align: 'center', width: 150, sort: true, hide: hideCol},
+            //         {field: 'creator', title: '创建者', align: 'center', width: 80},
+            //         {field: 'owner', title: '负责人', align: 'center', width: 100, sort: true},
+            //         {field: 'planned_start_date', title: '计划开始日期', align: 'center', width: 120},
+            //         {field: 'planned_end_date', title: '计划完成日期', align: 'center', width: 120},
+            //         {field: 'actual_start_date', title: '实际开始日期', Width: 120, align: 'center', width: 120},
+            //         {field: 'actual_end_date', title: '实际完成日期', Width: 120, align: 'center', width: 120},
+            //         {field: 'planned_man_hours', title: '计划工时', align: 'center', width: 100},
+            //         {field: 'actual_man_hours', title: '实际工时', align: 'center', width: 100},
+            //         {field: 'status', title: '完成状态', align: 'center', width: 120, sort: true},
+            //         {title: '操作', fixed: "right", width: 180, toolbar: '#tools'}
+            //     ]
+            // ],
             tree: {
                 view: {
                     'expandAllDefault': true,  // 默认展开全部节点，默认为false
@@ -369,6 +416,15 @@
             },
             done: function (){
                 let id = this.id;
+                let that = this;
+                // 记录显示列筛选状态
+                that.elem.next().on('mousedown', 'input[lay-filter="LAY_TABLE_TOOL_COLS"]+', function () {
+                    let input = $(this).prev()[0];
+                    layui.data('taskTableCols', {
+                        key: input.name,
+                        value: input.checked
+                    })
+                });
                 // 显示模式
                 dropdown.render({
                     elem: '#treeMode',
@@ -755,6 +811,30 @@
 
         });
 
+        // 显示已完成 的switch切换事件
+        form.on('switch(statusSwitch)', function (data) {
+            layui.data('task', {
+                key: 'taskShowAll',
+                value: this.checked
+            })
+            if (this.checked) {  // 选中，即显示已完成
+                url = url.replace('status=uncompleted', '')
+            } else {
+                if (url.endsWith('&')) {
+                    url += 'status=uncompleted'
+                } else {
+                    url += '&status=uncompleted'
+                }
+
+            }
+            console.log('请求url:', url)
+            table.reload('task-table', {
+                url: url
+            })
+        })
+
+
+
 
         // 任务弹窗表单提交事件
         form.on('submit(task-form-submit)', function (data) {
@@ -855,8 +935,7 @@
             console.log(field)
             url = '/api/v1/task/treetable'
             // url = '/api/v1/task/man-hour'
-            url += '?start=' + field['date-start'] + '&end=' + field['date-end'] + '&user_id=' + field['user_id'] + '&project_id=' + field['project_id']
-                    + '&status=' + field['status']
+            url += '?start=' + field['date-start'] + '&end=' + field['date-end'] + '&user_id=' + field['user_id']
                     + '&department_id=' + field['department_id']
             console.log(url)
             // console.log(url)

@@ -5,9 +5,9 @@ from flask_sqlalchemy.pagination import Pagination
 from sqlalchemy.event import listen
 from flask_jwt_extended import current_user, jwt_required
 
-from ..models import TaskModel, TaskTypeModel, ManHourModel, Permission, DepartmentModel, UserModel
+from ..models import TaskModel, TaskTypeModel, ManHourModel, DepartmentModel, UserModel
 from ..extensions import db
-from pmlite.decorators import permission_required, admin_required
+from pmlite.decorators import permission_required
 
 task_api = Blueprint("task", __name__, url_prefix="/task")
 
@@ -211,7 +211,7 @@ def manHour_view():
 # 获取任务列表，以树状表格显示
 @task_api.get("/treetable")
 @jwt_required()
-@permission_required(Permission.TASK)
+# @permission_required(Permission.TASK)
 def task_list_as_treetable():
     print('api_url', request.url, request.args)
     page = request.args.get('page', type=int, default=1)

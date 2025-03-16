@@ -4,7 +4,7 @@ from configs import config
 from .extensions import register_extensions
 from pmlite.apis import register_apis
 from pmlite.views import register_views
-from .models import Permission
+# from .models import Permission
 
 # from pmlite.models import UserModel
 
@@ -30,9 +30,9 @@ def create_app(config_name="prod"):
         return render_template("error/500.html")
 
     # 上下文处理函数
-    @app.context_processor
-    def inject_permissions():
-        return dict(Permission=Permission)
+    # @app.context_processor
+    # def inject_permissions():
+    #     return dict(Permission=Permission)
 
     return app
 

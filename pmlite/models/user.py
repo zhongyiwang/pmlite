@@ -6,7 +6,7 @@ from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean
 # from .project import project_user_table
 
 from ._base import BaseModel
-from .role import RoleModel, Permission
+# from .role import RoleModel, PermissionModel
 from .task import user_task
 
 
@@ -66,8 +66,12 @@ class UserModel(BaseModel):
     def check_password(self, raw_password):
         return check_password_hash(self.password, raw_password)
 
-    def can(self, perm):
-        return self.role is not None and self.role.has_permission(perm)
+    # def can(self, permission_name):
+    #     return self.role is not None and self.role.has_permission(permission_name)
 
-    def is_admin(self):
-        return self.can(Permission.ADMIN)
+    # def is_admin(self):
+    #     return self.can(Permission.ADMIN)
+
+    # def has_permission(self, permission_name):
+    #     permission = PermissionModel.query.filter_by(name=permission_name).first()
+    #     return permission in self.role.permissions

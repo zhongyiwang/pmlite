@@ -179,7 +179,8 @@
 
         <div class="layui-form-item">
             <div class="layui-input-block">
-                <button type="submit" class="layui-btn" lay-submit lay-filter="project-form-submit">立即提交</button>
+                <button type="submit" class="layui-btn" lay-submit lay-filter="project-form-submit">提交审核</button>
+                <button type="submit" class="layui-btn layui-btn-primary layui-border-green" lay-submit lay-filter="project-form-save">编辑暂存</button>
                 <button type="reset" class="layui-btn layui-btn-primary">重置</button>
             </div>
         </div>
@@ -214,36 +215,61 @@
 </div>
 
 <!-- 项目计划/实际修改弹窗 -->
-<div id="project-plan-edit-container" style="display: none">
+<div id="project-plan-edit-container" style="display: none; padding: 20px;">
     <table class="layui-hide" id="project-plan-edit-table"></table>
 </div>
 
 
-<!-- 顶部工具栏，项目表 -->
+<!-- 顶部工具栏（项目表） -->
 <script type="text/html" id="toolbar">
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加项目</button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="toolbar-all">所有项目</button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="toolbar-mine">我的项目</button>
     </div>
 </script>
 
 <!-- 顶部工具栏，项目计划表 -->
 <script type="text/html" id="plan-table-toolbar">
     <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加项目</button>
+        <button id="plan-add-btn" class="layui-btn layui-btn-sm layui-btn-primary" lay-event="toolbar-add">添加计划</button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="toolbar-add">提交审核</button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" id="planVersion">
+            {% raw %}
+                <span>计划版本：{{= d.plan_version}}</span>
+            {% endraw %}
+                <i class="layui-icon layui-icon-down layui-font-12"></i>
+        </button>
+
     </div>
 </script>
 
-<!-- 右侧工具栏 -->
+<!-- 右侧工具栏（项目表） -->
 <script type="text/html" id="tools" >
-    <button class="layui-btn layui-btn-xs" lay-event="tool-edit">编辑</button>
-    {% raw %}
-    {{# if (!d.is_released) { }}
-<!--?    <button class="layui-btn layui-btn-normal layui-btn-xs" lay-event="tool-edit-plan">编制计划</button>-->
-    {{# }else{ }}
+<!--?    {% raw %}-->
+    <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="tool-edit">编辑</button>
+    <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-red" lay-event="tool-del">删除</button>
+<!--?    {{# if (!d.is_released) { }}-->
+    <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="tool-edit-plan">项目计划</button>
+<!--?    {{# }else{ }}-->
 <!--?    <button class="layui-btn layui-btn-xs layui-btn-warm" lay-event="tool-edit-plan">填写实际</button>-->
-    {{# } }}
-    {% endraw %}
-    <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="tool-del">删除</button>
+<!--?    {{# } }}-->
+<!--?    {% endraw %}-->
+
+</script>
+
+<!-- 右侧工具栏（项目计划表） -->
+<script type="text/html" id="plan-table-tools" >
+<!--?    {% raw %}-->
+    <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="tool-edit">实际计划</button>
+<!--?    <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-red" lay-event="tool-del">删除</button>-->
+<!--?    {{# if (!d.is_released) { }}-->
+<!--?    <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="tool-edit-plan">项目计划</button>-->
+<!--?    {{# }else{ }}-->
+<!--?    <button class="layui-btn layui-btn-xs layui-btn-warm" lay-event="tool-edit-plan">填写实际</button>-->
+<!--?    {{# } }}-->
+<!--?    {% endraw %}-->
+
 </script>
 
 <!-- 右侧工具栏 只能编辑自己创建的-->
@@ -367,7 +393,7 @@
                         //     let color = 'green';
                         //     return '<div style="width: 10px;height: 10px;border-radius: 50%;background-color:' + color + ';"></div>';
                         //     }},
-                        {title: '操作', fixed: "right", minWidth:120, align:"center", rowspan:2, toolbar: '#tools'}
+                        {title: '操作', fixed: "right", minWidth:200, align:"center", rowspan:2, toolbar: '#tools'}
                         // {field: 'status', title: '完成状态', width:160, align: 'center', edit: true, event: 'status-dropdown', rowspan: 2},
                         // {field: 'progress', title: '完成进度', width:350, align: 'center',templet: render_progress, rowspan: 2},
                     ], [
@@ -545,7 +571,7 @@
                     $("#project-form")[0].reset();  // 将ID表单清空
                     layer.open({
                         type: 1,
-                        title: "添加项目",
+                        title: "项目信息",
                         shade: false,
                         content: $("#project-form"),
                         area: ["50%", "80%"]
@@ -558,6 +584,25 @@
                     pmlite.getUsers('am_designer_id')
                     pmlite.getUsers('ae_designer_id')
                     break;
+                case 'toolbar-all':
+                    // 表格重载
+                    table.reloadData('project-table', {
+                        url: url
+                    })
+
+                case 'toolbar-mine':
+                    // 根据url中是否包含查询字符串？，组合新的查询url
+                    let newUrl = ""
+                    if (url.includes('?')) {
+                        newUrl = url + '&mine=1'
+                    } else {
+                        newUrl = url + '?mine=1'
+                    }
+                    // 表格重载
+                    table.reloadData('project-table', {
+                        url: newUrl
+                    })
+                    break
             }
         })
 
@@ -581,12 +626,13 @@
 
                 layer.open({
                     type: 1,
-                    title: '修改项目',
+                    title: '项目信息',
                     area: ['50%', '80%'],
                     content: $('#project-form'),  // 捕获的元素
                 });
             } else if (obj.event === 'tool-edit-plan'){
                 console.log(obj.data.is_released)
+                // $('#plan-add-btn').addClass('layui-btn-disabled')
                 let planEditable, actualEditable = false
                 if(!obj.data.is_released){
                     planEditable = true
@@ -1063,7 +1109,7 @@
                 id: elemId,
                 url: `/api/v1/project/${project_id}/node?version=${plan_version}`,
                 //url: `/api/v1/project/${project_id}/node?version=1`,
-                // toolbar: '#toolbar',
+                toolbar: '#plan-table-toolbar',
                 // page: true,
                 // limit: 30,
                 height: 'full-200',
@@ -1081,6 +1127,7 @@
                         {title: '实际日期', width:360, align: "center" , colspan: 3},
                         {field: 'remark', title: '备注', width:300, align: 'center', edit: plan_editable, rowspan: 2},
                         {field: 'owner', title: '负责人', width:160, align: 'center', edit: plan_editable, rowspan: 2},
+                        {title: '操作', fixed:'right', minWidth:100, align: 'center', rowspan: 2, toolbar:'#plan-table-tools'},
                         // {field: 'delay_type', title: '拖期类型', width:160, align: 'center', edit: actual_editable, rowspan: 2},
                         // {field: 'delay_reason', title: '拖期说明', width:300, align: 'center', edit: actual_editable, rowspan: 2},
                 ],[
@@ -1237,6 +1284,7 @@
 
                     })
                     element.render()  // table渲染完成后，渲染进度条。否则进度条不显示。
+                    $('#plan-add-btn').addClass('layui-btn-disabled')
                 }
 
             });
