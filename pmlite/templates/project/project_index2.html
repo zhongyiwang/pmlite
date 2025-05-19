@@ -631,7 +631,7 @@
                     content: $('#project-form'),  // 捕获的元素
                 });
             } else if (obj.event === 'tool-edit-plan'){
-                console.log(obj.data.is_released)
+                console.log(obj.data)
                 // $('#plan-add-btn').addClass('layui-btn-disabled')
                 let planEditable, actualEditable = false
                 if(!obj.data.is_released){
@@ -649,7 +649,189 @@
                     content: $('#project-plan-edit-container'),
                     closeBtn: 0
                 })
-                renderPlanTable('project-plan-edit-table', project_id, plan_version, planEditable, actualEditable)
+                // renderPlanTable('project-plan-edit-table', project_id, plan_version, planEditable, actualEditable)
+                // 渲染项目计划表格
+                treeTable.render({
+                    elem: '#project-plan-edit-table',
+                    id: 'project-plan-edit-table',
+                    url: `/api/v1/project/${project_id}/node?version=${plan_version}`,
+                    //url: `/api/v1/project/${project_id}/node?version=1`,
+                    toolbar: '#plan-table-toolbar',
+                    // page: true,
+                    // limit: 30,
+                    height: 'full-200',
+                    css: [ // 设置单元格样式
+                        // 取消默认的溢出隐藏，并设置适当高度
+                        '.layui-table-cell{height: 50px; line-height: 40px;}',
+                        '.layui-table-cell .layui-colorpicker{width: 38px; height: 38px;}',
+                        '.layui-table-cell select{height: 36px; padding: 0 5px;}'
+                    ].join(''),
+                    cols: [[
+                        {field: 'id', title: 'ID', width: 50, align: 'center', rowspan: 2, hide: true},
+                        {field: 'node_id', title: '序号', width: 50, align: 'center', rowspan: 2},
+                        {field: 'name', title: '项目节点', width: 320, rowspan: 2},
+                        {title: '计划日期', width: 360, align: "center", colspan: 3},
+                        {title: '实际日期', width: 360, align: "center", colspan: 3},
+                        {field: 'remark', title: '备注', width: 300, align: 'center', edit: 'text', rowspan: 2},
+                        {field: 'owner', title: '负责人', width: 160, align: 'center', edit: 'text', rowspan: 2},
+                    ], [
+                        {field: 'planned_start_date', title: '计划开始', width: 110, align: 'center', event: 'date'},
+                        {field: 'planned_end_date', title: '计划结束', width: 110, align: 'center', event: 'date'},
+                        {field: 'planned_period', title: '计划周期', width: 110, align: 'center'},
+                        {field: 'actual_start_date', title: '实际开始', width: 110, align: 'center', event: 'date'},
+                        {field: 'actual_end_date', title: '实际结束', width: 110, align: 'center', event: 'date'},
+                        {field: 'actual_period', title: '实际周期', width: 110, align: 'center'},
+                    ]],
+                    tree: {
+                        view: {
+                            'expandAllDefault': true,  // 默认展开全部节点，默认为false
+                        }
+                    },
+                    done: function (res, curr, count) {
+                        let options = this;
+                        // 获取当前行数据 - 自定义方法
+                        table.getRowData = function (tableId, elem) {
+                            let index = $(elem).closest('tr').data('index');
+                            return table.cache[tableId][index] || {};
+                            console.log(table.cache[tableId][index] || {});
+
+                        };
+                        // 展示数据 - 仅用于演示
+                        let showData = function (data) {
+                            return layer.msg('当前行最新数据：<br>' + util.escape(JSON.stringify(data)), {
+                                offset: '16px',
+                                anim: 'slideDown'
+                            });
+                        };
+
+                        // 修改数据库数据（根据id和更新的字段）
+                        let updateData = function (id, update) {
+                            url = '/api/v1/project/node/' + id;
+
+                            $.ajax({
+                                method: "PUT",
+                                url: url,
+                                data: JSON.stringify(update),
+                                contentType: "application/json",
+                                //datatype: "json",
+                                success: function (res) {
+                                    layer.msg(res.msg, {
+                                        icon: 1,
+                                        time: 1000
+                                    }, function () {
+                                        // layer.closeAll('page');
+                                        treeTable.reloadData('project-plan-table', {
+                                            scrollPos: 'fixed',
+                                        })
+                                    })
+                                },
+                                error: function (res) {
+                                    layer.msg(res.msg, {
+                                        icon: 2,
+                                        time: 1000
+                                    })
+                                }
+                            })
+                        };
+
+
+                        // 单元格编辑事件
+                        table.on('edit(project-plan-table)', function (obj) {
+                            console.log(obj)
+                            let value = obj.value // 得到修改后的值
+                            let data = obj.data // 得到所在行所有键值
+                            let field = obj.field; // 得到字段名
+                            let update = {};
+                            update.update = {}
+                            update.field = field
+                            update.value = value
+                            update.update[field] = value;
+
+                            updateData(data.id, update);  // 更新服务器数据
+                            // updateData(data.id, data);  // 更新服务器数据
+                        });
+
+                        // 单元格工具事件，对应表头中的event事件
+                        table.on('tool(project-plan-table)', function (obj) {
+                            // let data = obj.data;  // 得到所在行所有键值
+
+                            // 定义event事件的触发权限
+                            // 如果点击的当前行为父节点，不触发任何操作
+                            // 如何当前计划已经发布，不触发任何操作
+                            if (obj.data.isParent || layui.data('project').plan_is_released) {
+                                return;
+                            }
+                            let id = obj.data.id;  // 得到所在行的id
+                            let field = $(this).data('field');  // 得到字段名
+                            let update = {};
+                            update.update = {}
+                            switch (obj.event) {
+                                case "date":  // 所有日期类型单元格的处理
+                                    laydate.render({
+                                        elem: this.firstChild,  // 固定写法
+                                        show: true,  // 直接显示
+                                        done: function (value, date) {
+                                            update.field = field
+                                            update.value = value
+                                            update.update[field] = value;
+                                            updateData(id, update);  // 更新服务器数据
+                                        }
+                                    })
+                                    break
+                                case "status-dropdown":  // 完成状态的下拉菜单处理
+                                    dropdown.render({
+                                        elem: this.firstChild,  // 固定写法
+                                        show: true,  // 直接显示
+                                        data: [{
+                                            title: '未开始',
+                                            id: 100
+                                        }, {
+                                            title: '进行中',
+                                            id: 101
+                                        }, {
+                                            title: '已完成',
+                                            id: 102
+                                        }],
+                                        click: function (data) {
+                                            update[field] = data.title
+                                            this.elem.text(data.title)  // 直接更改网页的显示
+                                            // updateData(id, update);  // 更新服务器数据
+                                        }
+                                    });
+                                    break;
+                                case "get-user":
+                                    // let offset = $(this).offset()
+                                    // console.log(offset)
+                                    layer.open({
+                                        type: 1, // page 层类型
+                                        area: ['300px', '400px'],
+                                        // offset: ['253px', '1000px'],
+                                        title: false,
+                                        shadeClose: true, // 点击遮罩区域，关闭弹层
+                                        // maxmin: true, // 允许全屏最小化
+                                        // 注: 这里特别对 select 设置了 lay-append-position 属性，以便与 layer 的定位方式保持一致
+                                        content: '<form class="layui-form layui-padding-3" lay-filter="test"><select lay-append-to="body" lay-append-position="fixed"><option value="">请选择</option><option value="AAA1">选项 A1</option><option value="AAA2">选项 A2</option><option value="AAA3">选项 A3</option><option value="AAA4">选项 A4</option><option value="AAA5">选项 A5</option><option value="AAA6">选项 A6</option><option value="AAA7">选项 A7</option><option value="AAA8">选项 A8</option><option value="AAA9">选项 A9</option><option value="AAA10">选项 A10</option><option value="AAA11">选项 A11</option><option value="AAA12">选项 A12</option><option value="BBB">选项 B</option><option value="CCC">选项 C</option></select></form>',
+                                        success: function (layero) {
+                                            // 定向渲染 select
+                                            form.render(layero.find('.layui-form select'));
+                                            // 鼠标滑动 layer 内部滚动条时移除下拉框，以规避错位
+                                            // 若 layer 内部不存在滚动条，以下代码可删除
+                                            var selectElem = layero.find('.layui-form-select');
+                                            layero.find('.layui-layer-content').on('scroll', function () {
+                                                selectElem.removeClass('layui-form-selected');
+                                                layui.$('.layui-select-panel-wrap').detach();
+                                            });
+                                        }
+                                    });
+                            }
+
+                        })
+                        element.render()  // table渲染完成后，渲染进度条。否则进度条不显示。
+                    }
+
+                });
+
+
             } else if ( obj.event === 'tool-del') {  // 删除
                 layer.confirm('确认删除么？', function (index) {
                     $.ajax({

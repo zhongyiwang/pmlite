@@ -94,6 +94,7 @@ class ProjectModel(BaseModel):
             "plan_version": self.plan_version,
             "designer": self.designer.name if self.designer else "",
             "manager": self.manager.name if self.manager else "",
+            "manager_id": self.manager_id,
             "m_designer": self.m_designer.name if self.m_designer else "",
             "e_designer": self.e_designer.name if self.e_designer else "",
             "am_designer": self.am_designer.name if self.am_designer else "",

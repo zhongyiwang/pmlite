@@ -13,3 +13,8 @@ system_bp = Blueprint('system', __name__, url_prefix="/system")
 def supplier():
     return render_template('system/supplier_index.html')
 
+
+# 任务类型视图
+@system_bp.route('/task_type')
+def task_type():
+    return render_template('task/task_type.html')

@@ -686,7 +686,9 @@
                     totalRow: true,
                     content: $('#man-hour-page'),  // 捕获的元素
                     cancel: function (){  // 工时弹窗关闭时，刷新任务表中的实际工时
-                        table.reloadData('task-table')
+                        table.reloadData('task-table', {
+                            scrollPos: 'fixed'
+                        })
                     }
                 });
 
@@ -752,7 +754,9 @@
                                         icon: 1,
                                         time: 1000
                                     }, function(){
-                                        table.reloadData('man-hour-table')
+                                        table.reloadData('man-hour-table',{
+                                            scrollPos: 'fixed'
+                                        })
                                     })
                                 } else {
                                     layer.msg(res.msg, {
@@ -779,7 +783,9 @@
                                     icon: 1,
                                     time: 1000
                                 }, function(){
-                                    table.reloadData('task-table')
+                                    table.reloadData('task-table', {
+                                        scrollPos: 'fixed'
+                                    })
                                 })
                             } else {
                                 layer.msg(res.msg, {
@@ -876,7 +882,9 @@
                         time: 1000
                     }, function(){
                         layer.closeAll('page');
-                        table.reloadData('task-table')
+                        table.reloadData('task-table', {
+                            scrollPos: 'fixed'
+                        })
                     })
                 },
                 error: function (res){
@@ -928,7 +936,9 @@
                     }, function(){
                         //layer.closeAll('page');
                         layer.closeLast('page')
-                        table.reloadData('man-hour-table')
+                        table.reloadData('man-hour-table', {
+                            scrollPos: 'fixed'
+                        })
                     })
                 },
                 error: function (res){

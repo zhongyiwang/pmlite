@@ -8,6 +8,7 @@ from .task import task_api
 from .machine import machine_api
 from .supplier import supplier_api
 from .gantt import gantt_api
+from .task_types import task_types_api
 
 
 def register_apis(app: Flask):
@@ -21,5 +22,6 @@ def register_apis(app: Flask):
     apis.register_blueprint(machine_api)
     apis.register_blueprint(supplier_api)
     apis.register_blueprint(gantt_api)
+    apis.register_blueprint(task_types_api)
 
     app.register_blueprint(apis)
