@@ -179,8 +179,9 @@
 
         <div class="layui-form-item">
             <div class="layui-input-block">
-                <button type="submit" class="layui-btn" lay-submit lay-filter="project-form-submit">提交审核</button>
-                <button type="submit" class="layui-btn layui-btn-primary layui-border-green" lay-submit lay-filter="project-form-save">编辑暂存</button>
+                <button type="submit" class="layui-btn" lay-submit lay-filter="project-form-submit">提交</button>
+<!--?                <button type="submit" class="layui-btn" lay-submit lay-filter="project-form-submit">提交审核</button>-->
+<!--?                <button type="submit" class="layui-btn layui-btn-primary layui-border-green" lay-submit lay-filter="project-form-save">编辑暂存</button>-->
                 <button type="reset" class="layui-btn layui-btn-primary">重置</button>
             </div>
         </div>
@@ -233,13 +234,13 @@
 <script type="text/html" id="plan-table-toolbar">
     <div class="layui-btn-container">
         <button id="plan-add-btn" class="layui-btn layui-btn-sm layui-btn-primary" lay-event="toolbar-add">添加计划</button>
-        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="toolbar-add">提交审核</button>
-        <button class="layui-btn layui-btn-sm layui-btn-primary" id="planVersion">
-            {% raw %}
-                <span>计划版本：{{= d.plan_version}}</span>
-            {% endraw %}
-                <i class="layui-icon layui-icon-down layui-font-12"></i>
-        </button>
+<!--?        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="toolbar-add">提交审核</button>-->
+<!--?        <button class="layui-btn layui-btn-sm layui-btn-primary" id="planVersion">-->
+<!--?            {% raw %}-->
+<!--?                <span>计划版本：{{= d.plan_version}}</span>-->
+<!--?            {% endraw %}-->
+<!--?                <i class="layui-icon layui-icon-down layui-font-12"></i>-->
+<!--?        </button>-->
 
     </div>
 </script>
@@ -249,8 +250,9 @@
 <!--?    {% raw %}-->
     <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="tool-edit">编辑</button>
     <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-red" lay-event="tool-del">删除</button>
-<!--?    {{# if (!d.is_released) { }}-->
     <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="tool-edit-plan">项目计划</button>
+<!--?    {{# if (!d.is_released) { }}-->
+<!--?    <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="tool-edit-plan">项目计划</button>-->
 <!--?    {{# }else{ }}-->
 <!--?    <button class="layui-btn layui-btn-xs layui-btn-warm" lay-event="tool-edit-plan">填写实际</button>-->
 <!--?    {{# } }}-->
@@ -720,7 +722,7 @@
                                         time: 1000
                                     }, function () {
                                         // layer.closeAll('page');
-                                        treeTable.reloadData('project-plan-table', {
+                                        treeTable.reloadData('project-plan-edit-table', {
                                             scrollPos: 'fixed',
                                         })
                                     })
@@ -736,7 +738,7 @@
 
 
                         // 单元格编辑事件
-                        table.on('edit(project-plan-table)', function (obj) {
+                        table.on('edit(project-plan-edit-table)', function (obj) {
                             console.log(obj)
                             let value = obj.value // 得到修改后的值
                             let data = obj.data // 得到所在行所有键值
@@ -752,15 +754,19 @@
                         });
 
                         // 单元格工具事件，对应表头中的event事件
-                        table.on('tool(project-plan-table)', function (obj) {
+                        table.on('tool(project-plan-edit-table)', function (obj) {
                             // let data = obj.data;  // 得到所在行所有键值
 
                             // 定义event事件的触发权限
                             // 如果点击的当前行为父节点，不触发任何操作
-                            // 如何当前计划已经发布，不触发任何操作
-                            if (obj.data.isParent || layui.data('project').plan_is_released) {
-                                return;
+                            if (obj.data.isParent){
+                                return
                             }
+                            // 如何当前计划已经发布，不触发任何操作
+                            // if (obj.data.isParent || layui.data('project').plan_is_released) {
+                            //     return;
+                            // }
+
                             let id = obj.data.id;  // 得到所在行的id
                             let field = $(this).data('field');  // 得到字段名
                             let update = {};
@@ -861,8 +867,8 @@
             }
         });
 
-        // 行双击事件( 单击事件为: row )
-        table.on('rowDouble(project-table)', function (obj){
+        // 行双击事件( 单击事件为: row ) 暂时不用，修改了临时表名
+        table.on('rowDouble(project-table-1)', function (obj){
             console.log(obj.data)
             let project_id = obj.data.id
             let plan_version = obj.data.plan_version
@@ -1102,7 +1108,7 @@
         });
 
 
-        // 弹窗表单提交事件
+        // 添加/编辑表单提交事件
         form.on('submit(project-form-submit)', function (data) {
             let field = data.field; // 获取表单字段值
             let method = ''
