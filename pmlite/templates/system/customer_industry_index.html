@@ -1,0 +1,175 @@
+{% extends '_base.html' %}
+{% block title %}客户行业{% endblock %}
+{% block body %}
+<!-- 供应商表格 -->
+<div class="layui-fluid">
+    <table class="layui-hide" id="customer-industry-table"></table>
+</div>
+
+<!--添加/编辑 弹窗表单-->
+<form class="layui-form" action="" id="customer-industry-form" lay-filter="customer-industry-form" style="margin-top: 20px; display: none">
+    <div style="padding-right: 20px;">
+        <div class="layui-form-item" style="display: none">
+            <label class="layui-form-label">ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="id" value="0" lay-verify="required" autocomplete="off" class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">客户行业</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" lay-verify="required" lay-affix="clear" placeholder="请输入客户行业" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <input type="text" name="remark" lay-affix="clear" placeholder="请输入备注信息" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit lay-filter="customer-industry-form-submit">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- 顶部工具栏 -->
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加客户行业</button>
+    </div>
+</script>
+
+<!-- 右侧工具栏 -->
+<script type="text/html" id="tools">
+    <a class="layui-btn layui-btn-xs" lay-event="tool-edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="tool-del">删除</a>
+</script>
+
+<script>
+    layui.use(function () {
+        var table = layui.table;
+        var $ = layui.$;
+        var form = layui.form;
+        var layer = layui.layer;
+
+
+        // 渲染表格
+        table.render({
+            elem: '#customer-industry-table',
+            id: 'customer-industry-table',
+            url: '/api/v1/customer_industry',
+            toolbar: '#toolbar',
+            height: 'full-80',
+            // page: true,
+            cols: [
+                [   // 标题栏
+                    {field: 'id', title: 'ID', minWidth: 30, sort: true, align: 'center'},
+                    {field: 'name', title: '客户行业', minWidth: 80, align: 'center'},
+                    {field: 'remark', title: '备注', minWidth: 120, align: 'center'},
+                    {title: '操作', fixed: "right", width: 120, toolbar: '#tools'}
+                ]
+            ],
+
+        });
+
+        // 顶部工具栏事件
+        table.on('toolbar(customer-industry-table)', function (obj){
+            var options = obj.config;  //获取当前表格属性配置项
+
+            // 根据不同的事件名进行相应的操作
+            switch (obj.event){  // 对应模板元素中的 lay-event 属性值
+                case 'toolbar-add':
+                    $("#customer-industry-form")[0].reset();  // 将ID表单清空
+                    layer.open({
+                        type: 1,
+                        title: "添加客户行业",
+                        shade: false,
+                        content: $("#customer-industry-form"),
+                        area: ["50%", "80%"]
+                    })
+                    break;
+            }
+        })
+
+        // 单元格工具事件（操作列的按钮组）
+        table.on('tool(customer-industry-table)', function (obj) {
+            if (obj.event === 'tool-edit') {  // 编辑
+                form.val('customer-industry-form', obj.data);
+
+                layer.open({
+                    type: 1,
+                    title: '修改客户行业信息',
+                    area: ['50%', '80%'],
+                    content: $('#customer-industry-form'),  // 捕获的元素
+                });
+            } else if ( obj.event === 'tool-del') {  // 删除
+                layer.confirm('确认删除么？', function (index) {
+                    $.ajax({
+                        url: `/api/v1/customer_industry/${obj.data.id}`,
+                        type: "DELETE",
+                        contentType: "application/json",
+                        success: function (res){
+                            if (!res.code){
+                                layer.msg(res.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function(){
+                                    table.reloadData('customer-industry-table')
+                                })
+                            }
+                        }
+                    })
+                    layer.close(index);
+                });
+            }
+        });
+
+
+        // 弹窗表单提交事件
+        form.on('submit(customer-industry-form-submit)', function (data) {
+            let field = data.field; // 获取表单字段
+            let method, url = "";
+            if (field.id == 0){
+                field.id = null;
+                method = "POST";
+                url = "/api/v1/customer_industry";
+            }else{
+                method = "PUT";
+                url = `/api/v1/customer_industry/${field.id}`;
+            }
+
+            $.ajax({
+                method: method,
+                url: url,
+                data: JSON.stringify(field),
+                contentType: "application/json",
+                //datatype: "json",
+                success: function (res){
+                    layer.msg(res.msg, {
+                        icon: 1,
+                        time: 1000
+                    }, function(){
+                        layer.closeAll('page');
+                        table.reloadData('customer-industry-table')
+                    })
+                },
+                error: function (res){
+                    console.log("error")
+                    console.log(res)
+                    layer.msg(res.msg,{
+                        icon: 2,
+                        time: 1000
+                    })
+                }
+            })
+            return false; // 阻止默认 form 跳转
+        });
+    });
+
+</script>
+{% endblock %}

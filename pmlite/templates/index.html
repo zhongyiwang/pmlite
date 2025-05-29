@@ -57,6 +57,12 @@
                 <dd><a class="left-nav" menu_url="{{ url_for('gantt.index', from='task') }}" menu_name="任务甘特图" menu_id="206">任务甘特图</a></dd>
               </dl>
             </li>
+            <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">
+              <a class="" href="javascript:;">工艺方案管理</a>
+              <dl class="layui-nav-child">
+                <dd><a class="left-nav" menu_url="{{ url_for('machining_process.index') }}" menu_name="所有工艺方案" menu_id="2001">所有方案</a></dd>
+              </dl>
+            </li>
 <!--?            <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">-->
 <!--?              <a class="" href="javascript:;">任务管理 - 新</a>-->
 <!--?              <dl class="layui-nav-child">-->
@@ -83,6 +89,9 @@
                 <dd><a class="left-nav" menu_url="{{ url_for('project.node_title') }}" menu_name="项目节点管理" menu_id="9023">项目节点管理</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('machine.index') }}" menu_name="机型管理" menu_id="903">机型管理</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('system.supplier') }}" menu_name="供应商管理" menu_id="904">供应商管理</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('system.work_shape') }}" menu_name="工件形状管理" menu_id="9041">工件形状管理</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('system.customer_industry') }}" menu_name="客户行业管理" menu_id="9042">客户行业管理</a></dd>
+                <dd><a class="left-nav" menu_url="{{ url_for('system.project_type') }}" menu_name="项目类型管理" menu_id="9043">项目类型管理</a></dd>
                 <dd><a class="left-nav" menu_url="{{ url_for('system.task_type') }}" menu_name="任务类型管理" menu_id="905">任务类型管理</a></dd>
               </dl>
             </li>

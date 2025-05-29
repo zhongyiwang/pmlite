@@ -9,6 +9,7 @@ from .machine import machine_bp
 from .purchase import purchase_bp
 from .system import system_bp
 from .gantt import gantt_bp
+from .machining_process import machining_process_bp
 
 
 def register_views(app: Flask):
@@ -21,6 +22,7 @@ def register_views(app: Flask):
     app.register_blueprint(purchase_bp)
     app.register_blueprint(system_bp)
     app.register_blueprint(gantt_bp)
+    app.register_blueprint(machining_process_bp)
 
     app.jinja_env.auto_reload = True
 

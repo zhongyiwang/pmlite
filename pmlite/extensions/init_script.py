@@ -5,7 +5,7 @@ from datetime import datetime
 from flask import Flask, current_app
 
 from ..extensions import db
-from ..models import UserModel, DepartmentModel, MachineTypeModel, ProjectModel, TaskTypeModel, TaskModel, ManHourModel, ProjectNodeTitleModel
+from ..models import UserModel, DepartmentModel, MachineTypeModel, ProjectModel, TaskTypeModel, TaskModel, ManHourModel, ProjectNodeTitleModel, MachiningProcessModel
 
 
 def is_valid_date(date_str):
@@ -21,11 +21,15 @@ def dict_to_model(d, m):
     for k, v in d.items():
         if k == "password":
             m.password = v
-        if v and is_valid_date(v):
-            # m.k = is_valid_date(v)
-            setattr(m, k, is_valid_date(v))
+
+        if k in ['is_delay', 'is_automation', 'turn_key']:
+            setattr(m, k, bool(int(v)))
         else:
-            setattr(m, k, v or None)
+            if v and is_valid_date(v):
+                # m.k = is_valid_date(v)
+                setattr(m, k, is_valid_date(v))
+            else:
+                setattr(m, k, v or None)
 
 
 def csv_to_database(path, model):
@@ -76,3 +80,12 @@ def register_script(app: Flask):
         root = current_app.config.get("ROOT_PATH")
         project_node_title_data_path = os.path.join(root, "pmlite", "static", "data", "project_node_title.csv")
         csv_to_database(project_node_title_data_path, ProjectNodeTitleModel)
+
+    @app.cli.command("import_machining_process")
+    def import_machining_process():
+        """
+        从csv文件中导入25年的工艺方案
+        """
+        root = current_app.config.get("ROOT_PATH")
+        machining_process_data_path = os.path.join(root, "pmlite", "static", "data", "machining_process.csv")
+        csv_to_database(machining_process_data_path, MachiningProcessModel)

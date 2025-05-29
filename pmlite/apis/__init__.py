@@ -9,6 +9,10 @@ from .machine import machine_api
 from .supplier import supplier_api
 from .gantt import gantt_api
 from .task_types import task_types_api
+from .work_shape import work_shape_api
+from .customer_industry import customer_industry_api
+from .project_type import project_type_api
+from .machining_process import machining_process_api
 
 
 def register_apis(app: Flask):
@@ -23,5 +27,9 @@ def register_apis(app: Flask):
     apis.register_blueprint(supplier_api)
     apis.register_blueprint(gantt_api)
     apis.register_blueprint(task_types_api)
+    apis.register_blueprint(work_shape_api)
+    apis.register_blueprint(customer_industry_api)
+    apis.register_blueprint(project_type_api)
+    apis.register_blueprint(machining_process_api)
 
     app.register_blueprint(apis)

@@ -2,33 +2,33 @@ from flask import Blueprint, request
 from flask_sqlalchemy.pagination import Pagination
 from flask_jwt_extended import current_user, jwt_required
 
-from pmlite.models import MachineTypeModel
+from pmlite.models import MachiningProcessModel, MachiningProcessStatusModel, WorkShapeModel, CustomerIndustryModel, ProjectTypeModel
 from ..extensions import db
 
 
-machine_api = Blueprint("machine", __name__, url_prefix="/machine")
+work_shape_api = Blueprint("work_shape", __name__, url_prefix="/work_shape")
 
 
-# 获取用户列表
-@machine_api.route('/')
-def machine_view():
-    machine_list = db.session.execute(db.select(MachineTypeModel)).scalars().all()
+# 获取列表
+@work_shape_api.get('/')
+def view():
+    items = db.session.execute(db.select(WorkShapeModel)).scalars().all()
     return {
         'code': 0,
         'msg': '信息查询成功',
-        'count': len(machine_list),
-        'data': [item.json() for item in machine_list]
+        'count': len(items),
+        'data': [item.json() for item in items]
     }
 
 
 # 添加
-@machine_api.post('/')
-def machine_add():
+@work_shape_api.post('/')
+def add():
     data = request.get_json()
-    machine = MachineTypeModel()
-    machine.update(data)
+    item = WorkShapeModel()
+    item.update(data)
     try:
-        machine.save()
+        item.save()
     except Exception as e:
         print(e)
         return {
@@ -41,14 +41,16 @@ def machine_add():
     }
 
 
-# 修改用户数据
-@machine_api.put('/<int:mid>')
-def machine_edit(mid):
+# 修改
+@work_shape_api.put('/<int:_id>')
+def edit(_id):
     data = request.get_json()
-    machine = db.get_or_404(MachineTypeModel, mid)
-    machine.update(data)
+    # print(data)
+    # user = StudentORM.query.get(uid)
+    item = db.get_or_404(WorkShapeModel, _id)
+    item.update(data)
     try:
-        machine.save()
+        item.save()
     except Exception as e:
         return {
             'code': -1,
@@ -60,12 +62,13 @@ def machine_edit(mid):
     }
 
 
-# 删除用户
-@machine_api.delete('/<int:mid>')
-def user_delete(mid):
-    user: MachineTypeModel = db.get_or_404(MachineTypeModel, mid)
+# 删除
+@work_shape_api.delete('/<int:_id>')
+def delete(_id):
+    item: WorkShapeModel = db.get_or_404(WorkShapeModel, _id)
     try:
-        db.session.delete(user)
+        db.session.delete(item)
+        # user.is_del = True
         db.session.commit()
     except Exception as e:
         return {
@@ -79,9 +82,9 @@ def user_delete(mid):
 
 
 # 返回drowpdown的data数据
-@machine_api.get('/dropdown')
+@work_shape_api.get('/dropdown')
 def dropdown():
-    items = db.session.execute(db.select(MachineTypeModel)).scalars().all()
+    items = db.session.execute(db.select(WorkShapeModel)).scalars().all()
     ret = []
     _id = 100
     for item in items:

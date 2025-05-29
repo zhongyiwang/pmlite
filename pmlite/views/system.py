@@ -18,3 +18,21 @@ def supplier():
 @system_bp.route('/task_type')
 def task_type():
     return render_template('task/task_type.html')
+
+
+# 工件形状列表视图
+@system_bp.route('/work_shape')
+def work_shape():
+    return render_template('system/work_shape_index.html')
+
+
+# 客户行业列表视图
+@system_bp.route('/customer_industry')
+def customer_industry():
+    return render_template('system/customer_industry_index.html')
+
+
+# 项目类型列表视图
+@system_bp.route('/project_type')
+def project_type():
+    return render_template('system/project_type_index.html')
