@@ -226,7 +226,7 @@
 <!--?    {% raw %}-->
     <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-green" lay-event="tool-edit">编辑</button>
     <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-red" lay-event="tool-del">删除</button>
-    <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="tool-edit-plan">项目计划</button>
+<!--?    <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="tool-edit-plan">项目计划</button>-->
 <!--?    {{# if (!d.is_released) { }}-->
 <!--?    <button class="layui-btn layui-btn-xs layui-btn-primary layui-border-blue" lay-event="tool-edit-plan">项目计划</button>-->
 <!--?    {{# }else{ }}-->
@@ -366,6 +366,7 @@
                         {field: 'lose_reason', title: '丢单原因', minWidth:300, align: 'center', edit: 'text'},
                         {field: 'lose_competitor', title: '竞争对手', minWidth:300, align: 'center', edit: 'text'},
                         {field: 'suggest', title: '建议及对策', minWidth:300, align: 'center', edit: 'text'},
+                        // {title: '操作', fixed: "right", minWidth:200, align:"center", toolbar: '#tools'}
 
                     ]]
         const date = new Date()
@@ -400,42 +401,6 @@
                   '.layui-table-cell select{height: 36px; padding: 0 5px;}'
                 ].join(''),
             cols: cols,
-            // cols: [
-            //         [
-            //             {field: 'id', title: 'ID', width:50, align: 'center', hide:true, fixed: "left"},
-            //             {field: 'number', title: '项目编号', minWidth:100, align: 'center', fixed: "left", edit: 'text'},
-            //             {field: 'customer', title: '客户名称', minWidth:300, align: 'center', fixed: "left", edit: 'text'},
-            //             {field: 'workpiece', title: '工件名称', minWidth:150, align: 'center', edit: 'text'},
-            //             {field: 'material', title: '工件材质', minWidth:150, align: 'center', edit: 'text'},
-            //             {field: 'work_shape', title: '工件形状', minWidth:150, align: 'center', event: 'work-shape-dropdown'},
-            //             {field: 'customer_industry', title: '客户行业', minWidth:200, align: 'center', event: 'customer-industry-dropdown'},
-            //             {field: 'project_type', title: '项目类型', minWidth:200, align: 'center', event: 'project-type-dropdown'},
-            //             {field: 'machine_type', title: '机床型号', minWidth:200, align: 'center', event: 'machine-type-dropdown'},
-            //             {field: 'receive_date', title: '方案接收日期', minWidth:120, align: 'center', event: 'date'},
-            //             {field: 'required_date', title: '要求完成日期', minWidth:120, align: 'center', event: 'date'},
-            //             {field: 'manager', title: '项目负责人', minWidth:100, align: 'center'},
-            //             {field: 'initial_done_date', title: '首次完成日期', minWidth:120, align: 'center', event: 'date'},
-            //             {field: 'last_done_date', title: '最新更新日期', minWidth:120, align: 'center', event: 'date'},
-            //             {field: 'is_delay', title: '方案拖期', minWidth:100, align: 'center', templet: render_delay, event: 'boolean-dropdown'},
-            //             {field: 'delay_reason', title: '拖期原因', minWidth:300, align: 'center', edit: 'text'},
-            //             {field: 'delay_countermeasure', title: '拖期对策', minWidth:300, align: 'center', edit: 'text'},
-            //             {field: 'turn_key', title: '交钥匙', minWidth:80, align: 'center', templet: render_turn_key, event: 'boolean-dropdown'},
-            //             {field: 'is_automation', title: '自动化', minWidth:80, align: 'center', templet: render_automation, event: 'boolean-dropdown'},
-            //             {field: 'sales_manager', title: '销售经理', minWidth:100, align: 'center', edit: 'text'},
-            //             {field: 'area', title: '区域', minWidth:100, align: 'center', edit: 'text'},
-            //             {field: 'agent', title: '代理商', minWidth:200, align: 'center', edit: 'text'},
-            //
-            //             {field: 'two_months_ago', title: '上上个月', minWidth:100, align: 'center'},
-            //             {field: 'last_month', title: '上个月', minWidth:100, align: 'center'},
-            //             {field: 'this_month', title: '当月', minWidth:100, align: 'center'},
-            //
-            //             {field: 'pause_reason', title: '暂停原因', minWidth:300, align: 'center', edit: 'text'},
-            //             {field: 'lose_reason', title: '丢单原因', minWidth:300, align: 'center', edit: 'text'},
-            //             {field: 'lose_competitor', title: '竞争对手', minWidth:300, align: 'center', edit: 'text'},
-            //             {field: 'suggest', title: '建议及对策', minWidth:300, align: 'center', edit: 'text'},
-            //
-            //         ]
-            //     ],
             done: function (res, curr, count){
                 let options = this;
                 // 获取当前行数据 - 自定义方法
@@ -532,8 +497,7 @@
                                 }
                             })
                             break;
-                        case "customer-industry-dropdown":  // 完成状态的下拉菜单处理
-                            // let that = this;
+                        case "customer1-industry-dropdown":  // 完成状态的下拉菜单处理
                             $.ajax({
                                 url: '/api/v1/customer_industry/dropdown',
                                 method: 'GET',
@@ -553,7 +517,6 @@
                             })
                             break;
                         case "project-type-dropdown":  // 完成状态的下拉菜单处理
-                            // let that = this;
                             $.ajax({
                                 url: '/api/v1/project_type/dropdown',
                                 method: 'GET',
@@ -572,8 +535,7 @@
                                 }
                             })
                             break;
-                        case "machine-type-dropdown":  // 完成状态的下拉菜单处理
-                            // let that = this;
+                        case "machine1-type-dropdown":  // 完成状态的下拉菜单处理
                             $.ajax({
                                 url: '/api/v1/machine/dropdown',
                                 method: 'GET',
@@ -695,6 +657,88 @@
                                 }
                             });
                             break;
+                        case "machine-type-dropdown":
+                            // let offset = $(this).offset()
+                            // console.log(offset)
+                            layer.open({
+                                type: 1, // page 层类型
+                                area: ['300px', '370px'],
+                                // offset: ['253px', '1000px'],
+                                title: false,
+                                shadeClose: true, // 点击遮罩区域，关闭弹层
+                                // maxmin: true, // 允许全屏最小化
+                                // 注: 这里特别对 select 设置了 lay-append-position 属性，以便与 layer 的定位方式保持一致
+                                content: '<form class="layui-form layui-padding-3"><select lay-append-to="body" lay-append-position="fixed" lay-search="{fuzzy: true}" id="machine-type-select" lay-filter="machine-type-select"><option value="">请选择</option></select></form>',
+                                success: function (layero) {
+                                    // 定向渲染 select
+                                    form.render(layero.find('.layui-form select'));
+                                    $.ajax({
+                                        url: "/api/v1/machine",
+                                        type: "get",
+                                        async: false,
+                                        success: function (res) {
+                                            let content = "<option value=''>请选择</option>"
+                                            $.each(res.data, function (i, val) {
+                                                if (obj && val.name === obj.data.machine_type) {
+                                                    content += '<option value="' + val.name + '" selected>' + val.name + '</option>'
+                                                } else {
+                                                    content += '<option value="' + val.name + '">' + val.name + '</option>'
+                                                }
+                                            })
+                                            let s = $('#machine-type-select')
+                                            s.html(content)
+                                            form.render('select')
+                                        }
+                                    })
+                                }
+                            });
+                        form.on('select(machine-type-select)', function (data) {
+                            update[field] = data.value
+                            updateData(id,update)  // 更新服务器数据
+                            layer.closeAll()
+                        })
+                            break;
+                        case "customer-industry-dropdown":
+                            // let offset = $(this).offset()
+                            // console.log(offset)
+                            layer.open({
+                                type: 1, // page 层类型
+                                area: ['300px', '370px'],
+                                // offset: ['253px', '1000px'],
+                                title: false,
+                                shadeClose: true, // 点击遮罩区域，关闭弹层
+                                // maxmin: true, // 允许全屏最小化
+                                // 注: 这里特别对 select 设置了 lay-append-position 属性，以便与 layer 的定位方式保持一致
+                                content: '<form class="layui-form layui-padding-3"><select lay-append-to="body" lay-append-position="fixed" lay-search="{fuzzy: true}" id="customer-industry-select" lay-filter="customer-industry-select"><option value="">请选择</option></select></form>',
+                                success: function (layero) {
+                                    // 定向渲染 select
+                                    form.render(layero.find('.layui-form select'));
+                                    $.ajax({
+                                        url: "/api/v1/customer_industry",
+                                        type: "get",
+                                        async: false,
+                                        success: function (res) {
+                                            let content = "<option value=''>请选择</option>"
+                                            $.each(res.data, function (i, val) {
+                                                if (obj && val.name === obj.data.customer_industry) {
+                                                    content += '<option value="' + val.name + '" selected>' + val.name + '</option>'
+                                                } else {
+                                                    content += '<option value="' + val.name + '">' + val.name + '</option>'
+                                                }
+                                            })
+                                            let s = $('#customer-industry-select')
+                                            s.html(content)
+                                            form.render('select')
+                                        }
+                                    })
+                                }
+                            });
+                            form.on('select(customer-industry-select)', function (data) {
+                                update[field] = data.value
+                                updateData(id, update)  // 更新服务器数据
+                                layer.closeAll()
+                            })
+                            break;
                         case "get-user":
                             // let offset = $(this).offset()
                             // console.log(offset)
@@ -726,6 +770,8 @@
             }
 
         });
+
+
 
         // 获取机型列表，并渲染
         const get_machine_types = function (obj) {
