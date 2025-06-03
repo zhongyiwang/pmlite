@@ -3,19 +3,19 @@
 {% block body %}
 <!-- 项目表格 -->
 <div class="layui-fluid">
-    <!--搜索表单-->
-    <form class="layui-form layui-row layui-col-space16">
-        <!--表单-->
-        <div style="float: left">
-            <div class="layui-row layui-col-space16">
-                <div class="layui-col-md6">
-                    <div class="layui-input-wrap">
-                        <div class="layui-input-prefix">
-                            <i class="layui-icon layui-icon-username"></i>
-                        </div>
-                        <input type="text" name="customer" value="" placeholder="客户名称" class="layui-input" lay-affix="clear">
-                    </div>
-                </div>
+<!--?    <!--搜索表单-->
+<!--?    <form class="layui-form layui-row layui-col-space16">-->
+<!--?        <!--表单-->
+<!--?        <div style="float: left">-->
+<!--?            <div class="layui-row layui-col-space16">-->
+<!--?                <div class="layui-col-md6">-->
+<!--?                    <div class="layui-input-wrap">-->
+<!--?                        <div class="layui-input-prefix">-->
+<!--?                            <i class="layui-icon layui-icon-username"></i>-->
+<!--?                        </div>-->
+<!--?                        <input type="text" name="customer" value="" placeholder="客户名称" class="layui-input" lay-affix="clear">-->
+<!--?                    </div>-->
+<!--?                </div>-->
 <!--?                <div class="layui-col-md4">-->
 <!--?                    <div class="layui-input-wrap">-->
 <!--?                        <div class="layui-input-prefix">-->
@@ -24,12 +24,12 @@
 <!--?                        <input type="text" name="project_number" value="" placeholder="项目编号" class="layui-input" lay-affix="clear">-->
 <!--?                    </div>-->
 <!--?                </div>-->
-                <div class="layui-btn-container layui-col-md6">
-                    <button class="layui-btn" lay-submit lay-filter="table-search">查询</button>
-                    <button type="reset" class="layui-btn layui-btn-primary">清空</button>
-                </div>
-            </div>
-        </div>
+<!--?                <div class="layui-btn-container layui-col-md6">-->
+<!--?                    <button class="layui-btn" lay-submit lay-filter="table-search">查询</button>-->
+<!--?                    <button type="reset" class="layui-btn layui-btn-primary">清空</button>-->
+<!--?                </div>-->
+<!--?            </div>-->
+<!--?        </div>-->
         <!--显示已完成-->
 <!--?        <div style="float: right">-->
 <!--?            <div>-->
@@ -336,25 +336,25 @@
 
         let cols = [[
                         {field: 'id', title: 'ID', width:50, align: 'center', hide:true, fixed: "left"},
-                        {field: 'number', title: '项目编号', minWidth:100, align: 'center', fixed: "left", edit: 'text'},
-                        {field: 'customer', title: '客户名称', minWidth:300, align: 'center', fixed: "left", edit: 'text'},
-                        {field: 'workpiece', title: '工件名称', minWidth:150, align: 'center', edit: 'text'},
-                        {field: 'material', title: '工件材质', minWidth:150, align: 'center', edit: 'text'},
-                        {field: 'work_shape', title: '工件形状', minWidth:150, align: 'center', event: 'work-shape-dropdown'},
-                        {field: 'customer_industry', title: '客户行业', minWidth:200, align: 'center', event: 'customer-industry-dropdown'},
-                        {field: 'project_type', title: '项目类型', minWidth:200, align: 'center', event: 'project-type-dropdown'},
-                        {field: 'machine_type', title: '机床型号', minWidth:200, align: 'center', event: 'machine-type-dropdown'},
+                        {field: 'number', title: '编号', minWidth:80, align: 'center', fixed: "left", edit: 'text'},
+                        {field: 'customer', title: '客户名称 <i class="layui-icon layui-icon-search layui-font-14" lay-event="customer-filter" title="" le="margin-left: 5px;"></i>', minWidth:150, align: 'center', fixed: "left", edit: 'text'},
+                        {field: 'workpiece', title: '工件名称', minWidth:120, align: 'center', edit: 'text'},
+                        {field: 'material', title: '工件材质', minWidth:120, align: 'center', edit: 'text'},
+                        {field: 'work_shape', title: '工件形状', minWidth:120, align: 'center', event: 'work-shape-dropdown'},
+                        {field: 'customer_industry', title: '客户行业', minWidth:150, align: 'center', event: 'customer-industry-dropdown'},
+                        {field: 'project_type', title: '项目类型', minWidth:150, align: 'center', event: 'project-type-dropdown'},
+                        {field: 'machine_type', title: '机床型号', minWidth:150, align: 'center', event: 'machine-type-dropdown'},
                         {field: 'receive_date', title: '方案接收日期', minWidth:120, align: 'center', event: 'date'},
                         {field: 'required_date', title: '要求完成日期', minWidth:120, align: 'center', event: 'date'},
-                        {field: 'manager', title: '项目负责人', minWidth:100, align: 'center'},
+                        {field: 'manager', title: '负责人 <i class="layui-icon layui-icon-search layui-font-14" lay-event="manager-filter" title="" le="margin-left: 5px;"></i>', minWidth:90, align: 'center'},
                         {field: 'initial_done_date', title: '首次完成日期', minWidth:120, align: 'center', event: 'date'},
                         {field: 'last_done_date', title: '最新更新日期', minWidth:120, align: 'center', event: 'date'},
-                        {field: 'is_delay', title: '方案拖期', minWidth:100, align: 'center', templet: render_delay, event: 'boolean-dropdown'},
-                        {field: 'delay_reason', title: '拖期原因', minWidth:300, align: 'center', edit: 'text'},
-                        {field: 'delay_countermeasure', title: '拖期对策', minWidth:300, align: 'center', edit: 'text'},
+                        {field: 'is_delay', title: '拖期', minWidth:100, align: 'center', templet: render_delay,sort:true, event: 'boolean-dropdown'},
+                        {field: 'delay_reason', title: '拖期原因', minWidth:300, align: 'center', edit: 'text', hide: true},
+                        {field: 'delay_countermeasure', title: '拖期对策', minWidth:300, align: 'center', edit: 'text', hide: true},
                         {field: 'turn_key', title: '交钥匙', minWidth:80, align: 'center', templet: render_turn_key, event: 'boolean-dropdown'},
                         {field: 'is_automation', title: '自动化', minWidth:80, align: 'center', templet: render_automation, event: 'boolean-dropdown'},
-                        {field: 'sales_manager', title: '销售经理', minWidth:100, align: 'center', edit: 'text'},
+                        {field: 'sales_manager', title: '销售经理 <i class="layui-icon layui-icon-search layui-font-14" lay-event="sales-manager-filter" title="" le="margin-left: 5px;"></i>', minWidth:110, align: 'center', edit: 'text'},
                         {field: 'area', title: '区域', minWidth:100, align: 'center', event: 'area-dropdown'},
                         {field: 'agent', title: '代理商', minWidth:200, align: 'center', edit: 'text'},
 
@@ -769,11 +769,11 @@
                     })
                     get_machine_types()  // 获取机型，并渲染select
                     // 获取用户列表，并渲染
-                    pmlite.getUsers('manager_id')
-                    pmlite.getUsers('m_designer_id')
-                    pmlite.getUsers('e_designer_id')
-                    pmlite.getUsers('am_designer_id')
-                    pmlite.getUsers('ae_designer_id')
+                    pmlite.getUsers('manager_id', undefined, 'owner', true)
+                    // pmlite.getUsers('m_designer_id')
+                    // pmlite.getUsers('e_designer_id')
+                    // pmlite.getUsers('am_designer_id')
+                    // pmlite.getUsers('ae_designer_id')
                     break;
                 case 'toolbar-all':
                     // 表格重载
@@ -1296,6 +1296,78 @@
 
         });
 
+        // 表头自定义元素工具事件 --- 2.8.8+
+        table.on('colTool(project-table)', function(obj){
+            switch (obj.event){
+                case "customer-filter":  // 客户查询
+                    layer.prompt({title: '请输入文本'}, function(value, index, elem){
+                        if(value === '') return elem.focus();
+                        let input = util.escape(value)
+                        let newUrl = ''
+                        if (layui.data('project').projectShowAll) {
+                            newUrl = baseUrl + '?showAll=1&customer=' + input
+                        } else {
+                            newUrl = baseUrl + '?customer=' + input
+                        }
+                        table.reload('project-table', {
+                            url: newUrl
+                        })
+                        layer.close(index);
+                    });
+                    break
+                case "manager-filter":  // 项目经理查询
+                    layer.prompt({title: '请输入文本'}, function (value, index, elem) {
+                        if (value === '') return elem.focus();
+                        let input = util.escape(value)
+                        let newUrl = ''
+                        if (layui.data('project').projectShowAll) {
+                            newUrl = baseUrl + '?showAll=1&manager=' + input
+                        } else {
+                            newUrl = baseUrl + '?manager=' + input
+                        }
+                        table.reload('project-table', {
+                            url: newUrl
+                        })
+                        layer.close(index);
+                    });
+                    break
+                case "sales-manager-filter":  // 项目经理查询
+                    layer.prompt({title: '请输入文本'}, function (value, index, elem) {
+                        if (value === '') return elem.focus();
+                        let input = util.escape(value)
+                        let newUrl = ''
+                        if (layui.data('project').projectShowAll) {
+                            newUrl = baseUrl + '?showAll=1&sales_manager=' + input
+                        } else {
+                            newUrl = baseUrl + '?sales_manager=' + input
+                        }
+                        table.reload('project-table', {
+                            url: newUrl
+                        })
+                        layer.close(index);
+                    });
+                    break
+
+            }
+
+            // let event = obj.event;
+            // if(event === 'customer-filter'){
+            //     layer.prompt({title: '请输入文本'}, function(value, index, elem){
+            //         if(value === '') return elem.focus();
+            //         let input = util.escape(value)
+            //         let newUrl = ''
+            //         if (layui.data('project').projectShowAll) {
+            //             newUrl = baseUrl + '?showAll=1&customer=' + input
+            //         } else {
+            //             newUrl = baseUrl + '?customer=' + input
+            //         }
+            //         table.reload('project-table', {
+            //             url: newUrl
+            //         })
+            //         layer.close(index);
+            //     });
+            // }
+        });
 
         // 添加/编辑表单提交事件
         form.on('submit(project-form-submit)', function (data) {

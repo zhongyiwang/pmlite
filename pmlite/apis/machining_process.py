@@ -4,7 +4,7 @@ from flask_sqlalchemy.pagination import Pagination
 from sqlalchemy import desc, or_
 from flask_jwt_extended import current_user, jwt_required
 
-from pmlite.models import MachiningProcessModel, MachiningProcessStatusModel, WorkShapeModel, CustomerIndustryModel, ProjectTypeModel
+from pmlite.models import MachiningProcessModel, MachiningProcessStatusModel, WorkShapeModel, CustomerIndustryModel, ProjectTypeModel, UserModel
 from ..extensions import db
 
 
@@ -33,6 +33,8 @@ def view_pagination():
     # 自定义查询字符串
     show_all = request.args.get('showAll')
     customer = request.args.get('customer')
+    manager_name = request.args.get('manager')
+    sales_manager = request.args.get('sales_manager')
     mine = request.args.get('mine')
 
     q = db.select(MachiningProcessModel).order_by(desc(MachiningProcessModel.id))
@@ -44,6 +46,15 @@ def view_pagination():
     if customer:  # 外部查询，模糊查询客户字段
         page = 1  # 避免在选择分页后查询报警，查询默认显示第1页数据
         q = q.filter(MachiningProcessModel.customer.like('%' + customer + '%'))
+
+    if sales_manager:  # 外部查询，模糊查询客户字段
+        page = 1  # 避免在选择分页后查询报警，查询默认显示第1页数据
+        q = q.filter(MachiningProcessModel.sales_manager.like('%' + sales_manager + '%'))
+
+    if manager_name:
+        page = 1
+        user_id = UserModel.query.filter_by(name=manager_name).first().id
+        q = q.filter(MachiningProcessModel.manager_id == user_id)
 
     if mine:
         q = q.filter(MachiningProcessModel.manager_id == current_user.id)

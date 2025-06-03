@@ -73,7 +73,7 @@ class MachiningProcessModel(BaseModel):
             "receive_date": self.receive_date.strftime("%Y-%m-%d") if self.receive_date else "",
             "required_date": self.required_date.strftime("%Y-%m-%d") if self.required_date else "",
             "manager_id": self.manager_id,
-            "manager": self.manager.name,
+            "manager": self.manager.name if self.manager else "",
             "initial_done_date": self.initial_done_date.strftime("%Y-%m-%d") if self.initial_done_date else "",
             "last_done_date": self.last_done_date.strftime("%Y-%m-%d") if self.last_done_date else "",
             "is_delay": self.is_delay,
