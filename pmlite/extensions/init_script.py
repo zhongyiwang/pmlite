@@ -90,7 +90,7 @@ def register_script(app: Flask):
         machining_process_data_path = os.path.join(root, "pmlite", "static", "data", "machining_process.csv")
         csv_to_database(machining_process_data_path, MachiningProcessModel)
 
-    @app.cli.command("import_role_and_pemission")
+    @app.cli.command("import-role-and-pemission")
     def import_machining_process():
         """
         从csv文件中导入角色和权限-20250701
@@ -103,13 +103,13 @@ def register_script(app: Flask):
         permission_data_path = os.path.join(root, "pmlite", "static", "data", "permission.csv")
         csv_to_database(permission_data_path, PermissionModel)
 
-    @app.cli.command("set_system_admin")
+    @app.cli.command("set-system-admin")
     def import_machining_process():
         """
         设置10028为系统管理员
         """
         user = UserModel.query.filter_by(number=10028).first()
-        role = RoleModel.qeury.filter_by(name='system_admin').first()
+        role = RoleModel.query.filter_by(name='system_admin').first()
         if user & role:
             user.role = role
             db.session.add(user)
