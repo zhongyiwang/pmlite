@@ -133,7 +133,10 @@ layui.use(['auth', 'element', 'layer', 'util'], function(){
             title: '任务管理',
             icon: 'layui-icon-list',
             children: [
-                {title: '任务列表', url: '{{ url_for("project.index2") }}', permission: 'task_view'}
+                {title: '任务列表', url: '{{ url_for("task.index") }}', permission: 'task_view'},
+                {title: '我创建的', url: '{{ url_for("task.index", query="create") }}', permission: 'task_view'},
+                {title: '我负责的', url: '{{ url_for("task.index", query="own", c_user=1, status="uncompleted") }}', permission: 'task_view'},
+                {title: '全部工时', url: '{{ url_for("task.manHour") }}', permission: 'task_view'}
             ]
         },
         {

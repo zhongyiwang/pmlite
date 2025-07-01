@@ -110,7 +110,7 @@ def register_script(app: Flask):
         """
         user = UserModel.query.filter_by(number=10028).first()
         role = RoleModel.query.filter_by(name='system_admin').first()
-        if user & role:
+        if user and role:
             user.role = role
             db.session.add(user)
             db.commit()
