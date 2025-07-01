@@ -114,3 +114,15 @@ def user_profile():
     }
 
 
+# 返回穿梭框格式data数据
+@user_api.get('/transfer')
+def transfer():
+    items = db.session.execute(db.select(UserModel)).scalars().all()
+    ret = []
+    for item in items:
+        data = {
+            "value": item.id,
+            "title": item.name
+        }
+        ret.append(data)
+    return ret

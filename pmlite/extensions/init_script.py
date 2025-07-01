@@ -5,7 +5,7 @@ from datetime import datetime
 from flask import Flask, current_app
 
 from ..extensions import db
-from ..models import UserModel, DepartmentModel, MachineTypeModel, ProjectModel, TaskTypeModel, TaskModel, ManHourModel, ProjectNodeTitleModel, MachiningProcessModel
+from ..models import UserModel, DepartmentModel, MachineTypeModel, ProjectModel, TaskTypeModel, TaskModel, ManHourModel, ProjectNodeTitleModel, MachiningProcessModel, RoleModel, PermissionModel
 
 
 def is_valid_date(date_str):
@@ -89,3 +89,28 @@ def register_script(app: Flask):
         root = current_app.config.get("ROOT_PATH")
         machining_process_data_path = os.path.join(root, "pmlite", "static", "data", "machining_process.csv")
         csv_to_database(machining_process_data_path, MachiningProcessModel)
+
+    @app.cli.command("import_role_and_pemission")
+    def import_machining_process():
+        """
+        从csv文件中导入角色和权限-20250701
+        """
+        root = current_app.config.get("ROOT_PATH")
+        # 任务表
+        role_data_path = os.path.join(root, "pmlite", "static", "data", "role.csv")
+        csv_to_database(role_data_path, RoleModel)
+        # 权限表
+        permission_data_path = os.path.join(root, "pmlite", "static", "data", "permission.csv")
+        csv_to_database(permission_data_path, PermissionModel)
+
+    @app.cli.command("set_system_admin")
+    def import_machining_process():
+        """
+        设置10028为系统管理员
+        """
+        user = UserModel.query.filter_by(number=10028).first()
+        role = RoleModel.qeury.filter_by(name='system_admin').first()
+        if user & role:
+            user.role = role
+            db.session.add(user)
+            db.commit()

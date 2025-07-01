@@ -36,3 +36,15 @@ def customer_industry():
 @system_bp.route('/project_type')
 def project_type():
     return render_template('system/project_type_index.html')
+
+
+# 用户角色管理
+@system_bp.route('/user_role')
+def user_role():
+    return render_template('system/role_index.html')
+
+
+# 权限管理
+@system_bp.route('/role_permission')
+def role_permission():
+    return render_template('system/role_permission.html')

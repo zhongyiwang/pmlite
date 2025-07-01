@@ -341,7 +341,8 @@
         // 给默认的ajax请求添加权限
         $.ajaxSetup({
             headers: {
-                Authorization: "Bearer " + localStorage.getItem("access_token")
+                // Authorization: "Bearer " + localStorage.getItem("access_token")
+                Authorization: "Bearer " + layui.data("system").jwt_access_token
             }
         })
 
@@ -1133,6 +1134,7 @@
                 contentType: "application/json",
                 //datatype: "json",
                 success: function (res){
+                    console.log(res)
                     layer.msg(res.msg, {
                         icon: 1,
                         time: 1000
@@ -1144,6 +1146,7 @@
                     })
                 },
                 error: function (res){
+                    console.log(res)
                     layer.msg(res.msg,{
                         icon: 2,
                         time: 1000

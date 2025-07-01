@@ -27,6 +27,7 @@ class UserModel(BaseModel):
     department = db.relationship("DepartmentModel", backref="users")
 
     role_id = Column(Integer, ForeignKey("role.id"), default=1, comment='角色id')
+    role = db.relationship("RoleModel", backref=db.backref("users"))
 
     # own_tasks = db.relationship('TaskModel', secondary=user_task, back_populates='owners')
 
@@ -43,7 +44,9 @@ class UserModel(BaseModel):
             "email": self.email,
             "disabled": self.disabled,
             "create_time": self.create_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "department": self.department.name
+            "department": self.department.name,
+            "role": self.role.desc if self.role else None,
+            "permissions": [p.name for p in self.role.permissions] if self.role else []
         }
 
     def __init__(self, *args, **kwargs):

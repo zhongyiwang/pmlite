@@ -47,7 +47,9 @@ class ProjectModel(BaseModel):
     manager_id = Column(Integer, ForeignKey("user.id"), comment="项目经理")
     manager = db.relationship("UserModel", backref="m_projects", foreign_keys=[manager_id])
 
-    nodes = db.relationship('ProjectNodeModel', backref='project', lazy=True)
+    nodes = db.relationship('ProjectNodeModel', backref='project', lazy=True, cascade='all, delete-orphan')
+    plan_versions = db.relationship('ProjectPlanVersionModel', backref='project', lazy=True, cascade='all, delete-orphan')
+    plan_signatures = db.relationship('ProjectPlanSignatureModel', backref='project', lazy=True, cascade='all, delete-orphan')
 
     plan_version = Column(Integer, default=1, comment='计划版本')
 
@@ -193,7 +195,7 @@ class ProjectNodeModel(BaseModel):
 
     parent_id = Column(Integer, ForeignKey('project_node.id'), default=None, comment='阶段节点id')
     parent = db.relationship('ProjectNodeModel', back_populates='children', remote_side=[id])
-    children = db.relationship('ProjectNodeModel', back_populates='parent', cascade='all')
+    children = db.relationship('ProjectNodeModel', back_populates='parent', cascade='all, delete-orphan', lazy=True)
 
     def __repr__(self):
         return "<ProjectNode %r>" % self.name
@@ -295,12 +297,13 @@ class ProjectNodeTitleModel(BaseModel):
             'parent_id': self.parent_id
         }
 
+
 # 项目计划签章表
 class ProjectPlanSignatureModel(BaseModel):
     __tablename__ = 'project_plan_signature'
     id = Column(Integer, primary_key=True, autoincrement=True, comment="自增id")
     project_id = Column(Integer, ForeignKey("project.id"), nullable=False, comment="所属项目id")
-    project = db.relationship('ProjectModel')
+    # project = db.relationship('ProjectModel')
     plan_version = Column(Integer, default=1, comment='计划版本')
     user_id = Column(Integer, ForeignKey("user.id"), comment="用户id")
     user = db.relationship("UserModel")
@@ -324,7 +327,7 @@ class ProjectPlanVersionModel(BaseModel):
     __tablename__ = 'project_plan_version'
     id = Column(Integer, primary_key=True, autoincrement=True, comment="自增id")
     project_id = Column(Integer, ForeignKey("project.id"), nullable=False, comment="所属项目id")
-    project = db.relationship('ProjectModel')
+    # project = db.relationship('ProjectModel', backref='plan_versions')
     plan_version = Column(Integer, default=1, comment='计划版本')
     status = Column(String(10), default="编辑中", comment='发布状态')
     is_released = Column(Boolean, default=False, comment='已发布')

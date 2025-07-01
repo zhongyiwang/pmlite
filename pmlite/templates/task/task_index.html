@@ -325,7 +325,8 @@
         // 给默认的ajax请求添加权限
         $.ajaxSetup({
             headers: {
-                Authorization: "Bearer " + localStorage.getItem("access_token")
+                // Authorization: "Bearer " + localStorage.getItem("access_token")
+                Authorization: "Bearer " + layui.data("system").jwt_access_token
             }
         })
 

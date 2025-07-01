@@ -13,6 +13,7 @@ auth_api = Blueprint("auth", __name__)
 @auth_api.post("/login")
 def login_in():
     data = request.get_json()
+    print(data)
     user: UserModel = db.session.execute(
         db.select(UserModel).where(UserModel.number == data["number"])
     ).scalar()
@@ -22,8 +23,13 @@ def login_in():
     if not user.check_password(data["password"]):
         return {"msg": "用户密码错误", "code": -1}
 
+    # 自定义JWT Payload内容
+    # additional_claims = {
+    #
+    # }
+
     # 生成访问令牌
-    access_token = create_access_token(user)
+    access_token = create_access_token(user, additional_claims=user.json())
     # 生成刷新令牌（用于`access_token`过期后获取新的`access_token`，而无需用户重新登录）
     refresh_token = create_refresh_token(user)
 
@@ -33,7 +39,8 @@ def login_in():
             "msg": "登录成功",
             "access_token": access_token,
             "refresh_token": refresh_token,
-            "user_id": user.id
+            "user_id": user.id,
+            "data": user.json()
         }
     )
     return response

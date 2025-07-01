@@ -13,6 +13,8 @@ from .work_shape import work_shape_api
 from .customer_industry import customer_industry_api
 from .project_type import project_type_api
 from .machining_process import machining_process_api
+from .role import role_api
+from .permission import permission_api
 
 
 def register_apis(app: Flask):
@@ -31,5 +33,7 @@ def register_apis(app: Flask):
     apis.register_blueprint(customer_industry_api)
     apis.register_blueprint(project_type_api)
     apis.register_blueprint(machining_process_api)
+    apis.register_blueprint(role_api)
+    apis.register_blueprint(permission_api)
 
     app.register_blueprint(apis)

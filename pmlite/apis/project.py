@@ -3,10 +3,11 @@ import datetime
 from flask import Blueprint, request
 from sqlalchemy import desc, or_
 from flask_sqlalchemy.pagination import Pagination
-from flask_jwt_extended import current_user, jwt_required
+from flask_jwt_extended import current_user, jwt_required, get_jwt_identity
 
 from ..models import ProjectModel, ProjectNodeModel, ProjectNodeTitleModel, TaskModel, ManHourModel, ProjectPlanVersionModel, ProjectPlanSignatureModel
 from ..extensions import db
+from ..decorators import permission_required
 
 
 project_api = Blueprint("project", __name__, url_prefix="/project")
@@ -16,6 +17,8 @@ project_api = Blueprint("project", __name__, url_prefix="/project")
 @project_api.route('/')
 @jwt_required()
 def project_view():
+    print(get_jwt_identity())
+    print(current_user)
     # 分页查询字符串
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('limit', type=int, default=30)
@@ -172,9 +175,11 @@ def project_tasks(pid):
         "data": ret
     }
 
+
 # 创建新项目，同时创建项目计划
 @project_api.post('/')
-@jwt_required()
+# @jwt_required()
+@permission_required('create_project')
 def project_add():
     data = request.get_json()
     project = ProjectModel()
@@ -219,13 +224,16 @@ def project_edit(pid):
 @project_api.delete('/<int:pid>')
 @jwt_required()
 def project_delete(pid):
-    project: ProjectModel = db.get_or_404(ProjectModel, pid)
+    print(pid)
+    project = db.get_or_404(ProjectModel, pid)
+    print(project. creator)
     if project.creator == current_user:
         try:
             db.session.delete(project)
             # user.is_del = True
             db.session.commit()
         except Exception as e:
+            print(e)
             return {
                 'code': -1,
                 'msg': '删除数据失败'

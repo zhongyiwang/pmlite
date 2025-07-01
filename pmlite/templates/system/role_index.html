@@ -1,0 +1,311 @@
+{% extends '_base.html' %}
+{% block title %}角色管理{% endblock %}
+{% block body %}
+<!-- 表格 -->
+<div class="layui-fluid">
+    <table class="layui-hide" id="main-table"></table>
+</div>
+
+<div id="permission-transfer" style="display: none"></div>
+
+<!--添加/编辑弹窗表单-->
+<form class="layui-form" action="" id="add-edit-form" lay-filter="add-edit-form" style="margin-top: 20px; display: none">
+    <div style="padding-right: 20px;">
+        <div class="layui-form-item" style="display: none">
+            <label class="layui-form-label">ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="id" value="0" lay-verify="required" autocomplete="off" class="layui-input" disabled>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" lay-verify="required" lay-affix="clear" autocomplete="off" placeholder="请输入"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色描述</label>
+            <div class="layui-input-block">
+                <input type="text" name="desc" lay-verify="required" lay-affix="clear" autocomplete="off"
+                       placeholder="请输入"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit lay-filter="add-edit-form-submit">立即提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- 顶部工具栏 -->
+<script type="text/html" id="toolbar">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="toolbar-add">添加角色</button>
+    </div>
+</script>
+
+<!-- 右侧工具栏 -->
+<script type="text/html" id="tools">
+    <a class="layui-btn layui-btn-xs" lay-event="tool-edit">编辑</a>
+    <a class="layui-btn layui-btn-xs" lay-event="user-edit">用户管理</a>
+    <a class="layui-btn layui-btn-xs" lay-event="permission-edit">权限管理</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="tool-del">删除</a>
+</script>
+
+<script>
+    layui.use(['auth', 'table', 'jquery', 'form', 'layer', 'transfer'], function () {
+        const auth = layui.auth;
+        var table = layui.table;
+        var $ = layui.$;
+        var form = layui.form;
+        var layer = layui.layer;
+        const transfer = layui.transfer;
+
+        // 给默认的ajax请求添加权限
+        $.ajaxSetup({
+            headers: {
+                // Authorization: "Bearer " + localStorage.getItem("access_token")
+                Authorization: "Bearer " + layui.data("system").jwt_access_token
+            }
+        })
+
+        const userinfo = auth.getUserInfo()
+        console.log(userinfo)
+
+        // 渲染表格
+        table.render({
+            elem: '#main-table',
+            id: 'main-table',
+            url: '/api/v1/role',
+            toolbar: '#toolbar',
+            page: true,
+            // height: 'full-80',
+            height: 'full-15',
+            cols: [
+                [   // 标题栏
+                    {field: 'id', title: 'ID', align: 'center'},
+                    {field: 'name', title: '角色', align: 'center'},
+                    {field: 'desc', title: '描述', align: 'center'},
+                    // {field: 'permissions', title: '权限id', align: 'center'},
+                    {title: '操作', fixed: "right", miniWidth: 120, toolbar: '#tools'}
+                ]
+            ],
+
+        });
+
+        // 顶部工具栏事件
+        table.on('toolbar(main-table)', function (obj){
+            var options = obj.config;  //获取当前表格属性配置项
+
+            // 根据不同的事件名进行相应的操作
+            switch (obj.event){  // 对应模板元素中的 lay-event 属性值
+                case 'toolbar-add':
+                    $("#add-edit-form")[0].reset();  // 将ID表单清空
+                    layer.open({
+                        type: 1,
+                        title: "添加角色",
+                        shade: false,
+                        content: $("#add-edit-form"),
+                        area: 'auto'
+                    })
+                    break;
+            }
+        })
+
+        // 单元格工具事件（操作列的按钮组）
+        table.on('tool(main-table)', function (obj) {
+            if (obj.event === 'tool-edit') {  // 编辑
+                form.val('add-edit-form', obj.data);
+
+                layer.open({
+                    type: 1,
+                    title: '修改角色',
+                    // area: ['40%', '30%'],
+                    area: 'auto',
+                    content: $('#add-edit-form'),  // 捕获的元素
+                });
+
+            } else if (obj.event === 'user-edit') {
+                let users = obj.data.users
+
+                $.ajax({
+                    url: '/api/v1/user/transfer',
+                    method: 'GET',
+                    success: function (res) {
+                        // console.log(res)
+                        transfer.render({
+                            elem: '#permission-transfer',
+                            title: ['所有用户', '已有用户'],
+                            data: res,
+                            value: users,
+                            onchange: function (data, index) {
+                                // index=0 数据来自左边，添加权限
+                                // index=1 数据来自右边，移除权限
+                                const user_ids = data.map(item => item.value)
+                                const role_id = obj.data.id
+                                console.log(role_id);
+                                console.log(index)
+                                // console.log(permission_ids)
+                                console.log(`/api/v1/role/${role_id}/users`)
+                                // 为角色添加/移除权限
+                                let method = ''
+                                if (index === 0) {
+                                    method = 'PUT'
+                                } else if (index === 1) {
+                                    method = 'DELETE'
+                                }
+                                $.ajax({
+                                    url: `/api/v1/role/${role_id}/users`,
+                                    method: method,
+                                    data: JSON.stringify(user_ids),
+                                    contentType: "application/json",
+                                    success: function (res) {
+                                        layer.msg(res.msg, {
+                                            icon: 1,
+                                            time: 1000
+                                        }, function () {
+                                            layer.closeAll('page');
+                                            table.reloadData('main-table')
+                                        })
+                                    }
+                                })
+
+                            }
+                        })
+
+                        layer.open({
+                            type: 1,
+                            title: '用户管理',
+                            // area: ['40%', '30%'],
+                            area: 'auto',
+                            content: $('#permission-transfer')
+                        })
+                    }
+                })
+
+            } else if (obj.event === 'permission-edit') {
+                let permissions = obj.data.permissions
+
+                $.ajax({
+                    url: '/api/v1/permission/transfer',
+                    method: 'GET',
+                    success: function (res) {
+                        // console.log(res)
+                        transfer.render({
+                            elem: '#permission-transfer',
+                            title: ['所有权限', '已有权限'],
+                            data: res,
+                            value: permissions,
+                            onchange: function (data, index){
+                                // index=0 数据来自左边，添加权限
+                                // index=1 数据来自右边，移除权限
+                                const permission_ids = data.map(item => item.value)
+                                const role_id = obj.data.id
+                                console.log(role_id);
+                                console.log(index)
+                                console.log(permission_ids)
+                                console.log(`/api/v1/role/${role_id}/permissions`)
+                                // 为角色添加/移除权限
+                                let method = ''
+                                if (index === 0) {
+                                    method = 'PUT'
+                                }else if (index ===1) {
+                                    method = 'DELETE'
+                                }
+                                $.ajax({
+                                    url: `/api/v1/role/${role_id}/permissions`,
+                                    method: method,
+                                    data: JSON.stringify(permission_ids),
+                                    contentType: "application/json",
+                                    success: function (res){
+                                        layer.msg(res.msg, {
+                                            icon: 1,
+                                            time: 1000
+                                        }, function(){
+                                            layer.closeAll('page');
+                                            table.reloadData('main-table')
+                                        })
+                                    }
+                                })
+
+                            }
+                        })
+
+                        layer.open({
+                            type: 1,
+                            title: '权限管理',
+                            // area: ['40%', '30%'],
+                            area: 'auto',
+                            content: $('#permission-transfer')
+                        })
+                    }
+                })
+
+
+
+
+            }else if ( obj.event === 'tool-del') {  // 删除
+                layer.confirm('确认删除么？', function (index) {
+                    $.ajax({
+                        url: `/api/v1/role/${obj.data.id}`,
+                        type: "DELETE",
+                        contentType: "application/json",
+                        success: function (res){
+                            if (!res.code){
+                                layer.msg(res.msg, {
+                                    icon: 1,
+                                    time: 1000
+                                }, function(){
+                                    table.reloadData('main-table')
+                                })
+                            }
+                        }
+                    })
+                    layer.close(index);
+                });
+            }
+        });
+
+        // 弹窗表单提交事件
+        form.on('submit(add-edit-form-submit)', function (data) {
+            let field = data.field; // 获取表单字段值
+            if (field.id == 0){
+                field.id = null;
+                method = "POST";
+                url = "/api/v1/role";
+            }else{
+                method = "PUT";
+                url = `/api/v1/role/${field.id}`;
+            }
+
+            $.ajax({
+                method: method,
+                url: url,
+                data: JSON.stringify(field),
+                contentType: "application/json",
+                success: function (res){
+                    layer.msg(res.msg, {
+                        icon: 1,
+                        time: 1000
+                    }, function(){
+                        layer.closeAll('page');
+                        table.reloadData('main-table')
+                    })
+                },
+                error: function (res){
+                    layer.msg(res.msg,{
+                        icon: 2,
+                        time: 1000
+                    })
+                }
+            })
+            return false; // 阻止默认 form 跳转
+        });
+    });
+
+</script>
+{% endblock %}

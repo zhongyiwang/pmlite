@@ -36,43 +36,75 @@
 </form>
 
 <script>
-    layui.use(function () {
+    layui.use(['auth', 'form', 'layer', 'jquery'], function () {
+        const auth = layui.auth;
         let form = layui.form;
         let layer = layui.layer;
         let $ = layui.jquery;
 
         // 提交事件
         form.on('submit(login)', function (data) {
-            let field = data.field
-            $.ajax({
-                url: "/api/v1/login",
-                type: "POST",
-                data: JSON.stringify(data.field),
-                contentType: "application/json",
-                success: function (res){
-                    if (res.code ===0) {
-                        localStorage.setItem("access_token", res.access_token);
-                        localStorage.setItem("refresh_token", res.refresh_token);
-                        localStorage.setItem("user_id", res.user_id);
-                        layui.data('pmlite', {
-                            key: 'currentUserId',
-                            value: res.user_id
-                        })
-                        layer.msg(res.msg, {
-                            icon:1,
-                            time: 1000
-                        }, function (){
-                            location.href = "/";
-                        })
-                    }else{
-                        layer.msg(res.msg, {
-                            icon: 2,
-                            time: 1000
-                        })
-                    }
+            const field = data.field
 
-                },
+            // 调用认证模块的登录方法
+            auth.login(field.number, field.password, function (success, message) {
+                console.log(success, message)
+                layer.msg(message, {icon: success ? 1 : 2});
+
+                if (success) {
+                    // layui.data("system", {
+                    //     key: 'username',
+                    //     value: res.data.name
+                    // })
+                    // layui.data("system", {
+                    //     key: "permissions",
+                    //     value: res.data.permissions
+                    // })
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000)
+                }
             })
+
+
+            // $.ajax({
+            //     url: "/api/v1/login",
+            //     type: "POST",
+            //     data: JSON.stringify(data.field),
+            //     contentType: "application/json",
+            //     success: function (res){
+            //         if (res.code ===0) {
+            //             localStorage.setItem("access_token", res.access_token);
+            //             localStorage.setItem("refresh_token", res.refresh_token);
+            //             localStorage.setItem("user_id", res.user_id);
+            //             layui.data('pmlite', {
+            //                 key: 'currentUserId',
+            //                 value: res.user_id
+            //             })
+            //             layui.data("system", {
+            //                 key: 'username',
+            //                 value: res.data.name
+            //             })
+            //             layui.data("system", {
+            //                 key: "permissions",
+            //                 value: res.data.permissions
+            //             })
+            //             console.log(res.data)
+            //             layer.msg(res.msg, {
+            //                 icon:1,
+            //                 time: 1000
+            //             }, function (){
+            //                 location.href = "/";
+            //             })
+            //         }else{
+            //             layer.msg(res.msg, {
+            //                 icon: 2,
+            //                 time: 1000
+            //             })
+            //         }
+            //
+            //     },
+            // })
 
             return false; // 阻止默认 form 跳转
         })

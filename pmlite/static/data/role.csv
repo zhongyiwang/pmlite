@@ -1,0 +1,7 @@
+id,name,desc
+1,system_admin,系统管理员
+2,project_admin,项目_管理员
+3,task_admin,任务_管理员
+4,cpsj,产品设计成员
+5,zdhsj,自动化设计成员
+6,yyjs,营业技术成员

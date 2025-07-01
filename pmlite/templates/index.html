@@ -31,38 +31,40 @@
             </li>
         </ul>
     </div>
+
+    <!--?    侧边菜单-->
     <div class="layui-side layui-bg-black">
         <div class="layui-side-scroll">
           <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
-          <ul class="layui-nav layui-nav-tree" lay-filter="test">
-            <li class="layui-nav-item layui-nav-itemed project-show" style="display: none">
-              <a class="" href="javascript:;">项目管理</a>
-              <dl class="layui-nav-child">
+          <ul class="layui-nav layui-nav-tree" id="sidebarMenu" lay-filter="test">
+<!--?            <li class="layui-nav-item layui-nav-itemed project-show" style="display: none">-->
+<!--?              <a class="" href="javascript:;">项目管理</a>-->
+<!--?              <dl class="layui-nav-child">-->
 
-                <dd><a class="left-nav" menu_url="{{ url_for('project.index2') }}" menu_name="所有项目2" menu_id="109">所有项目</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('project.automation') }}" menu_name="自动化项目" menu_id="119">自动化项目</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('project.index') }}" menu_name="所有项目" menu_id="101">所有项目-旧</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('project.index', status='uncompleted') }}" menu_name="未完成项目" menu_id="102">未完成项目</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('gantt.index', from='project') }}" menu_name="项目甘特图" menu_id="103">项目甘特图</a></dd>
-              </dl>
-            </li>
-            <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">
-              <a class="" href="javascript:;">任务管理</a>
-              <dl class="layui-nav-child">
-                <dd><a class="left-nav" menu_url="{{ url_for('task.index') }}" menu_name="所有任务" menu_id="201">所有任务</a></dd>
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('project.index2') }}" menu_name="所有项目2" menu_id="109">所有项目</a></dd>-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('project.automation') }}" menu_name="自动化项目" menu_id="119">自动化项目</a></dd>-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('project.index') }}" menu_name="所有项目" menu_id="101">所有项目-旧</a></dd>-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('project.index', status='uncompleted') }}" menu_name="未完成项目" menu_id="102">未完成项目</a></dd>-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('gantt.index', from='project') }}" menu_name="项目甘特图" menu_id="103">项目甘特图</a></dd>-->
+<!--?              </dl>-->
+<!--?            </li>-->
+<!--?            <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">-->
+<!--?              <a class="" href="javascript:;">任务管理</a>-->
+<!--?              <dl class="layui-nav-child">-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('task.index') }}" menu_name="所有任务" menu_id="201">所有任务</a></dd>-->
 <!--?                <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='uncompleted') }}" menu_name="未完成任务" menu_id="202">未完成任务</a></dd>-->
-                <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='create') }}" menu_name="我创建的" menu_id="203">我创建的</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='own', c_user=1, status='uncompleted') }}" menu_name="我负责的" menu_id="204">我负责的</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('task.manHour') }}" menu_name="全部工时" menu_id="205">全部工时</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('gantt.index', from='task') }}" menu_name="任务甘特图" menu_id="206">任务甘特图</a></dd>
-              </dl>
-            </li>
-            <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">
-              <a class="" href="javascript:;">工艺方案管理</a>
-              <dl class="layui-nav-child">
-                <dd><a class="left-nav" menu_url="{{ url_for('machining_process.index') }}" menu_name="所有工艺方案" menu_id="2001">所有方案</a></dd>
-              </dl>
-            </li>
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='create') }}" menu_name="我创建的" menu_id="203">我创建的</a></dd>-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('task.index', query='own', c_user=1, status='uncompleted') }}" menu_name="我负责的" menu_id="204">我负责的</a></dd>-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('task.manHour') }}" menu_name="全部工时" menu_id="205">全部工时</a></dd>-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('gantt.index', from='task') }}" menu_name="任务甘特图" menu_id="206">任务甘特图</a></dd>-->
+<!--?              </dl>-->
+<!--?            </li>-->
+<!--?            <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">-->
+<!--?              <a class="" href="javascript:;">工艺方案管理</a>-->
+<!--?              <dl class="layui-nav-child">-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('machining_process.index') }}" menu_name="所有工艺方案" menu_id="2001">所有方案</a></dd>-->
+<!--?              </dl>-->
+<!--?            </li>-->
 <!--?            <li class="layui-nav-item layui-nav-itemed task-show" style="display: none">-->
 <!--?              <a class="" href="javascript:;">任务管理 - 新</a>-->
 <!--?              <dl class="layui-nav-child">-->
@@ -72,29 +74,14 @@
 <!--?                <dd><a class="left-nav" menu_url="{{ url_for('task.index2', directed=1) }}" menu_name="我负责的" menu_id="2204">我负责的</a></dd>-->
 <!--?              </dl>-->
 <!--?            </li>-->
-            <li class="layui-nav-item layui-nav-itemed purchase-show" style="display: none">
-              <a class="" href="javascript:;">外购品联络单</a>
-              <dl class="layui-nav-child">
-                <dd><a class="left-nav" menu_url="{{ url_for('purchase.index') }}" menu_name="台账" menu_id="301">台账</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('gantt.index') }}" menu_name="甘特图测试" menu_id="302">甘特图测试</a></dd>
-              </dl>
-            </li>
-            <li class="layui-nav-item layui-nav-itemed admin-show" style="display: none">
-              <a href="javascript:;">系统设置</a>
-              <dl class="layui-nav-child">
-                <dd><a class="left-nav" menu_url="{{ url_for('department.index') }}" menu_name="部门管理" menu_id="901">部门管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('user.index') }}" menu_name="用户管理" menu_id="902">用户管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('project.plan_version') }}" menu_name="项目计划版本管理" menu_id="9021">项目计划版本管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('project.plan_signature') }}" menu_name="项目计划签章管理" menu_id="9022">项目计划签章管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('project.node_title') }}" menu_name="项目节点管理" menu_id="9023">项目节点管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('machine.index') }}" menu_name="机型管理" menu_id="903">机型管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('system.supplier') }}" menu_name="供应商管理" menu_id="904">供应商管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('system.work_shape') }}" menu_name="工件形状管理" menu_id="9041">工件形状管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('system.customer_industry') }}" menu_name="客户行业管理" menu_id="9042">客户行业管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('system.project_type') }}" menu_name="项目类型管理" menu_id="9043">项目类型管理</a></dd>
-                <dd><a class="left-nav" menu_url="{{ url_for('system.task_type') }}" menu_name="任务类型管理" menu_id="905">任务类型管理</a></dd>
-              </dl>
-            </li>
+<!--?            <li class="layui-nav-item layui-nav-itemed purchase-show" style="display: none">-->
+<!--?              <a class="" href="javascript:;">外购品联络单</a>-->
+<!--?              <dl class="layui-nav-child">-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('purchase.index') }}" menu_name="台账" menu_id="301">台账</a></dd>-->
+<!--?                <dd><a class="left-nav" menu_url="{{ url_for('gantt.index') }}" menu_name="甘特图测试" menu_id="302">甘特图测试</a></dd>-->
+<!--?              </dl>-->
+<!--?            </li>-->
+
           </ul>
         </div>
     </div>
@@ -102,8 +89,8 @@
 
 
     <!-- 内容主体区域 -->
-<!--?        <div class="layui-tab" lay-filter="page-tab" lay-allowclose="true">-->
-        <div class="layui-tab" lay-filter="head_tabs" lay-allowclose="true">
+<!--?        <div class="layui-tab" lay-filter="head_tabs" lay-allowclose="true">-->
+        <div class="layui-tab" lay-filter="mainTabs" lay-allowclose="true">
             <ul class="layui-tab-title"></ul>
             <div class="layui-tab-content"></div>
         </div>
@@ -112,11 +99,74 @@
 
 <script>
 'use strict'
-layui.use(['element', 'layer', 'util'], function(){
-    var element = layui.element;
-    var layer = layui.layer;
-    var util = layui.util;
-    var $ = layui.$;
+layui.use(['auth', 'element', 'layer', 'util'], function(){
+    const auth = layui.auth;
+    const element = layui.element;
+    const layer = layui.layer;
+    const util = layui.util;
+    const $ = layui.$;
+
+    // 检查登录状态
+    if (!auth.isAuthenticated) {
+        layer.msg('请先登录', {icon: 2});
+        setTimeout(() => {
+            window.location.href = '/user/login';
+        }, 1500);
+        return
+    }
+
+    // 更新用户信息
+    const userInfo = auth.getUserInfo();
+    $("#user").text(userInfo.name)
+
+    // 定义菜单配置
+    const menuConfig = [
+        {
+            title: '项目管理',
+            icon: 'layui-icon-list',
+            children: [
+                {title: '项目列表', url: '{{ url_for("project.index2") }}', permission: 'project_view'},
+                {title: '自动化项目', url: '{{ url_for("project.automation") }}', permission: 'project_view'}
+            ]
+        },
+        {
+            title: '任务管理',
+            icon: 'layui-icon-list',
+            children: [
+                {title: '任务列表', url: '{{ url_for("project.index2") }}', permission: 'task_view'}
+            ]
+        },
+        {
+            title: '工艺方案管理',
+            icon: 'layui-icon-list',
+            children: [
+                {title: '方案台账', url:'{{ url_for("machining_process.index") }}', permission: 'solution_project_view'},
+                {title: '工件形状管理', url:'{{ url_for("machine.index") }}', permission: 'project_admin'},
+                {title: '客户行业管理', url:'{{ url_for("system.customer_industry") }}', permission: 'project_admin'},
+                {title: '项目类型管理', url:'{{ url_for("system.project_type") }}', permission: 'project_admin'},
+            ]
+        },
+        {
+            title: '系统设置',
+            icon: 'layui-icon-set',
+            children: [
+                {title: '用户管理', url:'{{ url_for("user.index") }}', permission: 'system_admin'},
+                {title: '部门管理', url:'{{ url_for("department.index") }}', permission: 'system_admin'},
+                {title: '角色管理', url:'{{ url_for("system.user_role") }}', permission: 'system_admin'},
+                {title: '权限管理', url:'{{ url_for("system.role_permission") }}', permission: 'system_admin'},
+                {title: '机型管理', url:'{{ url_for("machine.index") }}', permission: 'system_admin'},
+                {title: '任务类型管理', url:'{{ url_for("system.task_type") }}', permission: 'system_admin'},
+                {title: '供应商管理', url:'{{ url_for("system.supplier") }}', permission: 'system_admin'},
+
+                {title: '项目计划版本管理', url:'{{ url_for("project.plan_version") }}', permission: 'project_admin'},
+                {title: '项目计划签章管理', url:'{{ url_for("project.plan_signature") }}', permission: 'project_admin'},
+                {title: '项目节点管理', url:'{{ url_for("project.node_title") }}', permission: 'project_admin'},
+            ]
+        }
+    ];
+
+    // 渲染菜单
+    auth.renderMenu(menuConfig);
 
     // 从localStorage中获取并恢复所有标签页
     let tabs = JSON.parse(localStorage.getItem('tabs')) || [];
@@ -218,49 +268,62 @@ layui.use(['element', 'layer', 'util'], function(){
     })
 
     // 请求后端，验证是否已登录
-    $.ajax({
-        type: "GET",
-        url: "/api/v1/user/profile",
-        success: function (res){
-            if (res.code !== 0){  // 没有登录，跳转到登录页面
-                location.href = "/user/login"
-            } else{  // 已登录，显示用户姓名
-                $("#user").text(res.data.name)
+    // $.ajax({
+    //     type: "GET",
+    //     url: "/api/v1/user/profile",
+    //     success: function (res){
+    //         if (res.code !== 0){  // 没有登录，跳转到登录页面
+    //             location.href = "/user/login"
+    //         } else{  // 已登录，显示用户姓名
+    //             $("#user").text(res.data.name)
+    //
+    //             $('.project-show').show()
+    //             $('.task-show').show()
+    //             $('.quoter-show').show()
+    //             $('.admin-show').show()
+    //             $('.purchase-show').show()
+    //
+    //
+    //         }
+    //     },
+    //     error: function (error){
+    //         location.href = "/user/login"
+    //     }
+    // })
 
-                $('.project-show').show()
-                $('.task-show').show()
-                $('.quoter-show').show()
-                $('.admin-show').show()
-                $('.purchase-show').show()
+    // // if (layui.data("system").username){
+    // if (auth.isAuthenticated){
+    //     $("#user").text(auth.getUserInfo().name)
+    //     $('.project-show').show()
+    //     $('.task-show').show()
+    //     $('.quoter-show').show()
+    //     $('.admin-show').show()
+    //     $('.purchase-show').show()
+    // }
 
-
-            }
-        },
-        error: function (error){
-            location.href = "/user/login"
-        }
-    })
 
     // 退出登录
     $("#logout").click(function (){
-        $.ajax({
-            type: "POST",
-            url: "/api/v1/logout",
-            success: function (res){
-                console.log(res)
-                if (res.code === 0) {
-                    localStorage.removeItem("access_token");
-                    localStorage.removeItem("refresh_token");
-                    localStorage.removeItem("user_id");
-                    layer.msg(res.msg, {
-                        icon:1,
-                        time: 1000
-                    }, function (){
-                        location.href = "/user/login";
-                    })
-                }
-            }
-        })
+        auth.logout()
+        // $.ajax({
+        //     type: "POST",
+        //     url: "/api/v1/logout",
+        //     success: function (res){
+        //         console.log(res)
+        //         if (res.code === 0) {
+        //             localStorage.removeItem("access_token");
+        //             localStorage.removeItem("refresh_token");
+        //             localStorage.removeItem("user_id");
+        //             layui.data("system", null)
+        //             layer.msg(res.msg, {
+        //                 icon:1,
+        //                 time: 1000
+        //             }, function (){
+        //                 location.href = "/user/login";
+        //             })
+        //         }
+        //     }
+        // })
     })
 
     //头部事件

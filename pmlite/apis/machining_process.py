@@ -6,6 +6,7 @@ from flask_jwt_extended import current_user, jwt_required
 
 from pmlite.models import MachiningProcessModel, MachiningProcessStatusModel, WorkShapeModel, CustomerIndustryModel, ProjectTypeModel, UserModel
 from ..extensions import db
+from ..decorators import permission_required
 
 
 machining_process_api = Blueprint("machining_process", __name__, url_prefix="/machining_process")
@@ -25,7 +26,8 @@ def mp_view():
 
 # 获取列表，分页显示
 @machining_process_api.route('/pagination')
-@jwt_required()
+# @jwt_required()
+@permission_required('solution_project_view')
 def view_pagination():
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('limit', type=int, default=10)
@@ -70,6 +72,7 @@ def view_pagination():
 
 # 添加（工艺方案）
 @machining_process_api.post('/')
+@permission_required('solution_project_create')
 def mp_add():
     data = request.get_json()
     mp = MachiningProcessModel()
@@ -90,6 +93,7 @@ def mp_add():
 
 # 修改
 @machining_process_api.put('/<int:mp_id>')
+@permission_required('solution_project_update')
 def mp_edit(mp_id):
     data = request.get_json()
     # print(data)
@@ -111,6 +115,7 @@ def mp_edit(mp_id):
 
 # 删除
 @machining_process_api.delete('/<int:mp_id>')
+@permission_required('solution_project_delete')
 def mp_delete(mp_id):
     mp: MachiningProcessModel = db.get_or_404(MachiningProcessModel, mp_id)
     try:
