@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, request
 from flask_sqlalchemy.pagination import Pagination
-from sqlalchemy import desc, or_
+from sqlalchemy import desc, or_, func, select, text, extract
 from flask_jwt_extended import current_user, jwt_required
 
 from pmlite.models import MachiningProcessModel, MachiningProcessStatusModel, WorkShapeModel, CustomerIndustryModel, ProjectTypeModel, UserModel
@@ -178,3 +178,94 @@ def update_status(_id):
             'code': 0,
             'msg': '新增数据成功'
         }
+
+
+# 根据年份获取每个月份的方案数量
+@machining_process_api.get('/count-by-month')
+def count_by_month():
+    year = request.args.get("year", type=int)
+    if not year:
+        return {
+            'code': -1,
+            'msg': '请传入年份信息'
+        }
+
+    results = db.session.query(
+        extract('month', MachiningProcessModel.receive_date).label('month'),
+        func.count().label('count')
+    ).filter(
+        extract('year', MachiningProcessModel.receive_date) == year
+    ).group_by('month').all()
+
+    # 创建包含12个月份的列表（初始值为0）
+    monthly_counts = [0] * 12
+
+    # 填充实际数据
+    for month, count in results:
+        # 月份是1-12，列表索引是0-11
+        monthly_counts[int(month) - 1] = count
+
+    return {
+        'code': 0,
+        'msg': 'ok',
+        'year': year,
+        'data': monthly_counts
+    }
+
+
+@machining_process_api.get('/count-by-date')
+def count_by_date():
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+
+    if not start_date_str or not end_date_str:
+        return {
+            'code': -1,
+            'msg': '请传入起始、结束日期'
+        }
+
+    try:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return {
+            'code': -1,
+            'msg': '日期格式错误，使用YYYY-MM-DD格式'
+        }
+
+    projects = MachiningProcessModel.query.filter(
+        MachiningProcessModel.receive_date.between(start_date, end_date)
+    )
+
+    status = {}
+    for project in projects:
+        user_id = project.manager_id
+        if user_id not in status:
+            status[user_id] = {
+                'username': UserModel.query.get(user_id).name,
+                'total': 0,
+                'completed': 0,
+                'on_time': 0
+            }
+
+        status[user_id]['total'] += 1
+
+        if project.initial_done_date:
+            status[user_id]['completed'] += 1
+
+            span = 7
+            if project.project_type != '单机方案':
+                span = 14
+
+            if project.initial_done_date <= project.receive_date + timedelta(days=span):
+                status[user_id]['on_time'] += 1
+
+    result = list(status.values())
+    # 将结果按照方案数量排序
+    result = sorted(result, key=lambda x: x['total'], reverse=True)
+
+    return {
+        'code': 0,
+        'msg': 'ok',
+        'data': result
+    }

@@ -144,6 +144,7 @@ layui.use(['auth', 'element', 'layer', 'util'], function(){
             icon: 'layui-icon-list',
             children: [
                 {title: '方案台账', url:'{{ url_for("machining_process.index") }}', permission: 'solution_project_view'},
+                {title: '方案台账报表', url:'{{ url_for("machining_process.report") }}', permission: 'solution_project_view'},
                 {title: '工件形状管理', url:'{{ url_for("machine.index") }}', permission: 'project_admin'},
                 {title: '客户行业管理', url:'{{ url_for("system.customer_industry") }}', permission: 'project_admin'},
                 {title: '项目类型管理', url:'{{ url_for("system.project_type") }}', permission: 'project_admin'},
@@ -157,10 +158,10 @@ layui.use(['auth', 'element', 'layer', 'util'], function(){
                 {title: '部门管理', url:'{{ url_for("department.index") }}', permission: 'system_admin'},
                 {title: '角色管理', url:'{{ url_for("system.user_role") }}', permission: 'system_admin'},
                 {title: '权限管理', url:'{{ url_for("system.role_permission") }}', permission: 'system_admin'},
-                {title: '机型管理', url:'{{ url_for("machine.index") }}', permission: 'system_admin'},
                 {title: '任务类型管理', url:'{{ url_for("system.task_type") }}', permission: 'system_admin'},
                 {title: '供应商管理', url:'{{ url_for("system.supplier") }}', permission: 'system_admin'},
 
+                {title: '机型管理', url: '{{ url_for("machine.index") }}', permission: 'project_admin'},
                 {title: '项目计划版本管理', url:'{{ url_for("project.plan_version") }}', permission: 'project_admin'},
                 {title: '项目计划签章管理', url:'{{ url_for("project.plan_signature") }}', permission: 'project_admin'},
                 {title: '项目节点管理', url:'{{ url_for("project.node_title") }}', permission: 'project_admin'},

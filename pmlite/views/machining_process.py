@@ -7,3 +7,8 @@ machining_process_bp = Blueprint('machining_process', __name__, url_prefix='/mac
 @machining_process_bp.route('/')
 def index():
     return render_template("project/machining_process.html")
+
+
+@machining_process_bp.route('/report')
+def report():
+    return render_template('project/solution_project_report.html')

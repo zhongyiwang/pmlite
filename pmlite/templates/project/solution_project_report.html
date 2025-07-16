@@ -1,0 +1,292 @@
+{% extends '_base.html' %}
+{% block title %}方案项目报表{% endblock %}
+{% block body %}
+<div class="layui-fluid" style="background-color: #f2f2f2; padding: 20px">
+    <div class="layui-row layui-col-space15" style="">
+        <div class="layui-card">
+            <div class="layui-card-header">按月份统计方案数量</div>
+            <div class="layui-card-body">
+                <div class="layui-form">
+                    <div class="layui-row layui-col-space10">
+                        <div class="layui-col-xs2">
+                            <select name="year" id="year-select"></select>
+                        </div>
+                        <div class="layui-col-xs2">
+                            <button class="layui-btn" id="year-filter-btn">筛选</button>
+                        </div>
+                    </div>
+                    <div id="monthly-chart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-card">
+                <div class="layui-card-header">按负责人统计方案数量</div>
+                <div class="layui-card-body">
+                    <div class="layui-form">
+                        <div class="layui-row layui-col-space10">
+                            <div class="layui-col-xs2">
+                                <input type="text" name="start-date" id="start-date" placeholder="开始日期" class="layui-input date-input">
+                            </div>
+                            <div class="layui-col-xs2">
+                                <input type="text" name="end-date" id="end-date" placeholder="结束日期" class="layui-input date-input">
+                            </div>
+                            <div class="layui-col-xs2">
+                                <button class="layui-btn" id="date-filter-btn">筛选</button>
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div id="person-chart" style="width: 100%; height: 400px; margin-top: 20px"></div>
+                </div>
+            </div>
+
+</div>
+
+<script>
+
+    layui.use(['form', 'laydate', 'jquery'], function (){
+        const form = layui.form;
+        const laydate = layui.laydate;
+        const $ = layui.jquery;
+
+        // 渲染年份select数据
+        renderYearSelect()
+
+        // 初始化开始日期选择器
+        laydate.render({
+            elem: '#start-date',
+            format: 'yyyy-MM-dd',
+            value: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+        });
+
+        // 初始化结束日期选择器
+        laydate.render({
+            elem: '#end-date',
+            format: 'yyyy-MM-dd',
+            value: new Date()
+        });
+
+        // 默认渲染当年的月份统计图表
+        fetchMonthlyData(new Date().getFullYear())
+
+       // 默认渲染当月的负责人统计图表
+        let startDate = $('#start-date').val();
+        let endDate = $('#end-date').val();
+        fetchPersionData(startDate, endDate)
+
+        // 设置年份select选项
+        function renderYearSelect(){
+            // 获取当年年份，及去年年份
+            const currentYear = new Date().getFullYear();
+            const lastYear = currentYear -1;
+
+            // 获取select元素
+            const yearSelect = document.getElementById('year-select')
+
+            // 清空现有选项（如果有的话）
+            yearSelect.innerHTML = '';
+
+            // 创建当年年份选项
+            const currentYearOption = document.createElement('option');
+            currentYearOption.value = currentYear;
+            currentYearOption.textContent = currentYear;
+            currentYearOption.selected = true;  // 设置默认选中
+
+            // 创建去年选项
+            const lastYearOption = document.createElement('option');
+            lastYearOption.value = lastYear;
+            lastYearOption.textContent = lastYear;
+
+            // 将选项添加到select中
+            yearSelect.appendChild(currentYearOption)
+            yearSelect.appendChild(lastYearOption)
+
+            // 关键步骤：重新渲染select组件
+            form.render('select')
+        }
+
+        // 年份筛选按钮事件
+        $('#year-filter-btn').click(function (){
+            let year = $('#year-select').val()
+
+            if(!year){
+                layer.msg('请选择年份');
+                return;
+            }
+
+            fetchMonthlyData(year)
+        })
+
+        // 日期区间筛选按钮事件
+        $('#date-filter-btn').click(function () {
+            startDate = $('#start-date').val();
+            endDate = $('#end-date').val();
+
+            if(!startDate || !endDate){
+                layer.msg('请选择日期范围');
+                return;
+            }
+
+            fetchPersionData(startDate, endDate)
+
+        });
+
+        // 获取数据，并按月份渲染表格
+        function fetchMonthlyData(year){
+            $.get('/api/v1/machining_process/count-by-month', {
+                year: year
+            }, function (res){
+                if(res.code){
+                    layer.msg(res.msg);
+                    return;
+                }
+                renderMonthlyChart(res.data);
+            })
+        }
+
+        // 获取数据，并按区间日期渲染表格
+        function fetchPersionData(startDate, endDate){
+            $.get('/api/v1/machining_process/count-by-date', {
+                start_date: startDate,
+                end_date: endDate
+            }, function (res){
+                if(res.code){
+                    layer.msg(res.msg);
+                    return;
+                }
+                renderPersonChart(res.data);
+            })
+        }
+
+        // 按月份渲染图表
+        function renderMonthlyChart(data){
+            let chartDom = document.getElementById('monthly-chart');
+            let monthlyChart = echarts.init(chartDom)
+
+            let monthlyOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {},
+                xAxis: {
+                    type: 'category',
+                    data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                    axisTick: {
+                        show: false  // 不显示x轴坐标下方分割线
+                    }
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: data,
+                    type: 'bar',
+                    label: {
+                        show: true,  // 显示标签
+                    }
+                }]
+            };
+            monthlyChart.setOption(monthlyOption);
+            window.addEventListener('resize', function (){
+                monthlyChart.resize()
+            })
+        }
+
+        // 渲染按负责人统计图表
+        function renderPersonChart(data){
+            let chartDom = document.getElementById('person-chart');
+            let personChart = echarts.init(chartDom)
+
+            let usernames = [];
+            let totalData = [];
+            let completedData = [];
+            let onTimeData = [];
+
+            data.forEach(function (item){
+                usernames.push(item.username)
+                totalData.push(item.total)
+                completedData.push(item.completed)
+                onTimeData.push(item.on_time)
+            });
+
+            // 第二个柱状图的初始配置
+            var personOption = {
+                tooltip: {
+                  trigger: 'axis',
+                  axisPointer: {
+                      type: 'shadow'
+                  }
+                },
+                legend: {},
+                xAxis: {
+                    type: 'category',
+                    data: usernames,
+                    axisLabel: {
+                        interval: 0,  // 强制显示所有标签
+                        rotate: 45,  // 旋转标签角度为45°
+                    },
+                    axisTick: {
+                        show: false  // 不显示x轴坐标下方分割线
+                    }
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        name: '总项目数',
+                        data: totalData,
+                        type: 'bar',
+                        label: {
+                            show: true,  // 显示标签
+                        },
+                        itemStyle: {
+                            color: '#5470c6'
+                        },
+                        emphasis: {
+                            focus: 'series'
+                        }
+                    },
+                    {
+                        name: '完成数量',
+                        data: completedData,
+                        type: 'bar',
+                        label: {
+                            show: true,  // 显示标签
+                        },
+                        itemStyle: {
+                            color: '#91cc75'
+                        },
+                        emphasis: {
+                            focus: 'series'
+                        }
+                    },
+                    {
+                        name: '按期完成数',
+                        data: onTimeData,
+                        type: 'bar',
+                        label: {
+                            show: true,  // 显示标签
+                        },
+                        itemStyle: {
+                            color: '#fac858'
+                        },
+                        emphasis: {
+                            focus: 'series'
+                        }
+                    },
+                ]
+            };
+            personChart.setOption(personOption);
+            window.addEventListener('resize', function (){
+                personChart.resize()
+            })
+        }
+    })
+</script>
+{% endblock %}
