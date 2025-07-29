@@ -227,7 +227,7 @@
         }
     }
 
-    // 更改 自动化 列的渲染
+    // 更改 拖期 列的渲染
     function render_delay(d) {
         if (d.is_delay) {
             return '是'
@@ -236,10 +236,8 @@
         }
     }
 
-
     // 获取登录时保存的用户id
     const user_id = localStorage.getItem('user_id')
-
 
     layui.use(['pmlite', 'auth'], function () {
         var table = layui.table;
@@ -266,8 +264,6 @@
         laydate.render({
             elem: '.date-input'
         })
-
-
 
 
         // 默认获取项目的url
@@ -647,11 +643,11 @@
                                     })
                                 }
                             });
-                        form.on('select(machine-type-select)', function (data) {
-                            update[field] = data.value
-                            updateData(id,update)  // 更新服务器数据
-                            layer.closeAll()
-                        })
+                            form.on('select(machine-type-select)', function (data) {
+                                update[field] = data.value
+                                updateData(id,update)  // 更新服务器数据
+                                layer.closeAll()
+                            })
                             break;
                         case "customer-industry-dropdown":
                             // let offset = $(this).offset()

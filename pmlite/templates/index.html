@@ -122,6 +122,13 @@ layui.use(['auth', 'element', 'layer', 'util'], function(){
     // 定义菜单配置
     const menuConfig = [
         {
+            title: '首页',
+            icon: 'layui-icon-list',
+            children: [
+                {title: '我的首页', url: '{{ url_for("index.home") }}', permission: 'project_view'}
+            ]
+        },
+        {
             title: '项目管理',
             icon: 'layui-icon-list',
             children: [
@@ -181,6 +188,30 @@ layui.use(['auth', 'element', 'layer', 'util'], function(){
             id: tab.id
         })
     })
+
+    // 如果没有标签页，自动添加首页标签-20250728
+    if (tabs.length === 0) {
+        console.log('没有标签页')
+        let homeMenuId = 'tab__home';
+        let homeUrl = '{{ url_for("index.home") }}';
+        let homeContent = '<iframe style="position: absolute; width:100%; height:100%; border: none" id="contentFrame" src="' + homeUrl + '"></iframe>';
+
+        // 添加首页标签
+        element.tabAdd('mainTabs', {
+            title: '我的首页',
+            content: homeContent,
+            id: homeMenuId
+        })
+
+        // 切换到首页标签
+        element.tabChange('mainTabs', homeMenuId);
+
+        // 保存到localStorage
+        tabs.push({title: '首页', content: homeContent, id: homeMenuId})
+        localStorage.setItem('tabs', JSON.stringify(tabs))
+
+    }
+
     // 获取网址hash中的'tabid'的值，切换到对应tab标签
     let layid = location.hash.replace(new RegExp('^#tabid='), ''); // 获取 lay-id 值
     element.tabChange('head_tabs', layid);

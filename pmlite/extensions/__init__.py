@@ -3,6 +3,7 @@ from flask import Flask
 from .init_db import db, migrate
 from .init_jwt import jwt
 from .init_script import register_script
+from .email_service import EmailService
 
 
 def register_extensions(app: Flask):

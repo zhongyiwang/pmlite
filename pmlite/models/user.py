@@ -29,6 +29,8 @@ class UserModel(BaseModel):
     role_id = Column(Integer, ForeignKey("role.id"), default=1, comment='角色id')
     role = db.relationship("RoleModel", backref=db.backref("users"))
 
+    plan_nodes = db.relationship("ProjectNodeModel", back_populates="manager", cascade="all, delete-orphan")
+
     # own_tasks = db.relationship('TaskModel', secondary=user_task, back_populates='owners')
 
     def __repr__(self):

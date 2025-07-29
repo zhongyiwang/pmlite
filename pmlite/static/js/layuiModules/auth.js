@@ -299,6 +299,11 @@ layui.define(['layer', 'element'], function (exports){
                         // 保存tokens
                         TokenUtils.setTokens(res.access_token, res.refresh_token);
                         this.init();
+                        // 本地保存用户id
+                        layui.data("pmlite", {
+                            key: "currentUserId",
+                            value: res.user_id
+                        })
                         callback(true, res.msg || '登录成功');
                     } else {
                         callback(false, res.msg || '登录失败');
@@ -314,6 +319,11 @@ layui.define(['layer', 'element'], function (exports){
         // 登出方法
         logout() {
             TokenUtils.removeTokens();
+            // 删除本地用户id
+            layui.data("pmlite", {
+                key: "currentUserId",
+                remove: true
+            })
             layer.msg('已退出登录', {icon: 1});
             setTimeout(() => {
                 window.location.href = '/user/login';

@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from pmlite.extensions import db
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean, Text, Enum
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean, Text, Enum, select, func, or_, and_
 
 from ._base import BaseModel, StatusEnum, LineTypeEnum
 from .machine import MachineTypeModel
@@ -14,12 +14,12 @@ class ProjectModel(BaseModel):
     bom_number = Column(String(10), comment='BOM编码')
 
     contract = Column(String(20), comment='合同编号')
-
     workpiece = Column(String(20), comment='工件名称')
+    isAudited = Column(Boolean, default=False, comment='项目信息审核')
 
     line_type = Column(Enum(LineTypeEnum), default=LineTypeEnum.default, comment="自动线类型")
     # status = Column(Enum(StatusEnum), default=StatusEnum.pending, comment='完成状态')
-    status = Column(Enum("未开始", "进行中", "已完成"), default="未开始", comment='完成状态')
+    status = Column(Enum("待提交", "已提交", "已审核", "执行中", "已完成", "未开始", "进行中"), default="待提交", comment='完成状态')
     remark = Column(Text, comment='项目描述')
 
     is_automation = Column(Boolean, default=False, comment='自动化项目')
@@ -52,12 +52,13 @@ class ProjectModel(BaseModel):
     plan_signatures = db.relationship('ProjectPlanSignatureModel', backref='project', lazy=True, cascade='all, delete-orphan')
 
     plan_version = Column(Integer, default=1, comment='计划版本')
+    current_version = Column(Integer, default=1, comment='当前计划版本')
 
     is_close = Column(Boolean, default=False, comment='是否关闭')
 
     # 以下字段不在使用
     name = Column(String(50), comment='项目名称')
-
+    # plan_version = Column(Integer, default=1, comment='计划版本')
     designer_id = Column(Integer, ForeignKey("user.id"), comment="自动化设计")
     designer = db.relationship("UserModel", backref="d_projects", foreign_keys=[designer_id])
 
@@ -82,6 +83,7 @@ class ProjectModel(BaseModel):
             "workpiece": self.workpiece,
             "project_number": self.project_number,
             "bom_number": self.bom_number,
+            "isAudited": self.isAudited,
             "is_automation": self.is_automation,
             "line_type": self.line_type.value,
             "status": self.status,
@@ -93,7 +95,7 @@ class ProjectModel(BaseModel):
             "drawing_date3": self.drawing_date3.strftime("%Y-%m-%d") if self.drawing_date3 else "",
             "arrival_date": self.arrival_date.strftime("%Y-%m-%d") if self.arrival_date else "",
             "machine_type": self.machine_type.name if self.machine_type else "",
-            "plan_version": self.plan_version,
+            "current_version": self.current_version,
             "designer": self.designer.name if self.designer else "",
             "manager": self.manager.name if self.manager else "",
             "manager_id": self.manager_id,
@@ -103,50 +105,68 @@ class ProjectModel(BaseModel):
             "ae_designer": self.ae_designer.name if self.ae_designer else "",
             "creator": self.creator.name if self.manager else "",
             "creator_id": self.creator_id,
-            "is_released": self.is_released()
+            # "plan_version": self.plan_version,
+            "plan_version": self.get_max_version(),
+            "plan_status": self.get_plan_status()
+            # "is_released": self.is_released()
         }
 
-    def add_initial_plan(self):
-        # 获取所有的节点标题(父节点）
-        nodes = db.session.execute(
-            db.select(ProjectNodeTitleModel).where(ProjectNodeTitleModel.parent_id.is_(None))).scalars().all()
+    # 项目信息评审
+    def info_audit(self, event):
+        """
+        实例方法：项目信息的评审
+        param event:评审内容（approve=已审核， reject=待提交）
+        return 无
+        """
+        if event == 'approve':
+            self.status = '已审核'
+        elif event == "reject":
+            self.status = "待提交"
+        self.save()
 
-        for node in nodes:
-            # 保存父节点
-            node_data = {
-                "name": node.name,
-                "node_id": node.node_id,
-                "project_id": self.id
-            }
-            project_node = ProjectNodeModel()
-            project_node.update(node_data)
-            project_node.save()
-            # 保存子节点
-            if node.children:
-                current_project_node = db.session.execute(
-                    db.select(ProjectNodeModel).filter(ProjectNodeModel.project_id == self.id,
-                                                       ProjectNodeModel.node_id == node.node_id)).scalar()
-                for sub_node in node.children:
-                    sub_node_data = {
-                        "name": sub_node.name,
-                        "node_id": sub_node.node_id,
-                        "project_id": self.id
-                    }
-                    sub_project_node = ProjectNodeModel()
-                    sub_project_node.update(sub_node_data)
-                    sub_project_node.parent = current_project_node
-                    sub_project_node.save()
+    # 查询指定项目的版本信息(获取最大计划版本号)
+    def get_version_info(self, project_id):
+        """获取项目的版本状态和最大版本号"""
+        result = db.session.execute(
+            select(
+                func.count(ProjectPlanVersionModel.plan_version).label('count'),
+                func.max(ProjectPlanVersionModel.plan_version).label('max')
+            ).where(ProjectPlanVersionModel.project_id == project_id)
+        ).one()
 
-    def add_initial_plan_version(self):
-        plan_version = ProjectPlanVersionModel()
-        plan_version.project_id = self.id
-        plan_version.plan_version = self.plan_version
-        plan_version.save()
+        return {
+            "has_version": result.count > 0,
+            "max_version": result.max if result.count else None
+        }
 
-    def is_released(self):
+    def get_max_version(self, is_released=None):
+        """
+        实例方法：获取当前项目的最大版本号，支持按发布状态筛选
+        param is_released: 发布状态筛选（True=已发布，None=全部）
+        return：最大版本号（int），无符合条件的版本则返回 0
+        """
+        # 基础查询：当前项目的版本号最大值
+        query = select(func.max(ProjectPlanVersionModel.plan_version)).where(ProjectPlanVersionModel.project_id == self.id)
+
+        # 根据参数添加发布状态筛选条件
+        if is_released:
+            query = query.where(ProjectPlanVersionModel.is_released == True)
+
+        # 执行查询并返回结果
+        result = db.session.execute(query).scalar()
+        return result if result else 0
+
+    def is_released(self, version=None):
+        """
+        实例方法：查询指定计划版本是否发布
+        param plan_version： 计划版本，没有传入时为最大版本
+        return: 计划版本的发布状态。无相应计划版本时，返回False
+        """
+        if not version:
+            version = self.get_max_version()
         # 确认当前计划版本是否已发布
         q = db.select(ProjectPlanVersionModel).filter(ProjectPlanVersionModel.project_id == self.id,
-                                                      ProjectPlanVersionModel.plan_version == self.plan_version)
+                                                      ProjectPlanVersionModel.plan_version == version)
         plan_version = db.session.execute(q).scalar()
         if not plan_version:
             return False
@@ -154,6 +174,100 @@ class ProjectModel(BaseModel):
             return plan_version.is_released
         except Exception as e:
             return False
+
+    def get_plan_status(self, version=None):
+        """
+        实例方法：查询指定计划版本是否发布
+        param version： 计划版本，没有传入时为最大版本
+        return: 计划版本的发布状态。无相应计划版本时，返回False
+        """
+        if not version:
+            version = self.get_max_version()
+        plan_version = ProjectPlanVersionModel.query.filter(
+            ProjectPlanVersionModel.project_id == self.id
+        ).filter(
+            ProjectPlanVersionModel.plan_version == version
+        ).first()
+        if not plan_version:
+            return None
+        else:
+            return plan_version.status
+
+    # 创建一个新的项目计划版本
+    def initial_plan_create(self, version=1):
+        # 如果存在该版本的计划，则不允许创建
+        plan_version = ProjectPlanVersionModel.query.filter(
+            ProjectPlanVersionModel.project_id == self.id
+        ).filter(
+            ProjectPlanVersionModel.plan_version == version
+        ).first()
+
+        if plan_version:
+            return False, f'重复项目计划版本，不允许重复创建。'
+
+        try:
+            parent_nodes = ProjectNodeTitleModel.query.filter(
+                ProjectNodeTitleModel.parent_id.is_(None)
+            ).all()
+
+            # 逐个创建父节点及其子节点
+            for node in parent_nodes:
+                # 创建父节点
+                parent_node = ProjectNodeModel(
+                    name=node.name,
+                    node_id=node.node_id,
+                    project_id=self.id,
+                    version=version,
+                    manager=self.manager
+                )
+                db.session.add(parent_node)
+                db.session.flush()  # 刷新已获取id
+
+                # 创建对应的子节点
+                for child_node in node.children:
+                    child_node = ProjectNodeModel(
+                        parent_id=parent_node.id,
+                        name=child_node.name,
+                        node_id=child_node.node_id,
+                        project_id=self.id,
+                        version=version,
+                        manager=self.manager
+                    )
+                    db.session.add(child_node)
+
+            # 创建版本信息
+            plan_version = ProjectPlanVersionModel(
+                project_id=self.id,
+                plan_version=version
+            )
+            db.session.add(plan_version)
+            # 提交事务
+            db.session.commit()
+            return True, f'项目:{self.customer} 计划创建成功；计划版本：{version}'
+        except Exception as e:
+            # 事务回滚
+            db.session.rollback()
+            return False, f'项目:{self.customer} 计划创建失败;{str(e)}'
+
+    # 删除指定计划版本,删除该版本下的所有节点信息
+    def plan_delete(self, version):
+        nodes = ProjectNodeModel.query.filter(
+            ProjectNodeModel.project_id == self.id
+        ).filter(
+            ProjectNodeModel.version == version
+        ).all()
+        for node in nodes:
+            try:
+                db.session.delete(node)
+                db.session.commit()
+            except Exception as e:
+                print(e)
+
+    def add_initial_plan_version(self):
+        plan_version = ProjectPlanVersionModel()
+        plan_version.project_id = self.id
+        plan_version.plan_version = self.plan_version
+        plan_version.save()
 
     def get_nodes(self):
         pass
@@ -188,14 +302,22 @@ class ProjectNodeModel(BaseModel):
 
     delay_type = Column(Text, comment='延期类型')
     delay_reason = Column(Text, comment='延期说明')
-    owner = Column(String(10), comment='负责人')
-    is_close = Column(Boolean, default=False, comment='是否关闭')
+    # delay_days = Column(Integer, comment='拖期天数')
+
+    is_used = Column(Boolean, default=True, comment='是否使用')
+
+    manager_id = Column(Integer, ForeignKey("user.id"))
+    manager = db.relationship("UserModel", back_populates="plan_nodes")
 
     project_id = Column(Integer, ForeignKey("project.id"), nullable=False, comment="所属项目id")
 
     parent_id = Column(Integer, ForeignKey('project_node.id'), default=None, comment='阶段节点id')
     parent = db.relationship('ProjectNodeModel', back_populates='children', remote_side=[id])
     children = db.relationship('ProjectNodeModel', back_populates='parent', cascade='all, delete-orphan', lazy=True)
+
+    # 不在使用
+    owner = Column(String(10), comment='负责人')
+    is_close = Column(Boolean, default=False, comment='是否关闭')
 
     def __repr__(self):
         return "<ProjectNode %r>" % self.name
@@ -212,6 +334,19 @@ class ProjectNodeModel(BaseModel):
             self.actual_period = (self.actual_end_date - self.actual_start_date).days + 1
         else:
             self.actual_period = None
+
+    # 计算拖期天数
+    def calculate_delay_days(self):
+        if self.planned_end_date:
+            if self.actual_end_date:
+                # self.delay_days = (self.actual_end_date - self.planned_end_date).days
+                return (self.actual_end_date - self.planned_end_date).days
+            else:
+                # self.delay_days = (datetime.now() - self.planned_end_date).days
+                today = date.today()
+                return (today - self.planned_end_date.date()).days if today >= self.planned_end_date.date() else ""
+        else:
+            return ""
 
     # 更新父任务
     def update_parent_node(self):
@@ -250,6 +385,61 @@ class ProjectNodeModel(BaseModel):
 
             db.session.commit()
 
+    # 获取即将拖期的项目（3天）
+    @classmethod
+    def get_expected_delay(cls, user_id=None):
+        """
+        查询满足以下条件的节点
+        1. 不是父节点
+        2. 有计划结束日期
+        3. 无实际结束日期
+        4. 实际结束日期在今后3天内（包括今天）
+        """
+        # 获取当天日期
+        today = datetime.today().date()
+        # 计算3天后的日期
+        three_days_later = today + timedelta(days=3)
+
+        # 构建查询
+        query = cls.query.filter(
+            cls.parent_id != None,
+            cls.planned_start_date != None,
+            cls.planned_end_date != None
+        ).filter(or_(
+            and_(
+                cls.actual_start_date == None,
+                cls.planned_start_date <= three_days_later
+            ),
+            and_(
+                cls.actual_end_date == None,
+                cls.planned_end_date <= three_days_later
+            )
+        )
+
+        )
+        if user_id:
+            query = query.filter(
+                cls.manager_id == user_id
+            )
+        nodes = query.all()
+
+        result = []
+        for node in nodes:
+            node_data = {
+                'project': node.project.customer,
+                'manager_id': node.manager_id if node.manager_id else "",
+                'manager': node.manager.name if node.manager else "",
+                'node_id': node.id,
+                'node_name': node.name,
+                'planned_start_date': node.planned_start_date.strftime("%Y-%m-%d") if node.planned_start_date else "",
+                'planned_end_date': node.planned_end_date.strftime("%Y-%m-%d") if node.planned_end_date else "",
+                'actual_start_date': node.actual_start_date.strftime("%Y-%m-%d") if node.actual_start_date else "",
+                'days': (node.planned_end_date.date() - today).days
+            }
+            result.append(node_data)
+        return result
+
+
     def json(self):
         return {
             "id": self.id,
@@ -265,8 +455,10 @@ class ProjectNodeModel(BaseModel):
             "remark": self.remark,
             "delay_type": self.delay_type,
             "delay_reason": self.delay_reason,
+            "delay_days": self.calculate_delay_days(),
             "owner": self.owner,
-            "is_close": self.is_close,
+            "manager": self.manager.name if self.manager else "",
+            "is_used": self.is_used,
             "parent_id": self.parent_id
         }
 
@@ -329,9 +521,10 @@ class ProjectPlanVersionModel(BaseModel):
     project_id = Column(Integer, ForeignKey("project.id"), nullable=False, comment="所属项目id")
     # project = db.relationship('ProjectModel', backref='plan_versions')
     plan_version = Column(Integer, default=1, comment='计划版本')
-    status = Column(String(10), default="编辑中", comment='发布状态')
+    status = Column(String(10), default="待提交", comment='发布状态')
     is_released = Column(Boolean, default=False, comment='已发布')
     release_date = Column(DateTime, comment="发布日期")
+    create_at = Column(DateTime, default=datetime.now, comment="创建日期")
 
     def __repr__(self):
         return "<ProjectPlanVersion %r>" % self.project
@@ -345,4 +538,5 @@ class ProjectPlanVersionModel(BaseModel):
             "status": self.status,
             "is_released": self.is_released,
             "release_date": self.release_date.strftime("%Y-%m-%d") if self.release_date else "",
+            "create_at": self.create_at.strftime("%Y-%m-%d") if self.create_at else "",
         }

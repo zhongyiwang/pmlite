@@ -1,0 +1,201 @@
+{% extends '_base.html' %}
+{% block title %}首页{% endblock %}
+{% block body %}
+<div class="layui-fluid" style="background-color: #f2f2f2; padding: 20px">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md6">
+            <div class="layui-card">
+                <div class="layui-card-header">拖期&临期（3天内）项目</div>
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="expected-delay"></table>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md6">
+            <div class="layui-card">
+                <div class="layui-card-header"></div>
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="already-delayed"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 拖期&临期表：顶部工具栏 -->
+<script type="text/html" id="toolbar-expected-delay">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="expected-delay-all">所有项目</button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="expected-delay-mine">我的项目</button>
+    </div>
+</script>
+
+
+<script>
+    layui.use(function (){
+        const table = layui.table;
+        const $ = layui.$;
+        const layer = layui.layer;
+        const util = layui.util;
+
+        // 给默认的ajax请求添加权限
+        $.ajaxSetup({
+            headers: {
+                Authorization: "Bearer " + layui.data("system").jwt_access_token
+            }
+        })
+
+        // 处理日期：只保留年月日
+        function getDateWithoutTime(date) {
+            const newDate = new Date(date)
+            newDate.setHours(0,0,0,0)
+            return newDate
+        }
+
+        const today = getDateWithoutTime(new Date())
+        const threeDaysLater = getDateWithoutTime(new Date())
+        threeDaysLater.setDate(today.getDate() + 3)
+
+        // 【计划开始】列渲染
+        function render_plan_start(d){
+            if(d.actual_start_date){
+                return '<span>' + d.planned_start_date + '</span>'
+            }
+            const plannedStartDate = getDateWithoutTime(d.planned_start_date)
+            if(plannedStartDate <= today) {
+                return '<span class="layui-badge">' + d.planned_start_date + '</span>'
+            } else if(plannedStartDate > today && plannedStartDate <= threeDaysLater) {
+                return '<span class="layui-badge layui-bg-orange">' + d.planned_start_date + '</span>'
+            } else {
+                return '<span>' + d.planned_start_date + '</span>'
+            }
+        }
+
+        // 【计划结束】列渲染
+        function render_plan_end(d) {
+            const plannedEndDate = getDateWithoutTime(d.planned_end_date)
+            if (plannedEndDate <= today) {
+                return '<span class="layui-badge">' + d.planned_end_date + '</span>'
+            } else if (plannedEndDate > today && plannedEndDate <= threeDaysLater) {
+                return '<span class="layui-badge layui-bg-orange">' + d.planned_end_date + '</span>'
+            } else {
+                return '<span>' + d.planned_end_date + '</span>'
+            }
+        }
+
+        // 【剩余天数】列渲染
+        function render_delay(d) {
+            if (d.days <= 0) {
+                return '<span class="layui-badge">' + d.days + '</span>'
+            } else {
+                return '<span class="layui-badge layui-bg-orange">' + d.days + '</span>'
+            }
+        }
+
+        // 渲染即将拖期节点表格
+        table.render({
+            elem: '#expected-delay',
+            id: "expected-delay-table",
+            url: "/api/v1/project/node/expected_delay",
+            toolbar: "#toolbar-expected-delay",
+            // url: "/api/v1/project/node/expected_delay?user_id=1",
+            height: 300,
+            cols: [[
+                {field: 'node_id', title: 'ID', align:'center', hide: true},
+                {field: 'project', title: '所属项目', align:'center'},
+                {field: 'node_name', title: '节点名称', align:'center'},
+                {field: 'manager', title: '负责人', align:'center'},
+                {field: 'planned_start_date', title: '计划开始', align:'center', sort:true, templet: render_plan_start},
+                {field: 'planned_end_date', title: '计划结束', align:'center', sort:true, templet: render_plan_end},
+                {field: 'actual_start_date', title: '实际开始', align:'center'},
+                // {field: 'days', title: '剩余天数', align:'center', templet: render_delay}
+            ]],
+            done: function (res) {
+                console.log(res)
+            }
+        })
+
+        // 拖期&临期表：顶部工具栏事件
+        table.on('toolbar(expected-delay-table)', function (obj) {
+            switch (obj.event) {
+                case 'expected-delay-all':
+                    table.reload('expected-delay-table', {
+                        url: "/api/v1/project/node/expected_delay"
+                    })
+                    break;
+                case 'expected-delay-mine':
+                    const user_id = layui.data('pmlite').currentUserId
+                    table.reload('expected-delay-table', {
+                        url: `/api/v1/project/node/expected_delay?user_id=${user_id}}`
+                    })
+            }
+        })
+
+        // 双击行操作：确认结束
+        table.on('rowDouble(expected-delay-table)', function (obj) {
+            console.log(obj.data)
+            const user_id = layui.data('pmlite').currentUserId
+            if (user_id != obj.data.manager_id) {
+                layer.msg('只能操作自己负责的项目。')
+                return
+            }
+            layer.confirm ('确认开始或结束计划节点？', {
+                btn: ['确认开始', '确认结束']
+            }, function(){
+                if(obj.data.actual_start_date){
+                    layer.msg('该节点已经开始。。。')
+                    return
+                }
+                let update = {}
+                update.update = {}
+                update.field = 'actual_start_date'
+                const todayStr = util.toDateString(Date.now(), 'yyyy-MM-dd')
+                update.update.actual_start_date = todayStr
+                updateNodeData(obj.data.node_id, update)
+            }, function(){
+                if (!obj.data.actual_start_date) {
+                    layer.msg("该节点还未开始。。。")
+                    return
+                }
+                let update = {}
+                update.update = {}
+                update.field = 'actual_end_date'
+                const todayStr = util.toDateString(Date.now(), 'yyyy-MM-dd')
+                update.update.actual_end_date = todayStr
+                updateNodeData(obj.data.node_id, update)
+            })
+        })
+
+        // 修改数据库数据（根据id和更新的字段）
+        const updateNodeData = function (id, update) {
+                    url = '/api/v1/project/node/' + id;
+
+                    $.ajax({
+                        method: "PUT",
+                        url: url,
+                        data: JSON.stringify(update),
+                        contentType: "application/json",
+                        //datatype: "json",
+                        success: function (res) {
+                            layer.msg(res.msg, {
+                                icon: 1,
+                                time: 1000
+                            }, function () {
+                                // layer.closeAll('page');
+                                table.reloadData('expected-delay-table', {
+                                    scrollPos: 'fixed'
+                                })
+                            })
+                        },
+                        error: function (res) {
+                            layer.msg(res.msg, {
+                                icon: 2,
+                                time: 1000
+                            })
+                        }
+                    })
+                };
+    })
+</script>
+
+{% endblock %}

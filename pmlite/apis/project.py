@@ -1,24 +1,41 @@
 import datetime
 
-from flask import Blueprint, request
-from sqlalchemy import desc, or_
+from flask import Blueprint, request, jsonify
+from sqlalchemy import desc, or_, func, select
 from flask_sqlalchemy.pagination import Pagination
 from flask_jwt_extended import current_user, jwt_required, get_jwt_identity
 
 from ..models import ProjectModel, ProjectNodeModel, ProjectNodeTitleModel, TaskModel, ManHourModel, ProjectPlanVersionModel, ProjectPlanSignatureModel
 from ..extensions import db
 from ..decorators import permission_required
+from ..extensions import EmailService
 
 
 project_api = Blueprint("project", __name__, url_prefix="/project")
 
 
+@project_api.get('/email_test')
+def email_test():
+    result = EmailService.send_email(
+        subject='测试邮件',
+        recipients=['wangzhongyi@lnmazak.com.cn'],
+        html='<h1>测试邮件</h1>'
+    )
+
+    print(result)
+    return {
+        'msg': 'ok'
+    }
+
+
+
 # 获取项目列表，以分页的形式显示
 @project_api.route('/')
-@jwt_required()
-def project_view():
-    print(get_jwt_identity())
-    print(current_user)
+# @jwt_required()
+@permission_required('project_view')
+def project_view_treetable():
+    # print(get_jwt_identity())
+    # print(current_user)
     # 分页查询字符串
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('limit', type=int, default=30)
@@ -45,7 +62,7 @@ def project_view():
 
     pages: Pagination = db.paginate(q, page=page, per_page=per_page)
 
-    print(pages.items)
+    # print(pages.items)
     return {
         'code': 0,
         'msg': '信息查询成功',
@@ -53,27 +70,126 @@ def project_view():
         'data': [item.json() for item in pages.items]
     }
 
+
+# 项目：新建
+@project_api.post('/')
+@permission_required('project_create')
+def project_create():
+    data = request.get_json()
+    project = ProjectModel()
+    project.update(data)
+    project.creator = current_user  # 绑定创建者
+    try:
+        project.save()
+        # project.add_initial_plan()  # 创建初版的项目计划
+        # project.add_initial_plan_version()  # 创建1个项目计划版本
+    except Exception as e:
+        print(e)
+        return {
+            'code': -1,
+            'msg': '新增数据失败'
+        }
+    return {
+        'code': 0,
+        'msg': '新增数据成功'
+    }
+
+
+# 项目：修改
+@project_api.put('/<int:pid>')
+@permission_required('project_update')
+def project_edit(pid):
+    data = request.get_json()
+    project = db.get_or_404(ProjectModel, pid)
+    project.update(data)
+    try:
+        project.save()
+    except Exception as e:
+        return {
+            'code': -1,
+            'msg': '修改数据失败'
+        }
+    return {
+        'code': 0,
+        'msg': '修改数据成功'
+    }
+
+
+# 项目：删除
+@project_api.delete('/<int:pid>')
+@permission_required('project_delete')
+def project_delete(pid):
+    """
+    只能删除项目经理为自己的项目
+    项目管理员可以删掉所有项目
+    """
+    print(pid)
+    project = db.get_or_404(ProjectModel, pid)
+    print(project. creator)
+    if project.manager == current_user or 'project_admin' in [p.name for p in current_user.role.permissions]:
+        try:
+            db.session.delete(project)
+            # user.is_del = True
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            return {
+                'code': -1,
+                'msg': '删除数据失败'
+            }
+        return {
+            'code': 0,
+            'msg': '删除数据成功'
+        }
+    else:
+        return{
+            'code': -1,
+            'msg': '只能删除自己创建的项目'
+        }
+
+
+# 项目：信息评审
+@project_api.post('/info_audit/<int:project_id>')
+@permission_required('project_admin')
+def project_info_audit(project_id):
+    data = request.get_json()
+    print(data['event'])
+    project = db.get_or_404(ProjectModel, project_id)
+    try:
+        project.info_audit(data['event'])  # 评审操作
+        # if data["event"] == "approve":  # 评审通过，创建计划
+        #     project.plan_create()
+    except Exception as e:
+        print(e)
+        return {
+            'code': -1,
+            'msg': '操作失败'
+        }
+    return {
+        'code': 0,
+        'msg': '操作成功'
+    }
 
 # 获取项目列表，分页显示(弃用）
-@project_api.route('/pagination')
-def project_view_pagination():
-    status = request.args.get('status')
-    page = request.args.get('page', type=int, default=1)
-    per_page = request.args.get('limit', type=int, default=30)
-
-    if status == "uncompleted":
-        q = db.select(ProjectModel).where(ProjectModel.status != "已完成")
-    else:
-        q = db.select(ProjectModel)
-
-    pages: Pagination = db.paginate(q, page=page, per_page=per_page)
-
-    return {
-        'code': 0,
-        'msg': '信息查询成功',
-        'count': pages.total,
-        'data': [item.json() for item in pages.items]
-    }
+# @project_api.route('/pagination')
+# def project_view_pagination():
+#     status = request.args.get('status')
+#     page = request.args.get('page', type=int, default=1)
+#     per_page = request.args.get('limit', type=int, default=30)
+#
+#     if status == "uncompleted":
+#         q = db.select(ProjectModel).where(ProjectModel.status != "已完成")
+#     else:
+#         q = db.select(ProjectModel)
+#
+#     pages: Pagination = db.paginate(q, page=page, per_page=per_page)
+#
+#     return {
+#         'code': 0,
+#         'msg': '信息查询成功',
+#         'count': pages.total,
+#         'data': [item.json() for item in pages.items]
+#     }
 
 
 # 获取自动化项目列表，以分页的形式显示
@@ -176,77 +292,6 @@ def project_tasks(pid):
     }
 
 
-# 创建新项目，同时创建项目计划
-@project_api.post('/')
-# @jwt_required()
-@permission_required('create_project')
-def project_add():
-    data = request.get_json()
-    project = ProjectModel()
-    project.update(data)
-    project.creator = current_user
-    try:
-        project.save()
-        project.add_initial_plan()  # 创建初版的项目计划
-        project.add_initial_plan_version()  # 创建1个项目计划版本
-    except Exception as e:
-        print(e)
-        return {
-            'code': -1,
-            'msg': '新增数据失败'
-        }
-    return {
-        'code': 0,
-        'msg': '新增数据成功'
-    }
-
-
-# 修改
-@project_api.put('/<int:pid>')
-def project_edit(pid):
-    data = request.get_json()
-    project = db.get_or_404(ProjectModel, pid)
-    project.update(data)
-    try:
-        project.save()
-    except Exception as e:
-        return {
-            'code': -1,
-            'msg': '修改数据失败'
-        }
-    return {
-        'code': 0,
-        'msg': '修改数据成功'
-    }
-
-
-# 删除
-@project_api.delete('/<int:pid>')
-@jwt_required()
-def project_delete(pid):
-    print(pid)
-    project = db.get_or_404(ProjectModel, pid)
-    print(project. creator)
-    if project.creator == current_user:
-        try:
-            db.session.delete(project)
-            # user.is_del = True
-            db.session.commit()
-        except Exception as e:
-            print(e)
-            return {
-                'code': -1,
-                'msg': '删除数据失败'
-            }
-        return {
-            'code': 0,
-            'msg': '删除数据成功'
-        }
-    else:
-        return{
-            'code': -1,
-            'msg': '只能删除自己创建的项目'
-        }
 
 
 # 添加项目节点
@@ -355,38 +400,72 @@ def project_plan_add(project_id):
         '版本': current_version
     }
 
-    # user: UserModel = db.get_or_404(UserModel, uid)
-'''    
-    # 获取所有的节点项目(父节点）
-    nodes = db.session.execute(db.select(ProjectNodeTitleModel).where(ProjectNodeTitleModel.parent_id.is_(None))).scalars().all()
 
+# 项目计划: 查看(根据 项目id和项目版本)
+@project_api.get('/<int:project_id>/plan/<int:plan_version>')
+def plan_view(project_id, plan_version):
+    # 如果没有版本传入，默认返回最新的项目计划
+    # version = request.args.get('version')
+    project: ProjectModel = db.get_or_404(ProjectModel, project_id)
+    # current_plan_version = project.current_version
+    # max_version = project.get_max_version()
+
+    # 没有传递版本号时，默认显示当前（最新）版本
+    # if not version and max_version:
+    #     version = max_version
+
+    # 构建查询，该项目id下的所有父节点(过滤版本信息)
+    q = db.select(ProjectNodeModel).filter(
+        ProjectNodeModel.project_id == project_id,
+        ProjectNodeModel.version == plan_version,
+        ProjectNodeModel.parent_id.is_(None))
+    nodes = db.session.execute(q).scalars().all()
+    ret = []
+    # 遍历父节点，添加每个父节点下的子节点
     for node in nodes:
-        # 保存父节点
-        node_data = {
-            "name": node.name,
-            "node_id": node.node_id,
-            "project_id": project_id
-        }
-        project_node = ProjectNodeModel()
-        project_node.update(node_data)
-        project_node.save()
-
-        # 保存子节点
+        node_data = node.json()
+        node_data["children"] = []
         if node.children:
-            current_project_node = db.session.execute(
-                db.select(ProjectNodeModel).filter(ProjectNodeModel.project_id == project_id,
-                                                   ProjectNodeModel.node_id == node.node_id)).scalar()
-            for sub_node in node.children:
-                sub_node_data = {
-                    "name": sub_node.name,
-                    "node_id": sub_node.node_id,
-                    "project_id": project_id
-                }
-                sub_project_node = ProjectNodeModel()
-                sub_project_node.update(sub_node_data)
-                sub_project_node.parent = current_project_node
-                sub_project_node.save()
-'''
+            node_data["isParent"] = True
+        for sub_node in node.children:
+            sub_node_data = sub_node.json()
+
+            if not sub_node.is_used:
+                sub_node_data['manager'] = "— —"
+                sub_node_data['planned_start_date'] = "— —"
+                sub_node_data['planned_end_date'] = "— —"
+                sub_node_data['planned_period'] = "— —"
+                sub_node_data['actual_start_date'] = "— —"
+                sub_node_data['actual_end_date'] = "— —"
+            node_data["children"].append(sub_node_data)
+        ret.append(node_data)
+    return {
+        "code": 0,
+        "count": len(ret),
+        "message": "数据请求成功！",
+        "data": ret,
+        "plan_version": plan_version,
+        "plan_status": project.get_plan_status()
+    }
+
+
+# 项目计划：创建初始版本
+@project_api.post('/<int:project_id>/initial_plan_create')
+def plan_create(project_id):
+    project: ProjectModel = db.get_or_404(ProjectModel, project_id)
+
+    success, message = project.initial_plan_create()
+    print(success, message)
+
+    code = 0 if success else -1
+
+    return {
+        "code": code,
+        "msg": message,
+        "plan_version": project.plan_version,
+        "plan_status": project.get_plan_status()
+    }
+
 
 
 # 根据项目id查询该项目下的计划的节点信息
@@ -427,9 +506,9 @@ def project_node_detail(project_id):
 def project_node_edit(project_node_id):
     data = request.get_json()
     field = data['field']
-    value = data['value']
+    #value = data['value']
     update = data['update']
-    print(field, value, update)
+    # print(field, value, update)
 
     project_node = db.get_or_404(ProjectNodeModel, project_node_id)
     project_node.update(update)
@@ -451,6 +530,64 @@ def project_node_edit(project_node_id):
         'msg': '修改数据成功'
     }
 
+
+# 设置节点的【有/无】信息
+@project_api.post('/node/set-use')
+def set_node_use():
+    data = request.get_json()
+    # 参数验证
+    if not data or 'ids' not in data:
+        return {
+            'code': -1,
+            'msg': '参数错误，无ids参数'
+        }
+    ids = data['ids']
+    is_used = data['is_used']
+    if not isinstance(ids, list) or len(ids) == 0:
+        return {
+            'code': -1,
+            'msg': 'idf必须是包含至少1个id的数组'
+        }
+    nodes = ProjectNodeModel.query.filter(ProjectNodeModel.id.in_(ids)).all()
+    if not nodes:
+        return {
+            'code': -1,
+            'msg': '没有找到节点'
+        }
+    for node in nodes:
+        node.is_used = is_used
+        # 设置节点【无】时，清空当前节点的日期，并更新父节点信息
+        if not is_used:
+            node.planned_start_date = None
+            node.planned_end_date = None
+            node.actual_start_date = None
+            node.actual_end_date = None
+            node.calculate_period()
+            node.update_parent_node()
+
+        else:  # 子节点设置【有】是，父节点页设置为【有】
+            node.parent.is_used = True
+        node.save()
+
+    return {
+        'code': 0,
+        'msg': '操作成功'
+    }
+
+
+# 项目节点：即将拖期（3天）
+@project_api.get('/node/expected_delay')
+def node_expected_delay():
+    user_id = request.args.get('user_id')
+    nodes = ProjectNodeModel.get_expected_delay(user_id)
+    nodes.sort(key=lambda x: x['days'])
+    print(nodes)
+    return{
+        'code': 0,
+        'count': len(nodes),
+        "message": "数据请求成功！",
+        "data": nodes
+    }
 
 # 项目节点标题
 # 获取项目节点标题，已树状表格显示
@@ -544,12 +681,18 @@ def node_title_delete(nt_id):
     }
 
 
-# 项目计划版本列表
+# 项目计划版本：查看（列表）
 @project_api.get('/plan_version')
-def project_plan_version_view():
+def plan_version_view():
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('limit', type=int, default=20)
-    q = db.select(ProjectPlanVersionModel)
+    q = db.select(ProjectPlanVersionModel)\
+        .order_by(
+            desc(ProjectPlanVersionModel.project_id),
+            desc(ProjectPlanVersionModel.create_at)
+        )
+
+        # .order_by(desc(ProjectPlanVersionModel.create_at))
 
     pages: Pagination = db.paginate(q, page=page, per_page=per_page)
     ret = []
@@ -578,20 +721,25 @@ def project_plan_version_view():
     }
 
 
-# 项目计划版本修改
-@project_api.put('/plan_version/<int:pv_id>')
-def plan_version_edit(pv_id):
-    print('aaa')
+# 项目计划版本：修改（发布/取消发布） 弃用
+@project_api.put('/plan_version/<int:plan_version_id>')
+def plan_version_update(plan_version_id):
     data = request.get_json()
-    print(data)
-    plan_version = db.get_or_404(ProjectPlanVersionModel, pv_id)
+    plan_version = db.get_or_404(ProjectPlanVersionModel, plan_version_id)
+    project = db.get_or_404(ProjectModel, plan_version.project_id)
     plan_version.update(data)
-    if data["is_released"]:
+    if data["status"] == "已发布":
         plan_version.release_date = datetime.datetime.now()
+        project.status = "执行中"
+        # if project.get_max_version(is_released=True) and plan_version.plan_version > project.get_max_version(is_released=True):
+        #     project.current_version = plan_version.plan_version
     else:
         plan_version.release_date = None
+        project.status = "已审核"
+        # project.current_version = project.get_max_version(is_released=True)
     try:
         plan_version.save()
+        project.save()
     except Exception as e:
         return {
             'code': -1,
@@ -601,6 +749,78 @@ def plan_version_edit(pv_id):
         'code': 0,
         'msg': '修改数据成功'
     }
+
+
+# 项目计划版本： 更改状态（根据 项目id， 计划版本）
+@project_api.put('/plan_version/status_update')
+def plan_version_status_update():
+    data = request.get_json()
+    project_id = data['project_id']
+    plan_version = data['plan_version']
+    status = data['status']
+    project = db.get_or_404(ProjectModel, project_id)
+
+    if not project_id or not plan_version :
+        return {
+            'code': -1,
+            'msg': '无项目id或计划版本。'
+        }
+    plan_version = ProjectPlanVersionModel.query.filter(
+        ProjectPlanVersionModel.project_id == project_id,
+        ProjectPlanVersionModel.plan_version == plan_version
+    ).first()
+    if not plan_version:
+        return {
+            'code': -1,
+            'msg': "操作失败，请联系管理员。"
+        }
+    if status == "已发布":
+        plan_version.release_date = datetime.datetime.now()
+        project.status = "执行中"
+    else:
+        plan_version.release_date = None
+        project.status = "已审核"
+    try:
+        plan_version.status = status
+        plan_version.save()
+        project.save()
+    except Exception as e:
+        return {
+            'code': -1,
+            'msg': "操作失败，请联系管理员。"
+        }
+    return {
+        'code': 0,
+        'msg': '操作成功'
+    }
+
+
+# 项目计划版本：删除
+@project_api.delete('/plan_version/<int:plan_version_id>')
+def plan_version_delete(plan_version_id):
+    plan_version = db.get_or_404(ProjectPlanVersionModel, plan_version_id)
+    project =  db.get_or_404(ProjectModel, plan_version.project_id)
+    if plan_version is None:
+        return {
+            'code': -1,
+            'msg': '未找到数据。'
+        }
+    try:
+        db.session.delete(plan_version)  # 删除条目
+        db.session.commit()
+        project.plan_delete(plan_version.plan_version)  # 删除该项目、该版本的计划节点
+    except Exception as e:
+        return {
+            'code': -1,
+            'msg': '删除数据失败'
+        }
+    return {
+        'code': 0,
+        'msg': '删除数据成功'
+    }
+
+
+
 
 
 # 项目计划签章
