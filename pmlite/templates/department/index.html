@@ -82,7 +82,8 @@
             id: 'department-table',
             url: '/api/v1/department/treetable',
             toolbar: '#toolbar',
-            height: 'full-80',
+            // height: 'full-80',
+            height: 'full-15',
             cols: [
                 [   // 标题栏
                     {field: 'id', title: 'ID', width: 100, sort: true},
@@ -94,7 +95,8 @@
             page: true,
             tree:{
                 view:{
-                    expandAllDefault: true
+                    expandAllDefault: true,
+                    showIcon: false
                 }
             }
         });
@@ -108,9 +110,10 @@
                 async: false,
                 success: function (res){
                     // console.log(res)
-                    let content = '<option value=0>请选择上级部门</option>'
+                    let content = '<option value="">请选择上级部门</option>'
                     $.each(res.data, function (i, val){
-                        if (val.parent_id == 0){
+                        // if (val.parent_id == 0){
+                        if (val.parent_id === null){
                             if (obj && val.id === obj.data.parent_id){
                                 content += '<option value="' + val.id + '" selected>' + val.name + '</option>'
                             } else {
@@ -184,6 +187,7 @@
         // 弹窗表单提交事件
         form.on('submit(department-form-submit)', function (data) {
             let field = data.field; // 获取表单字段值
+            console.log(field)
             if (field.id == 0){
                 field.id = null;
                 method = "POST";

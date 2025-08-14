@@ -1,5 +1,8 @@
 import os
 from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # 设置session过期时间，不设置的话，默认为31天。
@@ -18,6 +21,13 @@ class BaseConfig:
     # JWT_TOKEN_LOCATION = ["headers"]
     # JWT访问令牌的有效期
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7)
+
+    MAIL_SERVER = 'smtp.163.com'
+    MAIL_PORT = 465
+    MAIL_USE_SSL = True
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD_DEV')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
 
 
 class DevelopmentConfig(BaseConfig):

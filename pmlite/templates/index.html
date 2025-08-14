@@ -125,7 +125,7 @@ layui.use(['auth', 'element', 'layer', 'util'], function(){
             title: '首页',
             icon: 'layui-icon-list',
             children: [
-                {title: '我的首页', url: '{{ url_for("index.home") }}', permission: 'project_view'}
+                {title: '首页', url: '{{ url_for("index.home") }}', permission: 'project_view'}
             ]
         },
         {
@@ -198,7 +198,7 @@ layui.use(['auth', 'element', 'layer', 'util'], function(){
 
         // 添加首页标签
         element.tabAdd('mainTabs', {
-            title: '我的首页',
+            title: '首页',
             content: homeContent,
             id: homeMenuId
         })

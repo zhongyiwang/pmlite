@@ -51,14 +51,14 @@
             height: 'full-15',
             cols: [function (){
                 let arr = [   // 标题栏
-                    {field: 'id', title: 'ID', minWidth: 30, sort: true, align: 'center', width: 80, hide: true},
-                    {field: 'project', title: '项目', minWidth: 80, sort: true, align: 'center', width: 300},
-                    {field: 'plan_version', title: '计划版本', minWidth: 80, align: 'center', width: 100},
-                    {field: 'status', title: '状态', minWidth: 120, align: 'center', width: 150, templet: render_status},
-                    {field: 'create_at', title: '创建日期', minWidth: 120, align: 'center', width: 200},
-                    {field: 'release_date', title: '发布日期', minWidth: 120, align: 'center', width: 200},
-                    {field: 'signed_users', title: '签章人员', minWidth: 120, align: 'center', width: 400},
-                    {title: '操作', fixed: "right", toolbar: '#tools'}
+                    {field: 'id', title: 'ID', minWidth: 30, sort: true, align: 'center', hide: true},
+                    {field: 'project', title: '项目', minWidth: 80, sort: true, align: 'center'},
+                    {field: 'plan_version', title: '计划版本', minWidth: 80, align: 'center'},
+                    {field: 'status', title: '状态', minWidth: 120, align: 'center', templet: render_status},
+                    {field: 'create_at', title: '创建日期', minWidth: 120, align: 'center'},
+                    {field: 'release_date', title: '发布日期', minWidth: 120, align: 'center'},
+                    {field: 'signed_users', title: '签章人员', minWidth: 120, align: 'center'},
+                    {title: '操作', fixed: "right", toolbar: '#tools', minWidth: 200}
                 ];
                 // 初始化筛选状态
                 let local = layui.data('planVersionTable-filter');

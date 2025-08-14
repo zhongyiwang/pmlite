@@ -425,8 +425,18 @@ class ProjectNodeModel(BaseModel):
 
         result = []
         for node in nodes:
+            # 获取该节点所属的项目计划版本，只有状态为【已发布】的节点才将数据返回
+            stmt = ProjectPlanVersionModel.query.filter(
+                ProjectPlanVersionModel.project_id == node.project_id,
+                ProjectPlanVersionModel.plan_version == node.version
+            )
+            plan_version = db.session.execute(stmt).first()
+            if not plan_version or plan_version[0].status != '已发布':
+                continue
+
             node_data = {
                 'project': node.project.customer,
+                'project_number': node.project.project_number,
                 'manager_id': node.manager_id if node.manager_id else "",
                 'manager': node.manager.name if node.manager else "",
                 'node_id': node.id,
@@ -527,7 +537,7 @@ class ProjectPlanVersionModel(BaseModel):
     create_at = Column(DateTime, default=datetime.now, comment="创建日期")
 
     def __repr__(self):
-        return "<ProjectPlanVersion %r>" % self.project
+        return "<ProjectPlanVersion %r>" % self.project.customer
 
     def json(self):
         return {

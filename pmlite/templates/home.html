@@ -3,20 +3,10 @@
 {% block body %}
 <div class="layui-fluid" style="background-color: #f2f2f2; padding: 20px">
     <div class="layui-row layui-col-space15">
-        <div class="layui-col-md6">
-            <div class="layui-card">
-                <div class="layui-card-header">拖期&临期（3天内）项目</div>
-                <div class="layui-card-body">
-                    <table class="layui-hide" id="expected-delay"></table>
-                </div>
-            </div>
-        </div>
-        <div class="layui-col-md6">
-            <div class="layui-card">
-                <div class="layui-card-header"></div>
-                <div class="layui-card-body">
-                    <table class="layui-hide" id="already-delayed"></table>
-                </div>
+        <div class="layui-card">
+            <div class="layui-card-header">拖期&临期（3天内）项目</div>
+            <div class="layui-card-body">
+                <table class="layui-hide" id="expected-delay"></table>
             </div>
         </div>
     </div>
@@ -102,6 +92,7 @@
             height: 300,
             cols: [[
                 {field: 'node_id', title: 'ID', align:'center', hide: true},
+                {field: 'project_number', title: '项目编号', align:'center'},
                 {field: 'project', title: '所属项目', align:'center'},
                 {field: 'node_name', title: '节点名称', align:'center'},
                 {field: 'manager', title: '负责人', align:'center'},

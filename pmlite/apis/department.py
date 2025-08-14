@@ -57,7 +57,6 @@ def department_list_as_treetable():
 @department_api.post('/')
 def department_add():
     data = request.get_json()
-    print(data)
     department = DepartmentModel()
     department.update(data)
     try:

@@ -1,6 +1,6 @@
 import datetime
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from sqlalchemy import desc, or_, func, select
 from flask_sqlalchemy.pagination import Pagination
 from flask_jwt_extended import current_user, jwt_required, get_jwt_identity
@@ -8,8 +8,11 @@ from flask_jwt_extended import current_user, jwt_required, get_jwt_identity
 from ..models import ProjectModel, ProjectNodeModel, ProjectNodeTitleModel, TaskModel, ManHourModel, ProjectPlanVersionModel, ProjectPlanSignatureModel
 from ..extensions import db
 from ..decorators import permission_required
-from ..extensions import EmailService
+from ..extensions.email_service import EmailService
 
+
+from flask_mail import Message
+from ..extensions import mail
 
 project_api = Blueprint("project", __name__, url_prefix="/project")
 
@@ -19,14 +22,31 @@ def email_test():
     result = EmailService.send_email(
         subject='测试邮件',
         recipients=['wangzhongyi@lnmazak.com.cn'],
-        html='<h1>测试邮件</h1>'
+        html='<h1>这是一封测试邮件</h1><P>来自项目管理平台PMS</P>'
     )
-
-    print(result)
+    current_app.logger.info(f"邮件测试结果： {result}")
     return {
+        'code': 0 if result['success'] else -1,
         'msg': 'ok'
     }
 
+@project_api.get('email')
+def email():
+    try:
+        msg = Message(
+            subject='测试邮件',
+            recipients=['wangzhongyi@lnmazak.com.cn'],
+            html='<h1>这是一封测试邮件</h1><P>来自项目管理平台PMS</P>'
+        )
+        mail.send(msg)
+        return {
+            'msg': "ok"
+        }
+    except Exception as e:
+        print(e)
+        return {
+            "msg": "no"
+        }
 
 
 # 获取项目列表，以分页的形式显示
