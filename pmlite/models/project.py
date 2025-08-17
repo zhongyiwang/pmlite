@@ -353,28 +353,28 @@ class ProjectNodeModel(BaseModel):
         if self.parent:
             sub_nodes = self.parent.children
             # 更新父任务的计划开始日期为所有子任务中最早的计划开始日期
-            if any(node.planned_start_date for node in sub_nodes):
+            if all(node.planned_start_date for node in sub_nodes if node.is_used is True):
                 earliest_planned_start = min([node.planned_start_date for node in sub_nodes if node.planned_start_date])
                 self.parent.planned_start_date = earliest_planned_start
             else:
                 self.parent.planned_start_date = None
 
             # 更新父任务的计划结束日期为所有子任务中最晚的计划结束日期
-            if any(node.planned_end_date for node in sub_nodes):
+            if all(node.planned_end_date for node in sub_nodes if node.is_used is True):
                 latest_planned_end = max([node.planned_end_date for node in sub_nodes if node.planned_end_date])
                 self.parent.planned_end_date = latest_planned_end
             else:
                 self.parent.planned_end_date = None
 
             # 更新父任务的实际开始日期为所有子任务中最早的实际开始日期
-            if any(node.actual_start_date for node in sub_nodes):
+            if all(node.actual_start_date for node in sub_nodes if node.is_used is True):
                 earliest_actual_start = min([node.actual_start_date for node in sub_nodes if node.actual_start_date])
                 self.parent.actual_start_date = earliest_actual_start
             else:
                 self.parent.actual_start_date = None
 
             # 更新父任务的实际结束日期为所有子任务中最晚的实际结束日期
-            if any(node.actual_end_date for node in sub_nodes):
+            if all(node.actual_end_date for node in sub_nodes if node.is_used is True):
                 latest_actual_end = max([node.actual_end_date for node in sub_nodes if node.actual_end_date])
                 self.parent.actual_end_date = latest_actual_end
             else:
@@ -439,6 +439,7 @@ class ProjectNodeModel(BaseModel):
                 'project_number': node.project.project_number,
                 'manager_id': node.manager_id if node.manager_id else "",
                 'manager': node.manager.name if node.manager else "",
+                'manager_email': node.manager.email if node.manager else "",
                 'node_id': node.id,
                 'node_name': node.name,
                 'planned_start_date': node.planned_start_date.strftime("%Y-%m-%d") if node.planned_start_date else "",
@@ -448,7 +449,6 @@ class ProjectNodeModel(BaseModel):
             }
             result.append(node_data)
         return result
-
 
     def json(self):
         return {

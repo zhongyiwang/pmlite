@@ -366,7 +366,7 @@
                         // {field: 'customer', title: '客户名称', width:200, align: 'center', edit: 'text', rowspan: 2},
                         {field: 'customer', title: '客户名称 <i class="layui-icon layui-icon-search layui-font-14" lay-event="customer-filter" title="" le="margin-left: 5px;"></i>', minWidth:200, align: 'center', rowspan: 2, fixed: "left"},
                         {field: 'contract', title: '合同编号', minWidth:160, align: 'center', sort:true, rowspan: 2},
-                        {field: 'project_number', title: '项目编号', minWidth:100, align: 'center', sort: true, rowspan: 2},
+                        {field: 'project_number', title: '项目编号', minWidth:110, align: 'center', sort: true, rowspan: 2},
                         {field: 'machine_type', title: '机型', minWidth:120, align: 'center', rowspan: 2},
                         {field: 'is_automation', title: '自动化', minWidth:80, align: 'center', rowspan: 2, templet: render_automation},
                         {field: 'manager', title: '项目经理', minWidth:90, align: 'center', rowspan: 2},
@@ -378,7 +378,7 @@
                         //     let color = 'green';
                         //     return '<div style="width: 10px;height: 10px;border-radius: 50%;background-color:' + color + ';"></div>';
                         //     }},
-                        {title: '操作', fixed: "right", minWidth:300, align:"center", rowspan:2, toolbar: '#tools'}
+                        {title: '操作', fixed: "right", minWidth:200, align:"center", rowspan:2, toolbar: '#tools'}
                         // {field: 'status', title: '完成状态', width:160, align: 'center', edit: true, event: 'status-dropdown', rowspan: 2},
                         // {field: 'progress', title: '完成进度', width:350, align: 'center',templet: render_progress, rowspan: 2},
                     ], [
@@ -1098,7 +1098,7 @@
                     // 根据不同的事件名进行相应的操作
                     switch (obj.event){  // 对应模板元素中的 lay-event 属性值
                         case 'plan_create':
-                            // 后端请求，创建项目计划
+                            // 项目计划表：添加计划按钮事件
                             $.ajax({
                                 method: 'POST',
                                 url: `/api/v1/project/${project_id}/initial_plan_create`,
@@ -1129,6 +1129,7 @@
                             })
                             break;
                         case 'toolbar-set-use':
+                            // 项目计划表：设置有无按钮事件
                             const tableId = obj.config.id;
                             const status = treeTable.checkStatus(tableId)
                             if (!status.data.length) return layer.msg('无选中数据');
@@ -1180,6 +1181,7 @@
                             }
                             break;
                         case "toolbar-audit": {
+                            // 项目计划表：提交审核按钮事件
                             let update = {}
                             update.project_id = project_id
                             update.plan_version = planVersion
@@ -1213,6 +1215,7 @@
                             break;
                         }
                         case "toolbar-plan-approve": {
+                            // 项目计划表：审核通过按钮事件
                             planStatusUpdate({
                                 project_id: currentProject.id,
                                 plan_version: planVersion,
@@ -1221,6 +1224,7 @@
                             break;
                         }
                         case "toolbar-plan-reject": {
+                            // 项目计划表：退回编辑按钮事件
                             planStatusUpdate({
                                 project_id: currentProject.id,
                                 plan_version: planVersion,
@@ -1237,8 +1241,10 @@
                     // 该行可双击的条件：
                     // 1. 不是父节点
                     // 2. 使用该节点
-                    // 3. 项目计划已发布
-                    if (!obj.data.isParent && obj.data.is_used && planStatus === "已发布") {
+                    // 3. 该节点有计划开始和计划结束
+                    // 4. 项目计划已发布
+                    // if (!obj.data.isParent && obj.data.is_used && planStatus === "已发布") {
+                    if (!obj.data.isParent && obj.data.is_used && obj.data.planned_start_date && obj.data.planned_end_date && planStatus === "已发布") {
                         layer.open({
                             type: 1,
                             title: '节点信息',

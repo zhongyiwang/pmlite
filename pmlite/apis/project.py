@@ -4,8 +4,9 @@ from flask import Blueprint, request, jsonify, current_app
 from sqlalchemy import desc, or_, func, select
 from flask_sqlalchemy.pagination import Pagination
 from flask_jwt_extended import current_user, jwt_required, get_jwt_identity
+from apscheduler.triggers.cron import CronTrigger
 
-from ..models import ProjectModel, ProjectNodeModel, ProjectNodeTitleModel, TaskModel, ManHourModel, ProjectPlanVersionModel, ProjectPlanSignatureModel
+from ..models import ProjectModel, ProjectNodeModel, ProjectNodeTitleModel, TaskModel, ManHourModel, ProjectPlanVersionModel, ProjectPlanSignatureModel, RoleModel, UserModel
 from ..extensions import db
 from ..decorators import permission_required
 from ..extensions.email_service import EmailService
@@ -15,6 +16,31 @@ from flask_mail import Message
 from ..extensions import mail
 
 project_api = Blueprint("project", __name__, url_prefix="/project")
+
+
+@project_api.get('/schedule/<int:hour>/<int:minute>')
+# @permission_required('system_admin')
+def email_schedule(hour, minute):
+    nodes = ProjectNodeModel.get_expected_delay()
+    nodes.sort(key=lambda x: x['days'])
+    manager_emails = [node['manager_email'] for node in nodes]
+    # 邮件列表去空去重
+    manager_emails = list({x: None for x in manager_emails if x not in ("", None)}.keys())
+
+    cron_trigger = CronTrigger(hour=hour, minute=minute)
+    result = EmailService.send_scheduled_email(
+        subject='拖期及临期项目提醒',
+        recipients=manager_emails,
+        html='<h3>你有拖期或即将临期的项目，请及时登录系统查看。</h3><P>来自项目管理平台PMS</P>',
+        trigger=cron_trigger,
+        job_id='daily_report'
+    )
+    print(result)
+    return jsonify({
+        'code': 0 if result['success'] else -1,
+        'msg': result['message'],
+        'next_run_time': result['next_run_time']
+    })
 
 
 @project_api.get('/email_test')
@@ -96,13 +122,13 @@ def project_view_treetable():
 @permission_required('project_create')
 def project_create():
     data = request.get_json()
+    print(data)
     project = ProjectModel()
     project.update(data)
     project.creator = current_user  # 绑定创建者
     try:
         project.save()
-        # project.add_initial_plan()  # 创建初版的项目计划
-        # project.add_initial_plan_version()  # 创建1个项目计划版本
+
     except Exception as e:
         print(e)
         return {
@@ -120,11 +146,14 @@ def project_create():
 @permission_required('project_update')
 def project_edit(pid):
     data = request.get_json()
+    # print(data)
     project = db.get_or_404(ProjectModel, pid)
     project.update(data)
     try:
         project.save()
+
     except Exception as e:
+        print(e)
         return {
             'code': -1,
             'msg': '修改数据失败'
@@ -173,12 +202,13 @@ def project_delete(pid):
 @permission_required('project_admin')
 def project_info_audit(project_id):
     data = request.get_json()
-    print(data['event'])
+    print(data)
     project = db.get_or_404(ProjectModel, project_id)
     try:
         project.info_audit(data['event'])  # 评审操作
-        # if data["event"] == "approve":  # 评审通过，创建计划
-        #     project.plan_create()
+        if data["event"] == "approve":
+            # 项目信息评审通过，发送邮件给项目经理提供创建项目计划
+            project_created_email(project_id)
     except Exception as e:
         print(e)
         return {
@@ -576,17 +606,17 @@ def set_node_use():
         }
     for node in nodes:
         node.is_used = is_used
-        # 设置节点【无】时，清空当前节点的日期，并更新父节点信息
+        # 设置节点【无】时，清空当前节点的日期
         if not is_used:
             node.planned_start_date = None
             node.planned_end_date = None
             node.actual_start_date = None
             node.actual_end_date = None
             node.calculate_period()
-            node.update_parent_node()
-
         else:  # 子节点设置【有】是，父节点页设置为【有】
             node.parent.is_used = True
+        # 无论设置有无，均更新父节点信息
+        node.update_parent_node()
         node.save()
 
     return {
@@ -775,19 +805,20 @@ def plan_version_update(plan_version_id):
 @project_api.put('/plan_version/status_update')
 def plan_version_status_update():
     data = request.get_json()
+    print(data)
     project_id = data['project_id']
-    plan_version = data['plan_version']
+    version = data['plan_version']
     status = data['status']
     project = db.get_or_404(ProjectModel, project_id)
 
-    if not project_id or not plan_version :
+    if not project_id or not version :
         return {
             'code': -1,
             'msg': '无项目id或计划版本。'
         }
     plan_version = ProjectPlanVersionModel.query.filter(
         ProjectPlanVersionModel.project_id == project_id,
-        ProjectPlanVersionModel.plan_version == plan_version
+        ProjectPlanVersionModel.plan_version == version
     ).first()
     if not plan_version:
         return {
@@ -804,6 +835,9 @@ def plan_version_status_update():
         plan_version.status = status
         plan_version.save()
         project.save()
+        # 当项目计划状态变更为已提交时，发送邮件提醒项目经理进行计划评审
+        if status == "已提交":
+            project_plan_created_email(project_id, version)
     except Exception as e:
         return {
             'code': -1,
@@ -840,9 +874,6 @@ def plan_version_delete(plan_version_id):
     }
 
 
-
-
-
 # 项目计划签章
 @project_api.get('/plan_signature')
 def project_plan_signature_view():
@@ -857,4 +888,61 @@ def project_plan_signature_view():
         'msg': '信息查询成功！',
         'count': pages.total,
         'data': [item.json() for item in pages.items]
+    }
+
+
+# 新建项目评审通过提醒：提醒项目经理创建项目计划
+def project_created_email(project_id):
+    project = db.get_or_404(ProjectModel, project_id)
+
+    result = EmailService.send_email(
+        subject=f'新项目提醒-{project.customer}({project.project_number})',
+        recipients=[project.manager.email],
+        html=f'<h3>项目：{project.customer}({project.project_number})已创建，请创建项目计划。</h3><P>来自项目管理平台PMS</P>'
+    )
+    current_app.logger.info(f"邮件测试结果： {result}")
+    return {
+        'code': 0 if result['success'] else -1,
+        'msg': 'ok'
+    }
+
+
+# 项目计划提交提醒：提醒项目管理员评审项目计划
+def project_plan_created_email(project_id, plan_version):
+    project = db.get_or_404(ProjectModel, project_id)
+    print(project)
+
+    # 项目管理员
+    stmt = select(RoleModel).where(RoleModel.name == 'project_admin')
+    project_managers = db.session.execute(stmt).scalar().users
+    project_manager_emails = [manager.email for manager in project_managers if manager.email]
+    # print(project_manager_emails)
+
+    # try:
+    #     msg = Message(
+    #         subject=f'新项目计划提醒-{project.customer}({project.project_number})',
+    #         recipients=project_manager_emails,
+    #         html=f'<h3>项目：{project.customer}({project.project_number})的项目计划(版本:{plan_version})已提交，请及时审核。</h3><P>来自项目管理平台PMS</P>'
+    #     )
+    #     mail.send(msg)
+    #     return {
+    #         'code': 0,
+    #         'msg': "操作成功"
+    #     }
+    # except Exception as e:
+    #     print(e)
+    #     return {
+    #         'code': -1,
+    #         "msg": "操作失败，请联络管理员。"
+    #     }
+
+    result = EmailService.send_email(
+        subject=f'新项目计划提醒-{project.customer}({project.project_number})',
+        recipients=project_manager_emails,
+        html=f'<h3>项目：{project.customer}({project.project_number})的项目计划(版本:{plan_version})已提交，请及时审核。</h3><P>来自项目管理平台PMS</P>'
+    )
+    current_app.logger.info(f"邮件测试结果： {result}")
+    return {
+        'code': 0 if result['success'] else -1,
+        'msg': 'ok'
     }
