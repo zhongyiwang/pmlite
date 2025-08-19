@@ -39,8 +39,11 @@ def email_schedule(hour, minute):
     return jsonify({
         'code': 0 if result['success'] else -1,
         'msg': result['message'],
-        'next_run_time': result['next_run_time']
+        # 'next_run_time': result['next_run_time']
     })
+
+
+
 
 
 @project_api.get('/email_test')
@@ -638,6 +641,27 @@ def node_expected_delay():
         "message": "数据请求成功！",
         "data": nodes
     }
+
+
+# 项目节点：拖期&临期（3天内到期）项目，给负责人发送邮件
+# 通过ubuntu系统执行定时任务
+@project_api.get('node/email_delay')
+def node_email_delay():
+    nodes = ProjectNodeModel.get_expected_delay()
+    nodes.sort(key=lambda x: x['days'])
+    manager_emails = [node['manager_email'] for node in nodes]
+    # 邮件列表去空去重
+    manager_emails = list({x: None for x in manager_emails if x not in ("", None)}.keys())
+
+    result = EmailService.send_email(
+        subject='拖期及临期项目提醒',
+        recipients=manager_emails,
+        html='<h3>你有拖期或即将临期的项目，请及时登录系统查看。</h3><P>来自项目管理平台PMS</P>'
+    )
+    return jsonify({
+        'code': 0 if result['success'] else -1,
+        'msg': result['message'],
+    })
 
 # 项目节点标题
 # 获取项目节点标题，已树状表格显示

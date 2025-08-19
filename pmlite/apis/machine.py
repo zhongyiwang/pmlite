@@ -9,10 +9,16 @@ from ..extensions import db
 machine_api = Blueprint("machine", __name__, url_prefix="/machine")
 
 
-# 获取用户列表
+# 获取机型列表
 @machine_api.route('/')
 def machine_view():
-    machine_list = db.session.execute(db.select(MachineTypeModel)).scalars().all()
+    # page = request.args.get('page', type=int, default=1)
+    # per_page = request.args.get('limit', type=int, default=10)
+    # 构建查询，并按照机型名称排序
+    q = db.select(MachineTypeModel).order_by(MachineTypeModel.name)
+    # pages: Pagination = db.paginate(q, page=page, per_page=per_page)
+
+    machine_list = db.session.execute(q).scalars().all()
     return {
         'code': 0,
         'msg': '信息查询成功',
