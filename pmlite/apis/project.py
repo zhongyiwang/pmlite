@@ -43,9 +43,6 @@ def email_schedule(hour, minute):
     })
 
 
-
-
-
 @project_api.get('/email_test')
 def email_test():
     result = EmailService.send_email(
@@ -58,6 +55,7 @@ def email_test():
         'code': 0 if result['success'] else -1,
         'msg': 'ok'
     }
+
 
 @project_api.get('email')
 def email():
@@ -300,6 +298,14 @@ def project_automation_view():
         'data': ret
         # 'data': [item.json() for item in projects.items]
     }
+
+
+@project_api.get('/<int:project_id>/get_unit_from_bom')
+def get_unit_from_bom(project_id):
+
+    project = db.get_or_404(ProjectModel, project_id)
+    bom_number = project.bom_number
+    print(bom_number)
 
 
 # 获取项目的任务列表
@@ -617,9 +623,11 @@ def set_node_use():
             node.actual_end_date = None
             node.calculate_period()
         else:  # 子节点设置【有】是，父节点页设置为【有】
-            node.parent.is_used = True
-        # 无论设置有无，均更新父节点信息
-        node.update_parent_node()
+            if node.parent:
+                node.parent.is_used = True
+        # 无论设置有无，均更新父节点的日期信息
+        if node.parent:
+            node.update_parent_node()
         node.save()
 
     return {

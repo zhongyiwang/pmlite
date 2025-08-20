@@ -352,6 +352,16 @@ class ProjectNodeModel(BaseModel):
     def update_parent_node(self):
         if self.parent:
             sub_nodes = self.parent.children
+            if len([node for node in sub_nodes if node.is_used is True]) == 0:
+                self.parent.is_used = False
+                self.parent.planned_start_date = None
+                self.parent.planned_end_date = None
+                self.parent.actual_start_date = None
+                self.parent.actual_end_date = None
+                self.parent.calculate_period()
+                db.session.commit()
+                return
+
             # 更新父任务的计划开始日期为所有子任务中最早的计划开始日期
             if all(node.planned_start_date for node in sub_nodes if node.is_used is True):
                 earliest_planned_start = min([node.planned_start_date for node in sub_nodes if node.planned_start_date])

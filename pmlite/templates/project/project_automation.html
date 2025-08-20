@@ -472,20 +472,20 @@
         }
     }
 
-    // 进度条
-    function render_progress(d){
-        let ys = ''
-        // ys = 'layui-bg-orange'
-        if(30<d.progress && d.progress<100){
-            ys = 'layui-bg-orange'
-        }else if(0<d.progress && d.progress<=30){
-            ys = 'layui-bg-red'
-        }
-        // return '<div class="layui-progress layui-progress-big" lay-showpercent="true"><div class="layui-progress-bar '+ys+'" lay-percent="' +d.progress+'%"></div></div><br>'
-        return '<div class="layui-progress layui-progress-big" lay-showpercent="true"><div class="layui-progress-bar '+ys+'" lay-percent="' +50+'%"></div></div>'
-
-        // return '<div class="layui-progress layui-progress-big"><div class="layui-progress-bar layui-bg-blue" lay-percent="75%"></div></div>'
-    }
+    // // 进度条
+    // function render_progress(d){
+    //     let ys = ''
+    //     // ys = 'layui-bg-orange'
+    //     if(30<d.progress && d.progress<100){
+    //         ys = 'layui-bg-orange'
+    //     }else if(0<d.progress && d.progress<=30){
+    //         ys = 'layui-bg-red'
+    //     }
+    //     // return '<div class="layui-progress layui-progress-big" lay-showpercent="true"><div class="layui-progress-bar '+ys+'" lay-percent="' +d.progress+'%"></div></div><br>'
+    //     return '<div class="layui-progress layui-progress-big" lay-showpercent="true"><div class="layui-progress-bar '+ys+'" lay-percent="' +50+'%"></div></div>'
+    //
+    //     // return '<div class="layui-progress layui-progress-big"><div class="layui-progress-bar layui-bg-blue" lay-percent="75%"></div></div>'
+    // }
 
     // 获取登录时保存的用户id
     const user_id = localStorage.getItem('user_id')
@@ -580,6 +580,7 @@
                     ]
                 ],
             done: function (res, curr, count){
+                console.log(res)
                 let options = this;
                 // 获取当前行数据 - 自定义方法
                 table.getRowData = function(tableId, elem){
@@ -1017,8 +1018,8 @@
             }
         });
 
-        // 行双击事件( 单击事件为: row )
-        table.on('rowDouble(project-table)', function (obj){
+        // 行双击事件( 单击事件为: row ) 弃用
+        table.on('rowDouble(project-table1)', function (obj){
             console.log(obj.data)
             let project_id = obj.data.id
             let plan_version = obj.data.plan_version
