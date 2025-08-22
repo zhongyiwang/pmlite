@@ -43,6 +43,23 @@ def email_schedule(hour, minute):
     })
 
 
+@project_api.get('<int:pid>/stage')
+def get_stage(pid):
+    node = ProjectNodeModel.query.filter(
+        ProjectNodeModel.project_id == pid,
+        ProjectNodeModel.version == 1,
+        ProjectNodeModel.parent == None,
+        ProjectNodeModel.actual_end_date.isnot(None)
+    ).order_by(desc(ProjectNodeModel.node_id)).first()
+    if node:
+        print(node.name)
+    else:
+        print('未执行')
+    return {
+        'msg': 'ok'
+    }
+
+
 @project_api.get('/email_test')
 def email_test():
     result = EmailService.send_email(

@@ -1,6 +1,6 @@
 from datetime import datetime, date, timedelta
 from pmlite.extensions import db
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean, Text, Enum, select, func, or_, and_
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Boolean, Text, Enum, select, func, or_, and_, desc
 
 from ._base import BaseModel, StatusEnum, LineTypeEnum
 from .machine import MachineTypeModel
@@ -13,7 +13,7 @@ class ProjectModel(BaseModel):
     project_number = Column(String(10), comment='项目编号')
     bom_number = Column(String(10), comment='BOM编码')
 
-    contract = Column(String(20), comment='合同编号')
+    contract = Column(String(200), comment='合同编号')
     workpiece = Column(String(20), comment='工件名称')
     isAudited = Column(Boolean, default=False, comment='项目信息审核')
 
@@ -107,7 +107,8 @@ class ProjectModel(BaseModel):
             "creator_id": self.creator_id,
             # "plan_version": self.plan_version,
             "plan_version": self.get_max_version(),
-            "plan_status": self.get_plan_status()
+            "plan_status": self.get_plan_status(),
+            "current_stage": self.get_current_stage()
             # "is_released": self.is_released()
         }
 
@@ -272,6 +273,43 @@ class ProjectModel(BaseModel):
     def get_nodes(self):
         pass
 
+    def get_current_stage(self):
+        # print(self.get_plan_status())
+        if self.get_plan_status() != "已发布":
+            return "计划阶段"
+        q = ProjectNodeModel.query.filter(
+            ProjectNodeModel.project_id == self.id,
+            ProjectNodeModel.version == self.get_max_version(),
+        )
+        # 图纸下发阶段
+        stage1 = q.filter(ProjectNodeModel.node_id == 16).first()
+        # 生产阶段
+        stage2 = q.filter(ProjectNodeModel.node_id == 27).first()
+        # 预验收阶段
+        stage3 = q.filter(ProjectNodeModel.node_id == 37).first()
+        # 发货阶段
+        stage4 = q.filter(ProjectNodeModel.node_id == 47).first()
+        if stage1.actual_end_date == None:
+            return "设计阶段"
+        if stage1.actual_end_date != None and stage2.actual_end_date == None:
+            return "生产阶段"
+        if stage2.actual_end_date != None and stage3.actual_end_date == None:
+            return "预验收阶段"
+        if stage3.actual_end_date != None and stage4.actual_end_date == None:
+            return "发货阶段"
+        if stage4.actual_end_date != None:
+            return "已发货"
+        # node = ProjectNodeModel.query.filter(
+        #     ProjectNodeModel.project_id == self.id,
+        #     ProjectNodeModel.version == self.get_max_version(),
+        #     ProjectNodeModel.parent == None,
+        #     ProjectNodeModel.actual_end_date.isnot(None)
+        # ).order_by(desc(ProjectNodeModel.node_id)).first()
+        # if node:
+        #     return node.name
+        # else:
+        #     return "合同阶段"
+
 
 # 项目状态模型
 class ProjectStatusModel(BaseModel):
@@ -363,7 +401,7 @@ class ProjectNodeModel(BaseModel):
                 return
 
             # 更新父任务的计划开始日期为所有子任务中最早的计划开始日期
-            if all(node.planned_start_date for node in sub_nodes if node.is_used is True):
+            if any(node.planned_start_date for node in sub_nodes if node.is_used is True):
                 earliest_planned_start = min([node.planned_start_date for node in sub_nodes if node.planned_start_date])
                 self.parent.planned_start_date = earliest_planned_start
             else:
@@ -377,7 +415,7 @@ class ProjectNodeModel(BaseModel):
                 self.parent.planned_end_date = None
 
             # 更新父任务的实际开始日期为所有子任务中最早的实际开始日期
-            if all(node.actual_start_date for node in sub_nodes if node.is_used is True):
+            if any(node.actual_start_date for node in sub_nodes if node.is_used is True):
                 earliest_actual_start = min([node.actual_start_date for node in sub_nodes if node.actual_start_date])
                 self.parent.actual_start_date = earliest_actual_start
             else:

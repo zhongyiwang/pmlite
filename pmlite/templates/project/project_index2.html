@@ -276,7 +276,7 @@
         const statusMap = {
             '待提交': '<span class="layui-badge layui-bg-gray">待提交</span>',
             '已提交': '<span class="layui-badge layui-bg-blue">已提交</span>',
-            '已审核': '<span class="layui-badge layui-bg-green">已审核</span>',
+            '已审核': '<span class="layui-badge layui-bg-green">已登录</span>',
             '执行中': '<span class="layui-badge layui-bg-orange">执行中</span>',
             '已完成': '<span class="layui-badge layui-bg-red">已完成</span>'
         };
@@ -289,6 +289,15 @@
             return '自动化'
         } else {
             return '否'
+        }
+    }
+
+    function render_contract(d){
+        const value = d.contract || ""
+        if(value.includes(',')){
+            return value.split(',').join('<br>')
+        } else {
+            return value
         }
     }
 
@@ -360,37 +369,18 @@
                 ].join(''),
             cols: [
                     [
-                        // 一级表头
                         {field: 'id', title: 'ID', width:50, align: 'center', rowspan: 2, hide:true, fixed: "left"},
-                        // {field: 'name', title: '项目名称', width:160, align: 'center', rowspan: 2},
-                        // {field: 'customer', title: '客户名称', width:200, align: 'center', edit: 'text', rowspan: 2},
-                        {field: 'customer', title: '客户名称 <i class="layui-icon layui-icon-search layui-font-14" lay-event="customer-filter" title="" le="margin-left: 5px;"></i>', minWidth:200, align: 'center', rowspan: 2, fixed: "left"},
-                        {field: 'contract', title: '合同编号', minWidth:160, align: 'center', sort:true, rowspan: 2},
-                        {field: 'project_number', title: '项目编号', minWidth:110, align: 'center', sort: true, rowspan: 2},
-                        {field: 'machine_type', title: '机型', minWidth:120, align: 'center', rowspan: 2},
-                        {field: 'is_automation', title: '自动化', minWidth:80, align: 'center', rowspan: 2, templet: render_automation},
-                        {field: 'manager', title: '项目经理', minWidth:90, align: 'center', rowspan: 2},
-                        {field: 'status', title: '项目状态', minWidth:90, align: 'center', rowspan: 2, templet: render_status},
-                        // {field: 'arrival_date', title: '要求到货日期', width:160, align: 'center', rowspan: 2},
-                        // {title: '交货期', align: 'center', colspan: 2},
-                        {title: '设计担当', align: 'center', colspan: 4},
-                        // {field: 'stage1', title: '设计阶段', align: 'center', rowspan: 2, templet: function (d){
-                        //     let color = 'green';
-                        //     return '<div style="width: 10px;height: 10px;border-radius: 50%;background-color:' + color + ';"></div>';
-                        //     }},
-                        {title: '操作', fixed: "right", minWidth:200, align:"center", rowspan:2, toolbar: '#tools'}
-                        // {field: 'status', title: '完成状态', width:160, align: 'center', edit: true, event: 'status-dropdown', rowspan: 2},
-                        // {field: 'progress', title: '完成进度', width:350, align: 'center',templet: render_progress, rowspan: 2},
-                    ], [
-                            // 二级表头
-                            // {field: 'drawing_date1', title: '出图11', width:160, align: 'center', edit: true, event: 'date'},
-                            // {field: 'drawing_date2', title: '出图2', width:160, align: 'center', event: 'date'},
-                            {field: 'm_designer', minWidth:100, title: '机械', align: 'center'},
-                            {field: 'e_designer', minWidth:100, title: '电气',  align: 'center'},
-                            {field: 'am_designer', minWidth:100, title: '自动化', align: 'center'},
-                            {field: 'ae_designer', minWidth:100, title: '自动化电气', align: 'center'},
+                        {field: 'customer', title: '客户名称 <i class="layui-icon layui-icon-search layui-font-14" lay-event="customer-filter" title="" le="margin-left: 5px;"></i>', minWidth:200, align: 'center', fixed: "left"},
+                        {field: 'contract', title: '合同编号', minWidth:160, align: 'center', templet: render_contract},
+                        {field: 'project_number', title: '项目编号', minWidth:110, align: 'center', sort: true},
+                        {field: 'machine_type', title: '机型', minWidth:120, align: 'center'},
+                        {field: 'is_automation', title: '自动化', minWidth:80, align: 'center', templet: render_automation},
+                        {field: 'manager', title: '项目经理', minWidth:90, align: 'center'},
+                        {field: 'status', title: '项目状态', minWidth:90, align: 'center', templet: render_status},
+                        {field: 'current_stage', title: '当前阶段', minWidth:90, align: 'center'},
+                        {title: '操作', fixed: "right", minWidth:200, align:"center", toolbar: '#tools'}
 
-                        ]
+                    ]
                 ],
             done: function (res, curr, count){
                 let options = this;
@@ -1008,7 +998,8 @@
                             // 1. 当前登录用户不是项目经理
                             // 2. 计划处于非【待提交】状态
                             // 3. 单机行为父节点
-                            if (auth.getUserInfo().id != currentProject.manager_id || planStatus != "待提交"  || obj.data.isParent) {
+                            // 4. 该节点没使用
+                            if (auth.getUserInfo().id != currentProject.manager_id || planStatus != "待提交"  || obj.data.isParent || !obj.data.is_used) {
                                 return
                             }
 
