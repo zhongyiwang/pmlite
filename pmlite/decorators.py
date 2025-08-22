@@ -1,9 +1,11 @@
 from flask import jsonify
 from functools import wraps
+from sqlalchemy import select
 from flask import abort
 # from .models import PermissionModel
 from flask_jwt_extended import jwt_required, current_user, get_jwt_identity, verify_jwt_in_request
 from .models import UserModel, PermissionModel
+from .extensions import db
 
 
 def permission_required(permission_name):
@@ -22,18 +24,12 @@ def permission_required(permission_name):
     return decorator
 
 
-# def admin_required(func):
-#     return permission_required(Permission.ADMIN)(func)
+# 视图函数内部检查权限
+def has_permission(permission_name):
+    if not current_user or not current_user.role:
+        return False
 
+    stmt = select(PermissionModel).where(PermissionModel.name == permission_name)
+    permission = db.session.execute(stmt).scalar_one_or_none()
 
-def has_permission(permission):
-    def decorator(func):
-        @jwt_required()
-        def wrapper(*args, **kwargs):
-            user_id = get_jwt_identity()
-            user = UserModel.query.get(user_id)
-            if not user or not user.role or permission not in user.role.permissions.split(','):
-                return jsonify({"msg": "没有权限"}), 403
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
+    return permission is not None and permission in current_user.role.permissions

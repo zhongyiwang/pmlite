@@ -31,10 +31,11 @@
 </form>
 
 <script>
-    layui.use(function () {
+    layui.use(['auth'], function () {
         let form = layui.form;
         let layer = layui.layer
         let $ = layui.jquery;
+        let auth = layui.auth;
 
         // 给默认的ajax请求添加权限
         $.ajaxSetup({
@@ -46,48 +47,33 @@
         // 提交事件
         form.on('submit', function (data) {
             let field = data.field
-            let userId = 0
             if (field.password === field.password1) {
-                // 获取当前登录用户id
+                let userId = auth.getUserInfo().id
                 $.ajax({
-                    type: "GET",
-                    url: "/api/v1/user/profile",
-                    async: false,
+                    url: `/api/v1/user/${userId}`,
+                    type: "PUT",
+                    data: JSON.stringify({"password": field.password}),
+                    contentType: "application/json",
                     success: function (res){
-                        if (res.code === 0){
-                            console.log(res)
-                            userId = res.data.id
+                        if (res.code ===0) {
+                            localStorage.removeItem("access_token");
+                            localStorage.removeItem("refresh_token");
+                            layer.msg(res.msg, {
+                                icon:1,
+                                time: 1000
+                            }, function (){
+                                top.location.href = "/user/login";  // 整体框架刷新
+
+                            })
+                        }else{
+                            layer.msg(res.msg, {
+                                icon: 2,
+                                time: 1000
+                            })
                         }
-                    }
+
+                    },
                 })
-                console.log("userId = " + userId)
-                if (userId) {
-                    $.ajax({
-                        url: `/api/v1/user/${userId}`,
-                        type: "PUT",
-                        data: JSON.stringify({"password": field.password}),
-                        contentType: "application/json",
-                        success: function (res){
-                            if (res.code ===0) {
-                                localStorage.removeItem("access_token");
-                                localStorage.removeItem("refresh_token");
-                                layer.msg(res.msg, {
-                                    icon:1,
-                                    time: 1000
-                                }, function (){
-                                    top.location.href = "/user/login";  // 整体框架刷新
-
-                                })
-                            }else{
-                                layer.msg(res.msg, {
-                                    icon: 2,
-                                    time: 1000
-                                })
-                            }
-
-                        },
-                    })
-                }
 
 
             } else {

@@ -7,7 +7,7 @@ from flask_jwt_extended import current_user, jwt_required
 
 from ..models import TaskModel, TaskTypeModel, ManHourModel, DepartmentModel, UserModel
 from ..extensions import db
-from pmlite.decorators import permission_required
+from pmlite.decorators import permission_required, has_permission
 
 task_api = Blueprint("task", __name__, url_prefix="/task")
 
@@ -297,85 +297,6 @@ def task_list_as_treetable():
     }
 
 
-'''
-# 获取任务列表，以树状表格显示
-@task_api.get("/treetable")
-@jwt_required()
-@permission_required(Permission.TASK)
-def task_list_as_treetable():
-    print('api_url', request.url, request.args)
-    date_start = request.args.get('start')
-    date_end = request.args.get('end')
-    user_id = request.args.get('user_id')
-    project_id = request.args.get('project_id')
-    status = request.args.get('status')
-    department_id = request.args.get('department_id')
-    if department_id:
-        user_id = None
-
-    query = request.args.get('query')
-    # q = db.select(TaskModel)
-    q = db.select(TaskModel).order_by(desc(TaskModel.id))
-
-    if query == "uncompleted":
-        q = q.where(TaskModel.status != "已完成")
-    if query == "own":
-        q = q.where(TaskModel.owner == current_user)
-    if query == "create":
-        q = q.where(TaskModel.creator == current_user)
-
-    if project_id:
-        q = q.where(TaskModel.project_id == project_id)
-    if user_id:
-        q = q.where(TaskModel.owner_id == user_id)
-    if status and status == 'completed':
-        q = q.where(TaskModel.status == "已完成")
-    if status and status == 'uncompleted':
-        q = q.where(TaskModel.status != "已完成")
-    if date_start:
-        q = q.where(TaskModel.planned_end_date >= date_start)
-    if date_end:
-        q = q.where(TaskModel.planned_end_date <= date_end)
-
-    if department_id:
-        user_list = []
-        users = db.session.execute(db.select(UserModel).where(UserModel.department_id == department_id)).scalars().all()
-        for user in users:
-            user_list.append(user.id)
-        q = q.where(TaskModel.owner_id.in_(user_list))
-
-    print(q)
-
-    task_list = db.session.execute(q).scalars().all()
-
-    ret = []
-    for child in task_list:
-        child_data = child.json()
-
-        child_data["children"] = []
-        if child.children:
-            child_data["isParent"] = True
-            if query == "uncompleted" or status == 'uncompleted':
-                child.children = list(filter(lambda x: x.status != '已完成', child.children))
-            for son in child.children:
-                try:
-                    task_list.remove(son)
-                except:
-                    pass
-                finally:
-                    son_data = son.json()
-
-                    child_data['children'].append(son_data)
-        ret.append(child_data)
-    return {
-        "code": 0,
-        "message": "数据请求成功！",
-        "count": '',
-        "data": ret
-    }
-'''
-
-
 # 获取任务类型列表
 @task_api.route('/types')
 def task_type_list():
@@ -453,15 +374,22 @@ def task_edit(tid):
 
 # 删除任务
 @task_api.delete('/<int:tid>')
+@permission_required('task_delete')
 @jwt_required()
 def task_delete(tid):
     task: TaskModel = db.get_or_404(TaskModel, tid)
-    if task.creator.name == current_user.name:
+    if task.children:
+        # 父任务无法删除
+        return {
+            'code': -1,
+            'msg': "请删除子任务后尝试。"
+        }
+    if task.creator.name == current_user.name or has_permission('system_admin'):
+        # 系统管理员可以删除任务
+        # 有权限用户可以删除自己创建的任务
         try:
             pass
             db.session.delete(task)
-            # update_task_planned_man_hours(task)
-            # db.session.commit()
             task.update_parent_date()  # 更新父任务的日期
             task.update_parent_planned_work_hours()  # 更新父任务的计划工时
             task.update_actual_work_hours()  # 更新任务及父任务的实际工时

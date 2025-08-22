@@ -795,6 +795,15 @@
                                     time: 1500,
                                 });
                             }
+                        },
+                        // 无权限时的异常处理
+                        error: function (xhr, status, error) {
+                            if (xhr.status === 403) {
+                                layer.msg(xhr.responseJSON.msg, {
+                                    icon: 2,
+                                    time: 1500
+                                })
+                            }
                         }
                     })
                     layer.close(index);
